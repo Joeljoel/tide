@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '0.16.0';
+  window.__TIDE_BUILD__ = '0.17.0';
   // Input capabilities determine the desktop mode; width alone cannot distinguish
   // an unfolded Duo from a laptop. Folded and unfolded landscape retain the rail.
   // Unfolded portrait gets a floating bottom control group.
@@ -18,8 +18,8 @@
     const slot=document.getElementById('landscapeControlsSlot');
     const home=document.getElementById('controlsHome');
     if(controls && slot && home){
-      if(duoLandscape && controls.parentElement!==slot)slot.appendChild(controls);
-      else if(!duoLandscape && controls.parentElement===slot)home.after(controls);
+      if((duoLandscape || desktop) && controls.parentElement!==slot)slot.appendChild(controls);
+      else if(!(duoLandscape || desktop) && controls.parentElement===slot)home.after(controls);
     }
     document.body.classList.toggle('duo-standalone',!!standalone);
     const editing=document.activeElement?.matches?.('input,textarea,[contenteditable=true]');
@@ -36,14 +36,15 @@
     // Stretch only when a second browser-provided metric confirms the extra space.
     // Never guess based on a hardcoded Duo screen size, since folding changes it.
     const gap=allowed?Math.round(fullHeight-window.innerHeight):0;
-    document.documentElement.style.setProperty('--pwa-bottom-gap',gap+'px');
+    document.documentElement.style.setProperty('--pwa-bottom-gap',(allowed&&gap<1?82:gap)+'px');
     const rootHeight=document.documentElement.getBoundingClientRect().height;
     const bodyHeight=document.body.getBoundingClientRect().height;
     const cssCandidate=Math.max(rootHeight,bodyHeight,window.innerHeight,document.documentElement.clientHeight);
     // Large viewport units occasionally exceed dynamic ones during a PWA pose transition.
     const lvProbe=document.getElementById('tideLargeViewportProbe');
     const largeViewport=lvProbe?.getBoundingClientRect().height||0;
-    const shellHeight=allowed?Math.max(cssCandidate,fullHeight,largeViewport):cssCandidate;
+    const portraitHeaderTrial=allowed&&fullHeight<=window.innerHeight+1?82:0;
+    const shellHeight=allowed?Math.max(cssCandidate,fullHeight,largeViewport,window.innerHeight+portraitHeaderTrial):cssCandidate;
     document.documentElement.style.setProperty('--tide-shell-height',Math.round(shellHeight)+'px');
     // Keep keyboard calculations separate from the physical-screen gap.
     const covered=vv && vv.scale===1 ? Math.max(0,window.innerHeight-(vv.height+vv.offsetTop)) : 0;
@@ -52,7 +53,7 @@
     const diagnostics=document.getElementById('viewportDiagnostics');
     if(diagnostics){
       diagnostics.hidden=new URLSearchParams(location.search).get('viewport')!=='1';
-      if(!diagnostics.hidden) diagnostics.textContent=`Tide viewport · ${desktop?'desktop':duoPortrait?'Duo portrait':'rail'}\nscreen ${screen.width}×${screen.height} · avail ${screen.availHeight} · outer ${outerHeight}\ninner ${innerWidth}×${innerHeight} · doc ${document.documentElement.clientHeight}\nvisual ${Math.round(vv?.width||0)}×${Math.round(vv?.height||0)} + ${Math.round(vv?.offsetTop||0)}\nstandalone ${standalone} · gap ${gap} · root ${Math.round(rootHeight)} · body ${Math.round(bodyHeight)} · large ${Math.round(largeViewport)} · shell ${Math.round(document.getElementById('app')?.getBoundingClientRect().height||0)}`;
+      if(!diagnostics.hidden) diagnostics.textContent=`Tide viewport · ${desktop?'desktop':duoPortrait?'Duo portrait':'rail'}\nscreen ${screen.width}×${screen.height} · avail ${screen.availHeight} · outer ${outerHeight}\ninner ${innerWidth}×${innerHeight} · doc ${document.documentElement.clientHeight}\nvisual ${Math.round(vv?.width||0)}×${Math.round(vv?.height||0)} + ${Math.round(vv?.offsetTop||0)}\nstandalone ${standalone} · gap ${gap} · root ${Math.round(rootHeight)} · body ${Math.round(bodyHeight)} · large ${Math.round(largeViewport)} · trial ${portraitHeaderTrial} · shell ${Math.round(document.getElementById('app')?.getBoundingClientRect().height||0)}`;
     }
   };
   window.addEventListener('resize',syncDeviceGeometry,{passive:true});
@@ -264,6 +265,13 @@
     render();
   }
   function selectTorrent(hash){
+    if(state.detailOpen && (document.body.classList.contains('tide-desktop') || document.body.classList.contains('tide-duo-landscape'))){
+      if(hash!==state.selected || state.selection.size!==1){
+        state.selection=new Set([hash]);state.selected=hash;state.files=[];state.collapsedFolders.clear();
+        openDetails(hash);
+      }
+      return;
+    }
     if(state.detailOpen)closeDetail();
     if(state.selection.has(hash))state.selection.delete(hash);else state.selection.add(hash);
     state.selected=state.selection.has(hash)?hash:(currentHashes().at(-1)||null);

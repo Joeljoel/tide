@@ -1693,3 +1693,50 @@ body.tide-duo-portrait .action-rail[data-mode="detail"] .rail-buttons {gap:9px !
 body.duo-standalone.tide-duo-portrait .shell {
   height:max(var(--tide-shell-height,100dvh),100lvh) !important;
 }
+
+
+/* Tide v0.17 — shared filter strip, stable split views and a portrait-height trial. */
+/* Keep the filter row fixed in place above both panes, as on Duo landscape. */
+body.tide-desktop .landscape-controls-slot {
+  display:flex !important;align-items:center;flex:0 0 auto;min-height:61px;
+  padding:11px 24px 10px;border-bottom:1px solid rgba(232,247,255,.08);
+}
+body.tide-desktop .landscape-controls-slot .controls {
+  width:100% !important;margin:0 !important;
+}
+body.tide-desktop .list-panel {padding-top:15px !important;}
+body.tide-desktop .shell.detail-open .layout,
+body.tide-desktop .layout {flex:1 1 0 !important;min-height:0 !important;height:auto !important;}
+/* Prefer four compact columns in the full desktop viewport, and preserve as many
+   columns as fit when Details opens. Never force a single column. */
+body.tide-desktop .torrent-list {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,305px),1fr)) !important;
+}
+body.tide-desktop .shell.detail-open .layout {
+  grid-template-columns:minmax(0,1.65fr) minmax(0,1fr) !important;
+}
+body.tide-desktop .shell.detail-open .torrent-list {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,305px),1fr)) !important;
+}
+/* Old compact detail overlays set top:74px!important even on wide split panes.
+   Reset it for BOTH desktop and Duo landscape, including the mobile-open class. */
+@media(min-width:850px){
+  body.tide-desktop .shell.detail-open #detailPanel,
+  body.tide-duo-landscape .shell.detail-open #detailPanel {
+    top:0 !important;bottom:auto !important;left:auto !important;right:auto !important;
+    height:100% !important;position:relative !important;
+  }
+  body.tide-desktop .shell.detail-open #detailPanel .detail-inner {padding-top:18px !important;}
+  body.tide-duo-landscape .shell.detail-open #detailPanel .detail-inner {padding-top:17px !important;}
+}
+/* Remove a redundant empty filter slot on compact devices. */
+body.tide-duo-portrait .landscape-controls-slot{display:none !important;}
+/* Experimental: the reported portrait gap is close to one header-height. The
+   shell and background can attempt to fill that space, but OS-clipped pixels
+   remain outside a web app's drawing surface. Controls stay accessible. */
+body.tide-duo-portrait.duo-standalone .shell {
+  height:var(--tide-shell-height,100dvh) !important;
+}
+body.tide-duo-portrait.duo-standalone::before{
+  bottom:calc(-1 * var(--pwa-bottom-gap,0px));
+}
