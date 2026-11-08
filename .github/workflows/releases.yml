@@ -1,0 +1,44 @@
+name: Publish Tide releases
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - version.json
+      - .github/workflows/releases.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish version from version.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid semantic version: $version" >&2
+            exit 1
+          fi
+          tag="v$version"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "$tag already published"
+            exit 0
+          fi
+          title="Tide ${version%.0}"
+          notes=$(printf '%s\n\n%s\n' \
+            "Tide $version is a touch-first alternative qBittorrent WebUI, designed for the iPhone Duo and desktop." \
+            "Features include responsive torrent cards, progress and availability statistics, bulk controls, nested file browsing, and PWA support. See the README for installation instructions.")
+          gh release create "$tag" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$title" \
+            --notes "$notes" \
+            --latest

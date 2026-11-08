@@ -33,11 +33,14 @@ a { color: var(--mint); }
 [hidden] { display: none !important; }
 .shell { width: 100%; max-width: 1440px; margin: 0 auto; min-height: 100dvh; position: relative; z-index:1; }
 
-/* Duo system controls occupy the upper-right corner in multiple orientations. */
+/* No upper-right controls: the Duo system UI occupies this zone in multiple orientations. */
 .topbar { display: flex; align-items: center; justify-content: flex-start; height: calc(66px + env(safe-area-inset-top, 0px));
   padding: calc(9px + env(safe-area-inset-top, 0px)) 20px 10px; }
 .brand-wrap { display: flex; align-items: center; gap: 11px; }
-.brandmark { display:block; width:35px; height:35px; flex:none; object-fit:contain; }
+.brandmark { width: 35px; height: 35px; border: 1px solid rgba(189,255,222,.45); border-radius: 12px; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, rgba(141,234,204,.24), rgba(57,128,110,.27)); box-shadow: inset 0 1px 0 rgba(255,255,255,.2); transform: rotate(-5deg); }
+.brandmark-wave { position:absolute; left:5px; right:5px; top:12px; height:12px; border-top:3px solid #b7f5d1; border-radius:60% 50% 0 0; transform:rotate(-12deg); }
+.brandmark-wave.two { top:20px; left:10px; border-color: #effff4; transform:rotate(17deg); }
 .brand { font-size: 25px; font-weight: 740; letter-spacing: -1.5px; line-height: 1; }
 .brand-dot { color:var(--mint); }
 .demo-tag { margin-left: 13px; border: 1px solid var(--glass-line); background: rgba(255,255,255,.07); color:var(--sub); border-radius:999px; padding:5px 9px; font-size:11px; }
@@ -116,7 +119,7 @@ a { color: var(--mint); }
 @keyframes spin { to { transform:rotate(360deg); } }
 .retry { margin-top:12px; border:0; border-radius:13px; padding:11px 18px; background:var(--mint); color:#14231e; font-weight:650; }
 
-/* Keep bottom navigation clear of the system control region. */
+/* Lower navigation stays out of the Duo's top-right OS control region. */
 .bottom-dock { position:fixed; z-index:20; left:50%; bottom:calc(12px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%);
   display:flex; align-items:center; gap:5px; padding:6px; border:1px solid rgba(255,255,255,.24); border-top-color:rgba(255,255,255,.36);
   border-radius:100px; background:rgba(68,80,94,.59); -webkit-backdrop-filter:blur(40px) saturate(1.8); backdrop-filter:blur(40px) saturate(1.8);
@@ -129,7 +132,7 @@ a { color: var(--mint); }
 .dock-add:active { background:#e6fff0; }
 body.detail-active .bottom-dock { opacity:0; pointer-events:none; }
 
-/* Detail navigation stays on the leading edge, away from system controls. */
+/* Detail view: leading close/back control, never at the far upper-right. */
 .detail-panel { display:none; }
 .detail-inner { padding:23px 24px 120px; }
 .detail-placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:55dvh; color:var(--sub); }
@@ -164,7 +167,7 @@ body.detail-active .bottom-dock { opacity:0; pointer-events:none; }
 .file-progress { font-size:12px; font-weight:630; color:var(--mint); flex:none; }
 .detail-fine { border-top:1px solid var(--glass-line); padding-top:15px; margin-top:25px; color:var(--dim); overflow-wrap:anywhere; font-size:11px; line-height:1.8; }
 
-/* Bottom sheets support downward dragging from the handle and title. */
+/* Native-style bottom sheets. The handle and title support a downward drag. */
 .overlay { position:fixed; inset:0; z-index:35; background:rgba(0,0,0,.4); -webkit-backdrop-filter:blur(9px); backdrop-filter:blur(9px); }
 .modal-mount { position:relative; z-index:40; }
 .dialog { position:fixed; z-index:40; bottom:0; left:0; right:0; max-height:88dvh; overflow:auto; overscroll-behavior:contain;
@@ -239,12 +242,13 @@ body.detail-active .bottom-dock { opacity:0; pointer-events:none; }
 }
 
 
-/* Compact header and iOS safe-area layout. */
+/* Tide 0.3 — compact header, glass dock, and proper bottom-safe-area treatment */
 :root { --bg:#080c13; --edge-reserve: 94px; }
 html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
 button, input, textarea, select { -webkit-appearance:none; appearance:none; font-family:inherit; }
 button { border-radius:inherit; }
-/* Standalone iOS status controls may overlay the right edge; reserve space for them in the header. */
+/* iOS standalone apps can put the status widget on the right of the safe area.
+   Keep all interactive elements to its left; deliberately use the empty left-side top row. */
 .topbar {
   height:74px; min-height:74px; padding:13px calc(var(--edge-reserve) + 9px) 11px 17px;
   display:flex; align-items:center; justify-content:space-between; gap:8px;
@@ -294,11 +298,11 @@ button { border-radius:inherit; }
 .bottom-dock .dock-button svg { display:block; width:21px; height:21px; flex:none; }
 .bottom-dock .dock-button.dock-add svg { width:20px; height:20px; }
 .bottom-dock .dock-separator { margin:0 2px; height:26px; }
-
+/* Keep filters and cards close to the brand now that the tall speeds card has gone. */
 .torrent-card { background:linear-gradient(155deg,rgba(182,203,216,.13),rgba(52,66,81,.28)),rgba(21,30,39,.55); }
 .metric-label { text-transform:none; font-size:10.5px; letter-spacing:.05px; }
 .torrent-card .size-value { font-size:11px; }
-/* Sheets use an opaque-enough base to cover the visual viewport below them. */
+/* Avoid an iOS visual-viewport gap below presented sheets; give the entire sheet a solid material. */
 .overlay { bottom:calc(-1 * var(--pwa-bottom-gap,0px)); }
 .dialog {
   bottom:calc(-1 * var(--pwa-bottom-gap,0px)); min-height:0; padding-bottom:calc(24px + clamp(0px,env(safe-area-inset-bottom,0px),30px) + var(--pwa-bottom-gap,0px));
@@ -353,10 +357,15 @@ button { border-radius:inherit; }
 }
 
 
-/* Duo camera and connectivity overlays do not reliably correspond to env(safe-area-inset-right). Reserve their occupied region explicitly. */
+/* Tide 0.4 — iPhone Duo camera/connectivity overlay avoidance.
+   The OS status pill is physically over the PWA in the top-right, and is NOT
+   represented by env(safe-area-inset-right). Treat it as an exclusion zone
+   only for the first rows that actually sit underneath it. */
 :root { --duo-system-zone: 100px; }
 
-/* Narrow filters scroll within the unobstructed area; cards use the wider area below system controls. */
+/* Folded / narrow mode: protect sort, search close and the start of details.
+   Filters remain horizontally scrollable in the reduced region. The cards
+   return to the normal full content width below the OS widget. */
 @media (max-width: 474px) {
   :root { --duo-system-zone: clamp(88px, 22vw, 112px); }
   .topbar { padding-right:calc(var(--duo-system-zone) + 12px); }
@@ -403,7 +412,9 @@ button { border-radius:inherit; }
   }
 }
 
-/* Inner portrait leaves space for the time and connectivity overlay; wide landscape uses its own layout. */
+/* Inner portrait: make the title bar feel like one considered top safe region,
+   aligned to the system clock and connectivity pill, rather than a narrow strip.
+   Rate figures stop well short of the status area. Landscape >=850px unchanged. */
 @media (min-width: 475px) and (max-width: 849px) and (orientation: portrait) {
   .topbar {
     position:relative;
@@ -433,10 +444,12 @@ button { border-radius:inherit; }
   .header-rates { flex-direction:column; gap:4px; align-items:flex-end; }
   .topbar::after { right:98px; }
 }
-/* The inner screen can report compact CSS widths. Width alone does not identify the fold posture. */
+/* When the unfolded inner screen uses compact CSS widths, its aspect ratio
+   alone is not a reliable way to detect posture. The safe exclusions above
+   therefore prioritize unobstructed controls over guessing a hardware hinge. */
 
 
-/* Fixed right-edge action rail. */
+/* Tide 0.5 — right-side fixed action rail, always outside scroll containers. */
 :root { --rail-width: 66px; --rail-space: 87px; }
 .action-rail {
   -webkit-appearance:none; appearance:none;
@@ -470,19 +483,19 @@ button { border-radius:inherit; }
 .rail-detail {color:#d4ffe7; background:rgba(171,235,202,.22); border-color:rgba(173,241,203,.3);}
 .rail-delete {color:#ffb7b7; background:rgba(243,97,106,.11);}
 .rail-separator {flex:none; width:29px; height:1px; background:rgba(255,255,255,.25); margin:4px 0;}
-
+/* Keep the obsolete dock entirely out of layout. */
 .bottom-dock {display:none!important;}
-/* Inset list content so the fixed action rail cannot obscure cards. */
+/* The list is permanently inset to avoid being covered by the fixed rail. */
 .list-panel {padding-right:calc(var(--rail-space) + env(safe-area-inset-right,0px))!important;}
 .controls,.search-wrap {margin-right:0!important;}
 .filter-row {mask-image:linear-gradient(to right,black calc(100% - 17px),transparent 100%);}
 .sort-button {display:none;}
-
+/* List selection is step one; selected torrent commands are step two in the rail. */
 .selection-indicator {height:22px; width:22px; border-radius:50%; flex:none; border:1px solid rgba(255,255,255,.20); background:rgba(255,255,255,.07); display:grid; place-items:center; color:transparent;}
 .selection-indicator svg {width:14px;height:14px;}
 .torrent-card.selected .selection-indicator {color:#133526;background:#b7eccc;border-color:rgba(255,255,255,.44);}
 .torrent-card.selected {border-color:rgba(175,237,203,.65); box-shadow:0 0 0 1px rgba(175,237,203,.18),0 9px 25px rgba(0,0,0,.09);}
-
+/* At narrow widths the size string wraps beneath the percentage without clipping. */
 @media(max-width:590px) {
   .progress-row {flex-wrap:wrap; row-gap:1px; align-items:baseline;}
   .size-value {white-space:normal; overflow-wrap:anywhere; flex:1; text-align:right; line-height:1.3;}
@@ -497,7 +510,7 @@ button { border-radius:inherit; }
   .rail-button svg {width:21px;height:21px;}
   .list-panel {padding-left:11px;}
 }
-/* Use a split workspace only while Details is open. */
+/* Preserve a two-column workspace only while the user is viewing details. */
 @media(min-width:850px) {
   .layout {display:block!important; height:calc(100dvh - 72px);}
   .list-panel {height:100%;overflow-y:auto!important;max-width:none; padding-left:25px!important;}
@@ -508,7 +521,7 @@ button { border-radius:inherit; }
   .shell.detail-open .list-panel {padding-right:20px!important;}
   .shell.detail-open .torrent-card {max-width:unset;}
 }
-
+/* In compact screens details cover the list and start in the top header region. */
 @media(max-width:849px) {
   .detail-panel.mobile-open {display:block;inset:0;z-index:25; padding-top:0!important;}
   .detail-panel.mobile-open .detail-inner {
@@ -528,7 +541,7 @@ button { border-radius:inherit; }
   .torrent-list {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:12px;}
   .shell.detail-open .torrent-list {grid-template-columns:minmax(0,1fr);}
 }
-/* Dialogs overlay the action rail and support swipe dismissal. */
+/* An open modal always overlays the rail, without interfering with swipe dismissal. */
 .overlay {z-index:38;}
 .modal-mount {z-index:40;}
 .toast {bottom:calc(22px + env(safe-area-inset-bottom,0px));}
@@ -540,10 +553,11 @@ button { border-radius:inherit; }
 @media(prefers-reduced-transparency:reduce){.action-rail{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(45,58,68,.96);}}
 
 
-/* Duo action rail placement and control states. */
+/* Tide 0.6 — Duo native-inspired edge controls, exclusive rail states. */
 :root { --rail-slot: 76px; }
 html, body { overflow-x: clip; }
-/* Anchor the rail to the viewport's right edge. Adding safe-area-inset-right would double-count the Duo control lane. */
+/* All dimensions are based on the viewport's RIGHT EDGE, NOT safe-area-inset-right.
+   Duo reports that right inset as the OS status/control strip; adding it pushed v0.5 left. */
 .action-rail {
   position:fixed !important;
   right: 7px !important;
@@ -590,12 +604,12 @@ html, body { overflow-x: clip; }
 }
 .rail-button:active {transform:scale(.94); background:rgba(108,124,130,.75) !important;}
 .rail-button svg {width:26px;height:26px;stroke-width:1.85;}
-
+/* Deletion remains red-accented, but never one-tap destructive. */
 .rail-destructive {color:#ffb2b2 !important;}
-
+/* The add control is the one accented action, similar to iOS control affordances. */
 .rail-add {color:#d4ffe5 !important;}
 .rail-utilities,.rail-selection,.rail-separator {display:none !important;}
-/* Content insets account for the action rail once. */
+/* Content is inset precisely by the rail width, not by OS safe-area twice. */
 .list-panel {padding-right:calc(var(--rail-slot) + 8px) !important;}
 .controls,.filter-row,.search-wrap {margin-right:0 !important;}
 .controls {gap:0;}
@@ -608,7 +622,7 @@ html, body { overflow-x: clip; }
   font-size:12px;font-weight:640;white-space:nowrap;
 }
 .inline-sort svg{width:15px;height:15px;flex:none;}
-
+/* Place sort among filters; it scrolls with the filter row like other chips. */
 .torrent-card {min-width:0;}
 .selection-indicator {
   background:none; border:none; color:var(--sub);
@@ -620,9 +634,10 @@ html, body { overflow-x: clip; }
   width:24px;height:24px;color:#173627;
 }
 .torrent-card.selected .selection-indicator svg{width:16px;height:16px;}
-/* The header stays stationary while torrent list and Details scroll. */
+/* Header remains in place when the document scrolls; opening Details never reveals
+   a fragment of the list above its panel. */
 .topbar {position:sticky;top:0;z-index:27; background:rgba(10,17,24,.80); -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);}
-/* The Details pane sits beneath the shared header. */
+/* Keep torrent details under the logo/speed header. No redundant Details/back row. */
 .detail-header {display:none !important;}
 .detail-panel.mobile-open {
   top:74px !important;bottom:0 !important;right:0 !important;left:0 !important;
@@ -632,14 +647,14 @@ html, body { overflow-x: clip; }
   padding:16px calc(var(--rail-slot) + 12px) calc(50px + env(safe-area-inset-bottom,0px)) 18px !important;
 }
 .detail-name {font-size:clamp(20px,4.25vw,26px);line-height:1.25;}
-
+/* Two-by-two stats on both Duo screens, as in the user's detail sketch. */
 @media(max-width:849px) {
   .detail-panel.mobile-open .detail-stats {grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:9px;}
   .detail-panel.mobile-open .detail-stat {padding:13px 11px;}
   .detail-panel.mobile-open .detail-stat-label {font-size:11px;}
   .detail-panel.mobile-open .detail-stat-value {font-size:15px;}
 }
-/* In landscape, only the Details pane needs clearance for its rail. */
+/* Landscape uses split view, with the rail inset applied to the DETAIL pane only. */
 @media(min-width:850px) {
   .layout {height:calc(100dvh - 72px);}
   .list-panel {padding-right:calc(var(--rail-slot) + 12px) !important;}
@@ -648,7 +663,8 @@ html, body { overflow-x: clip; }
   .detail-name {overflow-wrap:anywhere;}
   .detail-name {font-size:22px;}
 }
-/* Portrait header geometry clears the native status area. */
+/* Portrait Duo displays a top system island. Tighten our header. On the PWA,
+   pull the shell upward into the unused inset on the left, clear of the island. */
 @media(min-width:475px) and (max-width:849px) and (orientation:portrait) {
   .topbar {height:73px;min-height:73px;padding:11px 128px 10px 20px;}
   .topbar::after {right:85px;}
@@ -657,7 +673,8 @@ html, body { overflow-x: clip; }
   body.duo-standalone .topbar {height:88px;min-height:88px;padding-top:22px;}
   body.duo-standalone .detail-panel.mobile-open {top:calc(88px - clamp(35px, env(safe-area-inset-top, 0px), 62px)) !important;}
 }
-
+/* With a 320–382 CSS pixel viewport the cards are narrower but the controls
+   remain at the physical right edge; avoid shrinking tappable hit targets. */
 @media(max-width:390px) {
   :root{--rail-slot:68px;}
   .action-rail {right:4px !important;width:52px !important;}
@@ -666,7 +683,7 @@ html, body { overflow-x: clip; }
   .list-panel {padding-right:calc(var(--rail-slot) + 6px) !important;}
   .detail-panel.mobile-open .detail-inner {padding-right:calc(var(--rail-slot) + 6px) !important;}
 }
-/* Short landscape viewports must still accommodate contextual controls. */
+/* Small landscape: a four-button context rail must still fit without scrolling. */
 @media(max-height:620px) {
   .action-rail[data-mode="global"] {top:clamp(95px,33dvh,190px);}
   .action-rail[data-mode="selected"] {top:clamp(95px,25dvh,140px);}
@@ -684,9 +701,9 @@ html, body { overflow-x: clip; }
 }
 
 
-/* Floating action controls and bulk selection. */
+/* Tide 0.7 — separate iOS-inspired glass controls, bottom anchored, real bulk selection */
 :root {--rail-slot: 78px;--rail-button-size: 48px;--rail-edge: 22px;--rail-bottom: calc(23px + env(safe-area-inset-bottom, 0px));}
-/* Viewport-fixed actions remain stationary when torrent panels scroll. */
+/* A body-level fixed rail must not follow list scrolling or the card scroller. */
 .action-rail,
 .action-rail[data-mode="global"],
 .action-rail[data-mode="selected"],
@@ -728,7 +745,7 @@ html, body { overflow-x: clip; }
   color:rgba(252,254,255,.96) !important;
   border-radius:50% !important;
   border:1px solid rgba(248,253,255,.26) !important;
-  
+  /* Subtle refractive luminance: soft top highlight and the darker lower edge. */
   background:
     radial-gradient(ellipse 80% 42% at 42% 5%, rgba(255,255,255,.23),transparent 94%),
     radial-gradient(ellipse 65% 65% at 87% 90%,rgba(175,198,230,.065),transparent 94%),
@@ -753,22 +770,22 @@ html, body { overflow-x: clip; }
 .rail-button:active {transform:scale(.94) !important;filter:brightness(1.22);}
 .rail-button:disabled {opacity:.38 !important;cursor:not-allowed;filter:grayscale(.45);}
 .rail-button:disabled:active {transform:none !important;}
-/* Align the controls with the Duo's native right-edge control lane. */
+/* Keep the rail aligned to the actual Duo camera lane, as Safari does (inset 22px from the edge). */
 @media (max-width:390px){:root {--rail-slot:70px;--rail-edge:17px;--rail-button-size:43px;}}
-
+/* On an unfolded display, the rail is still aligned with the right-hand system lane. */
 @media(min-width:850px){:root{--rail-edge:24px;--rail-slot:86px;--rail-button-size:47px;}}
-
+/* Preserve physical tap size while fitting all controls on shorter unfolded landscape postures. */
 @media(max-height:550px){
   :root{--rail-bottom:calc(10px + env(safe-area-inset-bottom, 0px));--rail-button-size:42px;}
   .action-rail,.action-rail[data-mode="global"],.action-rail[data-mode="selected"],.action-rail[data-mode="detail"]{top:clamp(87px,22dvh,115px) !important;}
   .rail-cluster {gap:7px !important;}
   .rail-button svg{width:21px !important;height:21px !important;}
 }
-
+/* Set list content to stop in front of the camera/control strip on all folds. */
 .list-panel{padding-right:calc(var(--rail-slot) + 7px) !important;}
 @media(min-width:850px){.shell.detail-open .list-panel{padding-right:16px !important;}.shell.detail-open .detail-inner{padding-right:calc(var(--rail-slot) + 15px) !important;}}
 @media(max-width:849px){.detail-panel.mobile-open .detail-inner{padding-right:calc(var(--rail-slot) + 8px) !important;}}
-/* Sort remains pinned while filter chips scroll independently. */
+/* iOS-filter row: pinned Sort at right, mask ONLY the scrolling chip viewport. */
 .controls {display:flex !important;gap:8px !important;align-items:center !important;min-width:0 !important;}
 .filter-viewport {position:relative;flex:1 1 auto;min-width:0;overflow:hidden;isolation:isolate;}
 .filter-viewport::after {content:'';position:absolute;right:-1px;top:0;bottom:0;width:29px;pointer-events:none;z-index:2;
@@ -780,20 +797,20 @@ html, body { overflow-x: clip; }
   border:1px solid rgba(255,255,255,.2) !important;
   -webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);}
 .inline-sort svg{width:16px;height:16px;}
-
+/* Selection indicators communicate real multi selection with an unchecked circle. */
 .selection-indicator {width:25px;height:25px;border:1px solid rgba(225,242,255,.37);border-radius:50%;flex:none;color:transparent;background:rgba(255,255,255,.025);margin:0 !important;}
 .torrent-card.selected .selection-indicator {background:linear-gradient(135deg,rgba(198,246,228,.95),rgba(155,216,190,.95));border-color:rgba(244,255,250,.75);color:#143226;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 2px 9px rgba(126,220,171,.14);}
 .torrent-card.selected{border-color:rgba(174,232,202,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 1px rgba(172,238,204,.10),0 10px 24px rgba(0,0,0,.1);}
-
+/* More restrained fallback when transparency is reduced. */
 @media(prefers-reduced-transparency:reduce){.rail-button,.rail-button.rail-add,.rail-button.rail-destructive {background:#303b49 !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}}
 @media(prefers-reduced-motion:reduce){.rail-button{transition:none !important;}}
 
-
+/* Fade only while another filter remains offscreen; reveal already-viewed items fully. */
 .filter-viewport::after{opacity:0;transition:opacity .16s ease;}
 .filter-viewport.fade-right::after{opacity:1;}
 .filter-viewport::before{content:'';position:absolute;top:0;bottom:0;left:0;width:22px;pointer-events:none;opacity:0;z-index:2;background:linear-gradient(90deg,rgba(12,20,28,.89),transparent);transition:opacity .16s ease;}
 .filter-viewport.fade-left::before{opacity:1;}
-
+/* Neutral silver-glass body, avoiding an opaque, brightly tinted control surface. */
 .rail-button,.rail-button.rail-add,.rail-button.rail-destructive {
  background:
  radial-gradient(ellipse 78% 38% at 43% 3%, rgba(255,255,255,.22),transparent 95%),
@@ -803,12 +820,15 @@ html, body { overflow-x: clip; }
 @media(prefers-reduced-transparency:reduce){.rail-button,.rail-button.rail-add,.rail-button.rail-destructive{background:#303b49 !important;}}
 
 
-
+/* Tide 0.8: tune the right-hand controls against the supplied Duo Safari screenshot.
+   This material is deliberately quieter than the previous glossy interpretation:
+   almost neutral charcoal, a diffuse top light, minimal border, no glass glints. */
 :root {
   --rail-button-size: 48px;
-  --rail-edge: 24px;  
+  --rail-edge: 24px;  /* 24px outside margin + 24px radius = camera-lane centre */
   --rail-slot: 80px;
-  /* Bottom controls already account for the iOS home-indicator inset. */
+  /* Never add safe-area inset on top of a fixed arbitrary bottom margin.
+     Installed iOS PWAs already report their protected home-indicator region here. */
   --rail-bottom: max(14px, env(safe-area-inset-bottom, 0px));
 }
 .action-rail, .action-rail[data-mode="global"],
@@ -826,7 +846,7 @@ html, body { overflow-x: clip; }
   border-radius: 50% !important;
   color: #f9f9fb !important;
   border: 1px solid rgba(255,255,255,.12) !important;
-  
+  /* Native Safari's controls are softly lit charcoal, not bright frosted glass. */
   background: linear-gradient(180deg,
     rgba(46,46,49,.82) 0%,
     rgba(35,35,38,.90) 50%,
@@ -839,7 +859,7 @@ html, body { overflow-x: clip; }
     0 2px 5px rgba(0,0,0,.16) !important;
   filter:none !important;
 }
-
+/* Remove the concentric rings and specular chrome strokes from 0.7. */
 .rail-button::before, .rail-button::after {content:none !important;display:none !important;}
 .rail-button.rail-add { color: #f9f9fb !important; }
 .rail-button.rail-destructive { color: #ffc9c9 !important; }
@@ -853,14 +873,14 @@ html, body { overflow-x: clip; }
   background:rgba(64,65,68,.92) !important;
   filter:none !important;
 }
-
+/* The native camera lane remains the same size in the narrow folded posture. */
 @media(max-width:390px) {
   :root { --rail-button-size: 48px; --rail-edge: 22px; --rail-slot: 76px; }
   .rail-button, .rail-button.rail-add, .rail-button.rail-destructive {
     width:var(--rail-button-size) !important;height:var(--rail-button-size) !important;
   }
 }
-
+/* Preserve tappability and clearance when the unfolded viewport is very short. */
 @media(max-height:550px) {
   :root {--rail-button-size:44px;--rail-bottom:max(8px,env(safe-area-inset-bottom,0px));}
   .rail-cluster {gap:7px !important;}
@@ -878,7 +898,9 @@ html, body { overflow-x: clip; }
 }
 
 
-/* Translucent rail materials allow the blue-black page background to show through. */
+/* Tide 0.9 — material and elevated-control placement refined against the user's
+   Duo Safari screenshot. Safari on pure black looks charcoal; Tide uses a blue
+   backdrop, so the material must let the blue colour transmit through it. */
 .rail-button,
 .rail-button.rail-add,
 .rail-button.rail-destructive {
@@ -897,7 +919,9 @@ html, body { overflow-x: clip; }
 .rail-button:active {
   background: rgba(155,175,191,.31) !important;
 }
-/* Contextual navigation controls sit higher; global controls remain bottom-anchored. */
+/* Safari's elevated Back control begins around 175px below the top of a
+   466×678 CSS viewport; the circle centre is ~199px. Lower ONLY the
+   upper contextual buttons, leaving the bottom cluster docked as before. */
 .action-rail[data-mode="selected"],
 .action-rail[data-mode="detail"] {
   top: calc(clamp(166px, 21dvh, 196px) + 9px) !important;
@@ -917,7 +941,8 @@ html, body { overflow-x: clip; }
 }
 
 
-/* Floating delete confirmation. */
+/* Tide v0.10 — closer to iOS system symbol weights and a floating delete alert.
+   The confirmation is independent of the standard bottom-sheet system. */
 .rail-button svg.symbol-refined {
   width: 22px !important;
   height: 22px !important;
@@ -933,7 +958,7 @@ body.delete-dialog-open .overlay {
   -webkit-backdrop-filter: blur(14px) saturate(.8);
   backdrop-filter: blur(14px) saturate(.8);
 }
-/* The confirmation panel overlays the rail without changing its position. */
+/* The rail remains fixed and the alert sits in front, to its left. */
 .dialog.floating-dialog {
   position:fixed;
   z-index:42;
@@ -1096,7 +1121,7 @@ body.delete-dialog-open .overlay {
 }
 
 
-/* Viewport-locked workspace with independent scrolling panels. */
+/* Tide v0.11 — viewport-locked app: ONE scroll container per workspace panel. */
 html, body {
   width:100%;height:100%;min-height:0 !important;
   overflow:hidden !important;
@@ -1141,7 +1166,8 @@ body.duo-standalone .shell {
   -webkit-overflow-scrolling:touch;
   touch-action:pan-y;
 }
-/* Compact Details scrolls independently below the stationary app header. */
+/* Compact details are a separate pane atop the list, not a fixed page overlay.
+   Only its own content moves. The logo/speed header remains outside it. */
 @media(max-width:849px){
   .detail-panel.mobile-open,
   body.duo-standalone .detail-panel.mobile-open {
@@ -1168,7 +1194,7 @@ body.duo-standalone .shell {
     padding-top:13px !important;
   }
 }
-/* Wide split panes have independent scroll containers. */
+/* Wide layout keeps two independent scrolling panels when Details is open. */
 @media(min-width:850px){
   .layout,.shell.detail-open .layout {min-height:0 !important;height:auto !important;}
   .shell.detail-open .layout {display:grid !important;grid-template-columns:minmax(0,1fr) minmax(0,.90fr);}
@@ -1176,7 +1202,7 @@ body.duo-standalone .shell {
   .shell.detail-open .detail-panel {height:100% !important;min-height:0 !important;overflow-y:auto !important;overscroll-behavior-y:contain !important;-webkit-overflow-scrolling:touch;}
   .shell.detail-open .detail-panel{position:relative !important;}
 }
-
+/* Floating system-inspired dialogs share the same translucent surface as Delete. */
 .dialog.floating-dialog {
   left:auto !important;
   right:calc(var(--rail-edge) + var(--rail-button-size) + 13px) !important;
@@ -1250,22 +1276,25 @@ body.duo-standalone .shell {
   .floating-dialog .dialog-top {margin-bottom:10px;}
   .floating-dialog .sort-option {min-height:38px;padding:8px 12px;}
 }
-
+/* A slightly softer, more balanced trash outline—not an embedded SF Symbol font. */
 .rail-button svg.sf-trash {width:22px !important;height:22px !important;stroke-width:1.82 !important;}
 
 
-/* Standalone portrait sizing uses measured browser dimensions and remains non-scrolling at the document level. */
+/* Tide 0.12 — physical viewport expansion on Duo standalone portrait.
+   The device can expose a small strip outside 100dvh; use only the measured
+   non-keyboard difference, and keep the page itself completely unscrollable. */
 body.duo-standalone .shell {
   height:calc(100dvh + var(--pwa-bottom-gap,0px)) !important;
 }
-/* The background covers the same measured height as the shell. */
+/* The background must cover the same physical area as the expanded shell. */
 body.duo-standalone::before {bottom:calc(-1 * var(--pwa-bottom-gap,0px));}
 @media(min-width:475px) and (max-width:849px) and (orientation:portrait){
   body.duo-standalone .shell {height:calc(100dvh + var(--pwa-bottom-gap,0px)) !important;}
   .list-panel {padding-bottom:calc(36px + env(safe-area-inset-bottom,0px)) !important;}
 }
 
-/* Compact search sits beside the right-edge Search/Close control. */
+/* Native iOS-style bottom search: its input sits immediately left of the
+   right-edge Search/Close action, rather than consuming a row above filters. */
 .search-wrap.bottom-search {
   position:fixed !important;
   z-index:32;
@@ -1303,15 +1332,16 @@ body.duo-standalone::before {bottom:calc(-1 * var(--pwa-bottom-gap,0px));}
   caret-color:#c5eed7;
 }
 .search-wrap.bottom-search input::placeholder{color:rgba(223,233,240,.65)}
-.search-wrap.bottom-search .bottom-search-clear {width:28px;height:28px;border:0;border-radius:50%;flex:none;color:rgba(239,248,255,.86);background:rgba(205,220,234,.15);font-size:13px;}
-/* When search is open, Close replaces Search at the same position. */
+/* Only one control shows while search is active: the close button, at the
+   same vertical centre as the search field. Other rail actions stay hidden. */
 .action-rail[data-mode="search"] {z-index:34;bottom:calc(var(--rail-bottom) + var(--keyboard-lift,0px)) !important;}
 .action-rail[data-mode="search"] .rail-cluster {gap:0 !important;}
 @media(max-height:550px){
   .search-wrap.bottom-search {min-height:40px;}
 }
 
-/* Torrent file paths form nested folders with byte-weighted progress. */
+/* Hierarchical file browser. Root and nested directories expand/collapse and
+   display byte-weighted progress. Subfolders are indented, never horizontal-scroll. */
 .files-list[role="tree"] {margin-top:8px;min-width:0;}
 .tree-group,.tree-children {min-width:0;}
 .file-folder-row {
@@ -1353,7 +1383,9 @@ body.duo-standalone::before {bottom:calc(-1 * var(--pwa-bottom-gap,0px));}
 @media(prefers-reduced-motion:reduce){.folder-chevron{transition:none;}}
 
 
-/* Device layouts depend on pointer capability and viewport geometry, not width alone. */
+/* Tide v0.13 — distinct controls for desktop, unfolded-portrait Duo and the
+   original folded / landscape Duo. Input modality, not only screen width,
+   decides whether this is a pointer-and-keyboard desktop. */
 .desktop-tools,.desktop-selectionbar{display:none;}
 body.tide-desktop .action-rail{display:none !important;}
 body.tide-desktop .search-wrap.bottom-search{display:none !important;}
@@ -1415,7 +1447,8 @@ body.tide-desktop .shell.detail-open .detail-inner{padding-right:27px !important
   body.tide-desktop .desktop-tools{gap:6px;}
 }
 
-/* Unfolded portrait uses a bottom floating action group. */
+/* Unfolded Duo portrait: bottom floating toolbar (no wasted right strip).
+   The existing single rail renders its context-specific action groups. */
 body.tide-duo-portrait .action-rail,
 body.tide-duo-portrait .action-rail[data-mode="global"],
 body.tide-duo-portrait .action-rail[data-mode="selected"],
@@ -1450,7 +1483,7 @@ body.tide-duo-portrait .topbar{
   height:82px !important;min-height:82px !important;padding:12px 27px !important;
 }
 body.tide-duo-portrait .header-rates{margin-right:clamp(58px,11vw,115px);}
-
+/* On exceptionally wide portrait screens keep the details pane overlay, not split. */
 body.tide-duo-portrait .shell.detail-open .layout{display:block !important;}
 body.tide-duo-portrait .detail-panel.mobile-open{position:absolute !important;inset:0 !important;z-index:25 !important;height:100% !important;}
 body.tide-duo-portrait .search-wrap.bottom-search{
@@ -1464,13 +1497,15 @@ body.tide-duo-portrait .action-rail[data-mode="search"]{
 }
 body.tide-duo-portrait .action-rail[data-mode="search"] .rail-button{width:46px!important;height:46px!important;}
 
-/* Standalone viewport sizing avoids applying safe-area offsets twice. */
+/* Standalone-height fallback: avoid double safe-area additions and preserve the
+   exposed bottom background even where WebKit reserves a non-layout strip. */
 body.duo-standalone:not(.tide-desktop) .shell{
   height:calc(100dvh + var(--pwa-bottom-gap,0px)) !important;
 }
 html,body{background:#0c121c;}
 body.duo-standalone::before{bottom:calc(-1 * var(--pwa-bottom-gap,0px));}
-/* Local layout diagnostics are available with ?viewport=1. */
+/* Optional diagnostics, only shown at ?viewport=1. They never obstruct actions
+   in normal use and report values locally without sending information. */
 .viewport-diagnostics{
   position:fixed;z-index:60;left:10px;bottom:55px;max-width:270px;
   white-space:pre-wrap;font-size:11px;line-height:1.5;
@@ -1483,10 +1518,10 @@ body.duo-standalone::before{bottom:calc(-1 * var(--pwa-bottom-gap,0px));}
 }
 
 
-/* Portrait layout and desktop Details transition. */
-
+/* Tide v0.14 — Duo portrait and desktop detail motion */
+/* Keep the folded and unfolded-landscape positions unchanged. */
 body.tide-duo-portrait .topbar .header-rates{
-  /* Reserve the full camera and connectivity lane, including upload-speed indicators. */
+  /* Reserve the Duo's complete camera/indicator lane, including the upload text. */
   margin-right:clamp(135px, 18vw, 180px) !important;
   flex:0 0 auto;
 }
@@ -1495,7 +1530,9 @@ body.tide-duo-portrait .topbar .header-rates{
   body.tide-duo-portrait .topbar .header-rates {margin-right:clamp(104px,17vw,125px)!important;}
   body.tide-duo-portrait .header-rate-value {font-size:13px!important;}
 }
-/* Size the workspace from browser-exposed dimensions; pixels owned by the OS are outside the document viewport. */
+/* Some standalone PWAs expose a different screen or outer window height. Use
+   a verified value instead of a hard-coded extension, and extend the gradient
+   behind the work area even when WebKit reserves the bottom for its host. */
 body.duo-standalone.tide-duo-portrait .shell {
   height:var(--tide-shell-height,100dvh) !important;
   max-height:none !important;
@@ -1503,9 +1540,10 @@ body.duo-standalone.tide-duo-portrait .shell {
 body.duo-standalone.tide-duo-portrait::before{
   bottom:calc(-1 * var(--pwa-bottom-gap,0px));
 }
-
+/* Maintain the dark-blue lower-page colour if iOS draws a host-owned strip. */
 html {background:#111722;}
-/* Desktop card positions use FLIP animations when Details opens. */
+/* Desktop detail transition: the panel fades into place; the list cards are
+   animated by FLIP transforms in JS, keeping grid reflow quick and legible. */
 body.tide-desktop .shell.detail-open .detail-panel {
   animation:tide-detail-enter 260ms cubic-bezier(.22,1,.36,1) both;
 }
@@ -1518,8 +1556,8 @@ body.tide-desktop .shell.detail-open .detail-panel {
 }
 
 
-/* Desktop controls and unfolded portrait actions. */
-
+/* v0.15 — desktop action positioning and Duo portrait materials */
+/* Desktop selection never changes the geometry of the list or cards. */
 body.tide-desktop .desktop-selectionbar:not([hidden]){
   display:flex !important; position:fixed !important;
   top:auto !important; bottom:20px !important;
@@ -1530,7 +1568,7 @@ body.tide-desktop .desktop-selectionbar:not([hidden]){
   box-shadow:0 12px 38px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.12);
 }
 body.tide-desktop .desktop-selection-actions{flex-wrap:nowrap !important;}
-/* Desktop Sort popover anchors directly below its trigger. */
+/* Sorting is a desktop popover aligned just beneath the Sort button. */
 body.tide-desktop .dialog.floating-dialog.sort-alert{
   position:fixed !important;
   left:var(--desktop-sort-x,12px) !important;
@@ -1548,7 +1586,7 @@ body.tide-desktop:has(.sort-alert) .overlay{
   background:transparent !important;
   -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
 }
-/* Desktop Details has a visible back control as well as contextual actions. */
+/* Visible second path to close Details on desktop; contextual toolbar remains. */
 .desktop-detail-back{display:none;}
 body.tide-desktop .desktop-detail-back{
   display:inline-flex;align-items:center;gap:8px;
@@ -1560,7 +1598,7 @@ body.tide-desktop .desktop-detail-back{
 }
 body.tide-desktop .desktop-detail-back svg{width:17px;height:17px;}
 body.tide-desktop .desktop-detail-back:hover{background:rgba(204,222,235,.19);}
-/* Unfolded portrait action buttons float independently. */
+/* Unfolded portrait: native-like free-floating button discs, no shared pill. */
 body.tide-duo-portrait .action-rail,
 body.tide-duo-portrait .action-rail[data-mode="global"],
 body.tide-duo-portrait .action-rail[data-mode="selected"],
@@ -1583,7 +1621,9 @@ body.tide-duo-portrait .rail-button{
   box-shadow:inset 0 1px rgba(255,255,255,.10),0 5px 16px rgba(0,0,0,.16) !important;
 }
 body.tide-duo-portrait .rail-button:active{background:rgba(186,203,218,.23) !important;}
-/* Prefer measured viewport height when it differs from 100dvh. */
+/* Prefer a measured containing viewport over 100dvh when they disagree.
+   WebKit may reserve a physical strip outside any web-renderable viewport;
+   this handles only space available to the document. */
 body.duo-standalone.tide-duo-portrait .shell{
   height:var(--tide-shell-height,100%) !important;
   min-height:0 !important;
@@ -1597,10 +1637,11 @@ body.duo-standalone.tide-duo-portrait .shell{
 }
 
 
-/* Duo landscape split workspace. */
+/* v0.16: Duo landscape fixed-width workspace and portrait action refinements. */
 #tideLargeViewportProbe {position:fixed;top:0;height:100lvh;width:0;visibility:hidden;pointer-events:none;z-index:-10;}
 .landscape-controls-slot {display:none;}
-/* Landscape filters span the full viewport above the list and Details panes. */
+/* Full-width filters sit outside the list/details split in landscape.
+   Their position and width do not change when the detail panel opens. */
 body.tide-duo-landscape .landscape-controls-slot {
   display:flex;flex:0 0 auto;align-items:center;min-height:60px;
   padding:10px calc(var(--rail-space) + 16px) 9px 23px;
@@ -1610,7 +1651,8 @@ body.tide-duo-landscape .landscape-controls-slot .controls {width:100% !importan
 body.tide-duo-landscape .layout,
 body.tide-duo-landscape .shell.detail-open .layout {min-height:0 !important;flex:1 1 0 !important;height:auto !important;}
 body.tide-duo-landscape .list-panel {padding-top:15px !important;}
-/* Landscape displays three torrent columns without Details and two when Details is open. */
+/* Three cards when list-only, two identically sized cards when Details is open.
+   The wider details pane takes approximately one card column, not half the list. */
 @media(min-width:850px) {
  body.tide-duo-landscape .torrent-list {display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;align-items:start;gap:12px;}
  body.tide-duo-landscape .shell.detail-open .layout {display:grid !important;grid-template-columns:minmax(0,1.78fr) minmax(0,1fr) !important;}
@@ -1628,7 +1670,7 @@ body.tide-duo-landscape .list-panel {padding-top:15px !important;}
  body.tide-duo-landscape .size-value {font-size:10px !important;}
 }
 @media(prefers-reduced-motion:reduce){body.tide-duo-landscape .shell.detail-open .detail-panel {animation:none !important;}}
-
+/* Portrait Sort appears just below its trigger, rather than near the bottom toolbar. */
 body.tide-duo-portrait .dialog.floating-dialog.sort-alert {
   position:fixed !important;left:var(--portrait-sort-x,20px) !important;
   right:auto !important;top:max(10px,var(--portrait-sort-y,110px)) !important;
@@ -1638,21 +1680,22 @@ body.tide-duo-portrait .dialog.floating-dialog.sort-alert {
   padding:16px !important;overflow-y:auto !important;border-radius:23px !important;
   box-shadow:0 12px 46px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.11);
 }
-/* Keep navigation controls separate from pause and delete actions. */
+/* Separate navigation (Back / Deselect) from destructive and playback actions. */
 body.tide-duo-portrait .action-rail[data-mode="selected"] .rail-top:not(:last-child),
 body.tide-duo-portrait .action-rail[data-mode="detail"] .rail-top:not(:last-child) {
   margin-right:27px !important;
 }
 body.tide-duo-portrait .action-rail[data-mode="selected"] .rail-buttons,
 body.tide-duo-portrait .action-rail[data-mode="detail"] .rail-buttons {gap:9px !important;}
-
+/* Keep the viewport height anchored to the largest actually exposed browser dimension.
+   Screen pixels outside a WebKit standalone viewport remain OS-owned. */
 body.duo-standalone.tide-duo-portrait .shell {
   height:max(var(--tide-shell-height,100dvh),100lvh) !important;
 }
 
 
-/* Wide-layout filter strip and responsive grid. */
-
+/* Tide v0.17 — shared filter strip, stable split views and a portrait-height trial. */
+/* Keep the filter row fixed in place above both panes, as on Duo landscape. */
 body.tide-desktop .landscape-controls-slot {
   display:flex !important;align-items:center;flex:0 0 auto;min-height:61px;
   padding:11px 24px 10px;border-bottom:1px solid rgba(232,247,255,.08);
@@ -1663,7 +1706,8 @@ body.tide-desktop .landscape-controls-slot .controls {
 body.tide-desktop .list-panel {padding-top:15px !important;}
 body.tide-desktop .shell.detail-open .layout,
 body.tide-desktop .layout {flex:1 1 0 !important;min-height:0 !important;height:auto !important;}
-/* Desktop cards retain multiple columns as available space changes. */
+/* Prefer four compact columns in the full desktop viewport, and preserve as many
+   columns as fit when Details opens. Never force a single column. */
 body.tide-desktop .torrent-list {
   grid-template-columns:repeat(auto-fit,minmax(min(100%,305px),1fr)) !important;
 }
@@ -1673,7 +1717,8 @@ body.tide-desktop .shell.detail-open .layout {
 body.tide-desktop .shell.detail-open .torrent-list {
   grid-template-columns:repeat(auto-fit,minmax(min(100%,305px),1fr)) !important;
 }
-/* Wide Details panes occupy their split-workspace column, independent of compact overlay positioning. */
+/* Old compact detail overlays set top:74px!important even on wide split panes.
+   Reset it for BOTH desktop and Duo landscape, including the mobile-open class. */
 @media(min-width:850px){
   body.tide-desktop .shell.detail-open #detailPanel,
   body.tide-duo-landscape .shell.detail-open #detailPanel {
@@ -1683,9 +1728,11 @@ body.tide-desktop .shell.detail-open .torrent-list {
   body.tide-desktop .shell.detail-open #detailPanel .detail-inner {padding-top:18px !important;}
   body.tide-duo-landscape .shell.detail-open #detailPanel .detail-inner {padding-top:17px !important;}
 }
-
+/* Remove a redundant empty filter slot on compact devices. */
 body.tide-duo-portrait .landscape-controls-slot{display:none !important;}
-/* Standalone portrait fills the available CSS viewport; host-owned strips cannot be styled by the page. */
+/* Experimental: the reported portrait gap is close to one header-height. The
+   shell and background can attempt to fill that space, but OS-clipped pixels
+   remain outside a web app's drawing surface. Controls stay accessible. */
 body.tide-duo-portrait.duo-standalone .shell {
   height:var(--tide-shell-height,100dvh) !important;
 }
@@ -1694,22 +1741,25 @@ body.tide-duo-portrait.duo-standalone::before{
 }
 
 
-
-.brand-action{
+/* Tide v0.19: restore v0.17 viewport and safe-area behaviour. */
+.brand-action {
   border:0;background:none;color:inherit;margin:0;padding:0;cursor:pointer;
-  appearance:none;-webkit-appearance:none;text-align:left;-webkit-tap-highlight-color:transparent;
+  appearance:none;-webkit-appearance:none;text-align:left;
+  -webkit-tap-highlight-color:transparent;
 }
-.brand-action:hover .brand{opacity:.87;}
-.brand-action:active{opacity:.72;}
-.dialog.floating-dialog.tide-info-dialog{
+.brand-action:hover .brand {opacity:.87;}
+.brand-action:active {opacity:.72;}
+.dialog.floating-dialog.tide-info-dialog {
   left:50% !important;right:auto !important;
-  bottom:max(24px,calc(env(safe-area-inset-bottom,0px) + 14px)) !important;
+  bottom:max(24px, calc(env(safe-area-inset-bottom,0px) + 14px)) !important;
   top:auto !important;
-  transform:translate3d(-50%,var(--sheet-drag,0px),0) !important;
+  transform:translate3d(-50%, var(--sheet-drag,0px), 0) !important;
   width:min(405px,calc(100vw - 38px)) !important;
-  max-height:min(650px,calc(100dvh - 40px)) !important;
-  padding:23px 21px 19px !important;border-radius:30px !important;
+  max-height:min(650px, calc(100dvh - 40px)) !important;
+  padding:23px 21px 19px !important;
+  border-radius:30px !important;
 }
+/* On folded Duo, leave the system-control column unblocked. */
 @media(max-width:599px){
  .dialog.floating-dialog.tide-info-dialog{
    width:calc(100vw - var(--rail-edge) - var(--rail-button-size) - 25px) !important;
@@ -1723,23 +1773,207 @@ body.tide-duo-portrait.duo-standalone::before{
    transform:translate(-50%,calc(-50% + var(--sheet-drag,0px))) !important;
  }
 }
-.info-current,.info-update-row{display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.info-current,.info-update-row {display:flex;justify-content:space-between;align-items:center;gap:12px;}
 .info-current{font-size:14px;color:#b4c4cd;margin:6px 0 12px;}
 .info-current strong{font-size:16px;color:#f6fafc;font-variant-numeric:tabular-nums;}
 .info-update-row{background:rgba(204,221,241,.11);border:1px solid rgba(255,255,255,.095);border-radius:15px;padding:11px 13px;font-size:13px;color:#d1e6db;min-height:45px;}
 .info-update-row a{color:var(--mint);white-space:nowrap;}
-.info-section-label{font-size:12px;font-weight:670;color:#afbecb;margin:18px 2px 8px;letter-spacing:.01em;}
+.info-section-label {font-size:12px;font-weight:670;color:#afbecb;margin:18px 2px 8px;letter-spacing:.01em;}
 .info-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
 .info-metrics>div{background:rgba(210,231,246,.085);border:1px solid rgba(255,255,255,.1);border-radius:17px;padding:13px 12px;min-width:0;}
 .info-metrics span{display:block;font-size:12px;color:#a9b9c7;margin-bottom:7px;}
 .info-metrics strong{display:block;font-size:20px;color:#f5fafb;font-weight:690;letter-spacing:-.4px;font-variant-numeric:tabular-nums;white-space:nowrap;}
-.info-note{font-size:11px;line-height:1.45;color:#aebcc8;margin:11px 2px 14px;}
+.info-note {font-size:11px;line-height:1.45;color:#aebcc8;margin:11px 2px 14px;}
 .info-bottom-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;}
 .info-check{border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:11px 14px;background:rgba(234,245,251,.10);color:#eff9f7;font-size:13px;font-weight:600;}
 .info-bottom-actions a{font-size:13px;color:var(--mint);}
+@media(prefers-reduced-motion:reduce){.info-check{transition:none;}}
 
 
-.info-signout{display:block;width:100%;min-height:44px;margin-top:14px;padding:11px 14px;border:1px solid rgba(255,130,135,.14);border-radius:999px;color:#f0a5aa;background:rgba(227,104,110,.075);font:600 14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.info-signout:hover{background:rgba(227,104,110,.12);}
-.info-signout:active{background:rgba(227,104,110,.17);}
-.info-signout:disabled{opacity:.55;cursor:wait;}
+/* Tide v0.20 — a quiet destructive-adjacent exit in About Tide. */
+.info-signout {
+  display:block;width:100%;min-height:44px;margin-top:14px;padding:11px 14px;
+  border:1px solid rgba(255,130,135,.14);border-radius:999px;
+  color:#f0a5aa;background:rgba(227,104,110,.075);
+  font:600 14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.info-signout:hover { background:rgba(227,104,110,.12); }
+.info-signout:active { background:rgba(227,104,110,.17); }
+.info-signout:disabled {opacity:.55;cursor:wait;}
+
+
+.brand-wrap img.brandmark{display:block;width:35px;height:35px;object-fit:contain;border:0;background:none;box-shadow:none;transform:none;}
+
+/* Sort choices share a single rounded group with straight row separators. */
+.dialog.floating-dialog.sort-alert .sort-options {
+  border-radius:17px;
+  overflow:hidden;
+  isolation:isolate;
+}
+.dialog.floating-dialog.sort-alert .sort-options > .sort-option {
+  display:flex;
+  width:100%;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  background:transparent;
+  background-clip:padding-box;
+  min-height:46px;
+  padding:11px 14px;
+}
+.dialog.floating-dialog.sort-alert .sort-options > .sort-option + .sort-option {
+  border-top:1px solid rgba(232,241,250,.10) !important;
+}
+.dialog.floating-dialog.sort-alert .sort-options > .sort-option.active {
+  color:#c7f2d8;
+  background:rgba(185,236,209,.11);
+}
+.dialog.floating-dialog.sort-alert .sort-options > .sort-option:focus-visible {
+  outline:2px solid var(--mint);
+  outline-offset:-2px;
+}
+/* The right-side Close button is the only search clearing action. */
+.search-wrap.bottom-search input::-webkit-search-cancel-button {
+  display:none !important;
+  -webkit-appearance:none !important;
+}
+
+/* Search remains part of the existing workspace. The filter bar and list do
+   not move when the keyboard opens; only the floating search controls change state. */
+body.tide-search-open:not(.tide-desktop) .search-wrap.bottom-search {
+  position:fixed !important;
+  top:var(--tide-search-top,145px) !important;
+  bottom:auto !important;
+  z-index:38 !important;
+  border-radius:999px;
+  border:1px solid rgba(234,244,250,.23);
+  background:
+    radial-gradient(ellipse 80% 55% at 35% -15%,rgba(244,255,255,.19),transparent 78%),
+    linear-gradient(155deg,rgba(111,134,150,.35),rgba(43,58,74,.62));
+  -webkit-backdrop-filter:blur(30px) saturate(1.35) brightness(1.08);
+  backdrop-filter:blur(30px) saturate(1.35) brightness(1.08);
+  box-shadow:inset 0 1.2px 0 rgba(255,255,255,.29),inset 0 -1px 1px rgba(5,13,25,.27),0 9px 23px rgba(0,0,0,.22);
+  overflow:hidden;
+}
+body.tide-search-open:not(.tide-desktop) .search-wrap.bottom-search::after {
+  content:'';position:absolute;top:1px;left:16px;right:16px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(245,255,255,.19),transparent);
+  pointer-events:none;
+}
+body.tide-search-open:not(.tide-desktop) .action-rail[data-mode="search"] {
+  position:fixed !important;
+  top:var(--tide-search-top,145px) !important;
+  bottom:auto !important;
+  right:var(--rail-edge) !important;
+  left:auto !important;
+  transform:none !important;
+  width:var(--rail-button-size) !important;
+  height:var(--rail-button-size) !important;
+  min-height:0 !important;
+  max-height:none !important;
+  padding:0 !important;
+  border:0 !important;
+  background:none !important;
+  box-shadow:none !important;
+}
+body.tide-search-open:not(.tide-desktop) .action-rail[data-mode="search"] .rail-buttons,
+body.tide-search-open:not(.tide-desktop) .action-rail[data-mode="search"] .rail-cluster {
+  width:100% !important;height:100% !important;
+  margin:0 !important;padding:0 !important;
+  display:flex !important;align-items:center !important;justify-content:center !important;
+}
+body.tide-search-open:not(.tide-desktop) .action-rail[data-mode="search"] .rail-button {
+  flex:0 0 var(--rail-button-size) !important;
+  width:var(--rail-button-size) !important;height:var(--rail-button-size) !important;
+}
+body.tide-search-open:not(.tide-desktop) .list-meta {
+  margin-top:calc(var(--rail-button-size) + 27px) !important;
+}
+/* Wide landscape keeps the search field across the same content row. */
+body.tide-search-open.tide-duo-landscape .search-wrap.bottom-search {
+  left:25px !important;
+  right:calc(var(--rail-edge) + var(--rail-button-size) + 12px) !important;
+  width:auto !important;
+}
+/* Unfolded portrait uses the same top search layout as the folded display. */
+body.tide-search-open.tide-duo-portrait .search-wrap.bottom-search {
+  left:22px !important;
+  right:calc(max(22px,(100vw - 560px)/2) + var(--rail-button-size) + 12px) !important;
+  width:auto !important;
+}
+body.tide-search-open.tide-duo-portrait .action-rail[data-mode="search"] {
+  left:auto !important;right:max(22px,calc((100vw - 560px)/2)) !important;
+  transform:none !important;
+}
+/* The temporary glass element follows the triggering button between positions. */
+.tide-search-morph {
+  position:fixed;z-index:90;display:grid;place-items:center;pointer-events:none;
+  overflow:hidden;border-radius:999px;
+  border:1px solid rgba(246,252,255,.32);
+  background:
+    radial-gradient(ellipse 80% 50% at 45% 4%,rgba(245,255,255,.23),transparent 83%),
+    linear-gradient(155deg,rgba(157,181,198,.32),rgba(45,59,74,.61));
+  -webkit-backdrop-filter:blur(28px) saturate(1.45);
+  backdrop-filter:blur(28px) saturate(1.45);
+  box-shadow:inset 0 1.2px 0 rgba(255,255,255,.38),inset 0 -1.4px 1px rgba(6,13,22,.22),0 8px 25px rgba(0,0,0,.22);
+}
+.tide-search-morph::after {content:'';position:absolute;inset:1px;border-radius:inherit;border:1px solid rgba(255,255,255,.07);pointer-events:none;}
+.tide-search-morph span {grid-area:1/1;display:grid;place-items:center;color:#f7fcff;}
+.tide-search-morph svg {width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round;stroke-linecap:round;}
+.tide-search-morph .tide-morph-close{opacity:0;}
+body.tide-search-morphing .action-rail[data-mode="search"] .rail-button,
+body.tide-search-closing .action-rail[data-mode="global"] [data-action="search"] {opacity:0 !important;pointer-events:none !important;}
+@media(prefers-reduced-motion:reduce){
+  body.tide-search-open:not(.tide-desktop) .search-wrap.bottom-search {transition:none!important;animation:none!important;}
+}
+@media(prefers-reduced-transparency:reduce){
+  body.tide-search-open:not(.tide-desktop) .search-wrap.bottom-search,
+  .tide-search-morph {background:rgba(37,50,62,.98)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
+}
+
+
+/* Search replaces the mobile header and filters while preserving the torrent workspace. */
+body.tide-search-open:not(.tide-desktop) .topbar,
+body.tide-search-open:not(.tide-desktop) .controls,
+body.tide-search-open:not(.tide-desktop) .landscape-controls-slot {
+  display:none !important;
+}
+body.tide-search-open:not(.tide-desktop) .list-panel {
+  padding-top:calc(var(--tide-search-top, 18px) + var(--rail-button-size) + 20px) !important;
+}
+body.tide-search-open:not(.tide-desktop) .list-meta {
+  margin-top:0 !important;
+}
+/* Close sits to the left of the Duo's camera/connectivity lane. */
+body.tide-search-open:not(.tide-desktop) .action-rail[data-mode="search"] {
+  top:var(--tide-search-top, 18px) !important;
+  right:clamp(64px, 16vw, 112px) !important;
+  left:auto !important;
+  bottom:auto !important;
+  transform:none !important;
+}
+body.tide-search-open:not(.tide-desktop) .search-wrap.bottom-search {
+  top:var(--tide-search-top, 18px) !important;
+  bottom:auto !important;
+  left:clamp(12px, 3vw, 24px) !important;
+  right:calc(clamp(64px, 16vw, 112px) + var(--rail-button-size) + 12px) !important;
+  width:auto !important;
+  height:var(--rail-button-size) !important;
+}
+/* A focused field never changes the list's top edge or outer scroll container. */
+body.tide-search-open:not(.tide-desktop) #torrentList {
+  scroll-margin-top:0;
+}
+
+
+/* The torrent pane stays full-height behind the keyboard. A trailing spacer
+   makes its final card reachable above the keyboard at maximum scroll. */
+#searchKeyboardSpacer { display:block; height:0; pointer-events:none; }
+body.tide-search-open:not(.tide-desktop) #searchKeyboardSpacer {
+  height:var(--tide-search-keyboard-space, 0px);
+}
+body.tide-search-open:not(.tide-desktop) .list-panel {
+  scroll-padding-bottom:var(--tide-search-keyboard-space, 0px);
+}

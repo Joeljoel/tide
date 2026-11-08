@@ -12,7 +12,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icon.png">
   <link rel="apple-touch-icon" href="icon-512.png">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="css/tide-v0.22.css">
+  <link rel="stylesheet" href="css/tide-v1.0.css">
   <title>Tide</title>
 </head>
 <body>
@@ -59,6 +59,7 @@
         </div>
         <div class="list-meta"><span id="listDescription">Torrents</span><span id="lastUpdated"></span></div>
         <div class="torrent-list" id="torrentList"><div class="empty-state"><div class="loader"></div><p>Connecting to qBittorrent…</p></div></div>
+        <div id="searchKeyboardSpacer" aria-hidden="true"></div>
       </main>
       <aside class="detail-panel" id="detailPanel" aria-label="Torrent details">
         <div id="detailInner" class="detail-inner"><div class="detail-placeholder"><span class="placeholder-icon">≋</span><h2>Select a torrent</h2></div></div>
@@ -71,17 +72,16 @@
     <nav class="action-rail" id="actionRail" aria-label="Tide controls" data-mode="global">
       <div id="railButtons" class="rail-buttons"></div>
     </nav>
-    <!-- Bottom-docked search sits beside, not above, the right-edge search action. -->
+    <!-- Mobile search shares the floating control layer with the right-edge action rail. -->
     <div class="search-wrap bottom-search" id="searchWrap" role="search" hidden>
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m16 16 4.5 4.5"/></svg>
       <input id="searchInput" type="search" placeholder="Search torrents" enterkeyhint="search" autocapitalize="off" autocomplete="off" spellcheck="false" aria-label="Search torrents">
-      <button type="button" class="bottom-search-clear" data-action="erase-search" aria-label="Clear search" hidden>✕</button>
     </div>
     <div class="overlay" id="overlay" hidden></div>
     <div class="modal-mount" id="modalMount"></div>
     <div class="toast" role="status" aria-live="polite" id="toast"></div>
     <pre id="viewportDiagnostics" class="viewport-diagnostics" hidden></pre>
   </div>
-  <script src="js/tide-v0.22.js" defer></script>
+  <script src="js/tide-v1.0.js" defer></script>
 </body>
 </html>

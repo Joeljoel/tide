@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '0.22.0';
+  window.__TIDE_BUILD__ = '1.0.0';
   // Input capabilities determine the desktop mode; width alone cannot distinguish
   // an unfolded Duo from a laptop. Folded and unfolded landscape retain the rail.
   // Unfolded portrait gets a floating bottom control group.
@@ -50,6 +50,11 @@
     const covered=vv && vv.scale===1 ? Math.max(0,window.innerHeight-(vv.height+vv.offsetTop)) : 0;
     const keyboard=editing && covered>115 ? Math.round(covered) : 0;
     document.documentElement.style.setProperty('--keyboard-lift',keyboard+'px');
+    const searchingWithKeyboard=!desktop && document.body.classList.contains('tide-search-open')
+      && document.activeElement?.id==='searchInput' && keyboard>0;
+    // VisualViewport gives the obscured portion without shrinking the torrent pane.
+    document.documentElement.style.setProperty('--tide-search-keyboard-space',
+      (searchingWithKeyboard?keyboard+16:0)+'px');
     const diagnostics=document.getElementById('viewportDiagnostics');
     if(diagnostics){
       diagnostics.hidden=new URLSearchParams(location.search).get('viewport')!=='1';
@@ -72,6 +77,111 @@
     torrents: [], filter: readPref('filter', 'all'), sort: readPref('sort','eta'), descending: readPref('descending', 'false') === 'true',
     search: '', searchOpen: false, selected: null, selection: new Set(), detailOpen: false, files: [], collapsedFolders: new Set(), version: 5, modal: '', busy: false, error: null, lastUpdate: null
   };
+  // Search uses the normal torrent workspace. Its floating controls sit above
+  // the results and keep their position when the software keyboard appears.
+  const mobileSearchInput=document.getElementById('searchInput');
+  const searchWrap=document.getElementById('searchWrap');
+  const mobileRail=document.getElementById('actionRail');
+  const prefersReducedMotion=()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let searchTransition=null;
+  let searchTransitionId=0;
+
+  function setMobileSearchTop(){
+    // The search row occupies the header area, above the Duo's status controls.
+    document.documentElement.style.setProperty('--tide-search-top',
+      'max(16px, calc(env(safe-area-inset-top, 0px) + 8px))');
+  }
+  mobileSearchInput.addEventListener('focus',syncDeviceGeometry);
+  mobileSearchInput.addEventListener('blur',syncDeviceGeometry);
+  window.addEventListener('orientationchange',()=>{if(state.searchOpen)setMobileSearchTop();},{passive:true});
+  window.addEventListener('resize',()=>{
+    if(state.searchOpen && document.activeElement!==mobileSearchInput)setMobileSearchTop();
+  },{passive:true});
+
+  function animateSearchControl(from,to,opening){
+    if(prefersReducedMotion() || !from || !to)return Promise.resolve();
+    const ghost=document.createElement('div');
+    ghost.className='tide-search-morph';
+    ghost.setAttribute('aria-hidden','true');
+    ghost.style.cssText=`left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px`;
+    ghost.innerHTML='<span class="tide-morph-search">'+icons.search+'</span><span class="tide-morph-close">'+icons.close+'</span>';
+    document.body.appendChild(ghost);
+    const dx=to.left-from.left,dy=to.top-from.top;
+    const duration=430;
+    const movement=ghost.animate([
+      {transform:'translate3d(0,0,0) scale(1)',offset:0},
+      {transform:`translate3d(${dx*1.012}px,${dy*1.012}px,0) scale(1.095)`,offset:.83},
+      {transform:`translate3d(${dx}px,${dy}px,0) scale(1)`,offset:1}
+    ],{duration,easing:'cubic-bezier(.22,1,.36,1)',fill:'forwards'});
+    ghost.querySelector('.tide-morph-search').animate([
+      {opacity:opening?1:0,transform:opening?'rotate(0deg) scale(1)':'rotate(-35deg) scale(.6)'},
+      {opacity:opening?0:1,transform:opening?'rotate(35deg) scale(.6)':'rotate(0deg) scale(1)'}
+    ],{duration:240,delay:opening?140:90,fill:'forwards',easing:'ease-in-out'});
+    ghost.querySelector('.tide-morph-close').animate([
+      {opacity:opening?0:1,transform:opening?'rotate(-30deg) scale(.65)':'rotate(0deg) scale(1)'},
+      {opacity:opening?1:0,transform:opening?'rotate(0deg) scale(1)':'rotate(30deg) scale(.65)'}
+    ],{duration:240,delay:opening?140:90,fill:'forwards',easing:'ease-in-out'});
+    const result=movement.finished.catch(()=>{}).then(()=>{ghost.remove();});
+    searchTransition={ghost,movement};
+    return result;
+  }
+  function animateSearchCapsule(opening){
+    if(prefersReducedMotion())return;
+    searchWrap.animate(opening?[
+      {opacity:0,clipPath:'inset(0 0 0 98% round 999px)',transform:'translateX(20px) scale(.94)'},
+      {opacity:1,clipPath:'inset(0 0 0 0 round 999px)',transform:'translateX(0) scale(1)'}
+    ]:[
+      {opacity:1,clipPath:'inset(0 0 0 0 round 999px)',transform:'translateX(0) scale(1)'},
+      {opacity:0,clipPath:'inset(0 0 0 98% round 999px)',transform:'translateX(20px) scale(.94)'}
+    ],{duration:opening?450:350,delay:opening?55:0,easing:'cubic-bezier(.22,1,.36,1)',fill:'none'});
+  }
+  async function openMobileSearch(source){
+    if(state.searchOpen || searchTransitionId && document.body.classList.contains('tide-search-morphing'))return;
+    const id=++searchTransitionId;
+    const from=source?.getBoundingClientRect();
+    state.searchOpen=true;
+    document.body.classList.add('tide-search-open','tide-search-morphing');
+    searchWrap.hidden=false;
+    setMobileSearchTop();
+    renderRail();
+    const close=document.querySelector('[data-action="clear-search"]');
+    const to=close?.getBoundingClientRect();
+    animateSearchCapsule(true);
+    const travel=animateSearchControl(from,to,true);
+    // Focus during the original tap so iOS opens its keyboard without a second tap.
+    // The field is already positioned in the header before focus is requested.
+    mobileSearchInput.focus({preventScroll:true});
+    syncDeviceGeometry();
+    await travel;
+    if(searchTransitionId!==id || !state.searchOpen)return;
+    document.body.classList.remove('tide-search-morphing');
+  }
+  async function closeMobileSearch(){
+    if(!state.searchOpen)return;
+    const id=++searchTransitionId;
+    const oldClose=document.querySelector('[data-action="clear-search"]');
+    const from=oldClose?.getBoundingClientRect();
+    mobileSearchInput.blur();
+    document.body.classList.add('tide-search-morphing','tide-search-closing');
+    state.searchOpen=false;
+    renderRail();
+    const to=document.querySelector('[data-action="search"]')?.getBoundingClientRect();
+    animateSearchCapsule(false);
+    await animateSearchControl(from,to,false);
+    if(searchTransitionId!==id)return;
+    searchWrap.hidden=true;
+    document.body.classList.remove('tide-search-open','tide-search-morphing','tide-search-closing');
+    state.search='';mobileSearchInput.value='';
+    render();
+  }
+  function exitMobileSearch(){
+    ++searchTransitionId;
+    searchTransition?.movement.cancel();searchTransition?.ghost.remove();
+    searchWrap.hidden=true;
+    mobileSearchInput.blur();
+    document.body.classList.remove('tide-search-open','tide-search-morphing','tide-search-closing');
+    state.searchOpen=false;
+  }
   const allowedFilters = ['all','downloading','stalled','completed','paused','seeding'];
   const allowedSorts = ['eta','availability','dlspeed','progress','size','name','state'];
   if (!allowedFilters.includes(state.filter)) state.filter = 'all';
@@ -85,7 +195,8 @@
     {hash:'demo-arch',name:'Arch Linux Installation ISO (x86_64).iso',size:1.25*1024**3,progress:.54,dlspeed:0,upspeed:0,eta:8640000,availability:.82,state:'stalledDL',num_seeds:1,num_leechs:1,ratio:0,save_path:'/downloads/linux-isos'},
     {hash:'demo-bunny',name:'Big Buck Bunny (Blender Open Movie, CC BY).mp4',size:876*1024**2,progress:1,dlspeed:0,upspeed:0.45*1024**2,eta:8640000,availability:17.2,state:'uploading',num_seeds:11,num_leechs:3,ratio:3.1,save_path:'/downloads/open-movies'},
     {hash:'demo-freebsd',name:'FreeBSD Release Installer ISO (amd64).iso',size:3.1*1024**3,progress:.23,dlspeed:1.5*1024**2,upspeed:0,eta:3408,availability:1.21,state:'downloading',num_seeds:4,num_leechs:1,ratio:0,save_path:'/downloads/os-images'}
-  ];  const icons = {
+  ];
+  const icons = {
     dots:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>',
     close:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
     play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.4 4.7c0-.89.95-1.44 1.72-.99l11.2 7.33c.69.45.69 1.47 0 1.92l-11.2 7.33c-.77.45-1.72-.1-1.72-.99Z" fill="currentColor" stroke="none"/></svg>',
@@ -278,7 +389,7 @@
     if(state.selection.has(hash))state.selection.delete(hash);else state.selection.add(hash);
     state.selected=state.selection.has(hash)?hash:(currentHashes().at(-1)||null);
     state.files=[];state.collapsedFolders.clear();
-    if(state.searchOpen){state.searchOpen=false;$('#searchWrap').hidden=true;}
+    if(state.searchOpen)exitMobileSearch();
     render();
   }
   async function openDetails(hash){
@@ -286,7 +397,7 @@
     const previousPositions=snapshotDesktopCards();
     if(hash && state.selection.has(hash))state.selected=hash;
     if(!state.selected)return;
-    state.searchOpen=false;$('#searchWrap').hidden=true;
+    exitMobileSearch();
     state.detailOpen=true;
     $('#app').classList.add('detail-open');
     $('#detailPanel').classList.add('mobile-open');
@@ -372,8 +483,8 @@
       <h3 class="section-title">Files ${files.length?'· '+files.length:''}</h3><div class="files-list" role="tree" aria-label="Torrent folder and file structure">${files.length?renderFileTree(files):'<div class="file-secondary">File details will appear here when available.</div>'}</div>
       <div class="detail-fine">${t.save_path?'Save location · '+esc(t.save_path)+'<br>':''}Seeds · ${esc(t.num_seeds??'—')} &nbsp; Peers · ${esc(t.num_leechs??'—')} &nbsp; Ratio · ${Number(t.ratio||0).toFixed(2)}</div>`;
   }
-
-  // qBittorrent session totals from transfer/info, lifetime from sync/maindata.
+  // About Tide: qBittorrent provides session totals through transfer/info; 
+  // sync/maindata?rid=0 additionally exposes alltime_dl and alltime_ul.
   const infoValue = v => Number.isFinite(Number(v)) && v!==null && v!==undefined && v!=='' && +v>=0 ? bytes(Number(v)) : '—';
   const versionParts = v => String(v).replace(/^v/i,'').split('.').map(Number);
   function compareVersions(a,b){
@@ -397,6 +508,7 @@
       if(state.modal!=='info')return;
       setInfoText('infoSessionDown',infoValue(transfer?.dl_info_data));
       setInfoText('infoSessionUp',infoValue(transfer?.up_info_data));
+      // Some client builds may already include lifetime totals in transfer/info.
       setInfoText('infoLifetimeDown',infoValue(transfer?.alltime_dl));
       setInfoText('infoLifetimeUp',infoValue(transfer?.alltime_ul));
       setInfoText('infoTransferNote','Totals reported by qBittorrent');
@@ -419,7 +531,7 @@
   }
   async function checkAboutUpdates(){
     if(state.modal!=='info')return;
-    const current=window.__TIDE_BUILD__||'0.22.0';
+    const current=window.__TIDE_BUILD__||'1.0.0';
     setInfoText('infoUpdateStatus','Checking GitHub…');
     const link=document.getElementById('infoUpdateLink');if(link)link.hidden=true;
     const controller=new AbortController();
@@ -449,7 +561,11 @@
     if(button){button.disabled=true;button.textContent='Signing out…';}
     try{
       await api('POST','auth/logout');
-      state.torrents=[];state.selection.clear();state.selected=null;state.error=null;
+      state.torrents=[];
+      state.selection.clear();
+      state.selected=null;
+      state.error=null;
+      // Use the current path's base so reverse-proxy subpaths stay intact.
       window.location.replace(new URL('./',window.location.href).href);
     }catch(error){
       notify(error?.message||'Could not sign out. Try again.');
@@ -459,18 +575,18 @@
   const overlay=$('#overlay'),mount=$('#modalMount');
   function openModal(kind,hash=null){state.modal=kind;overlay.hidden=false;document.body.style.overflow='hidden';document.body.classList.toggle('delete-dialog-open',['delete','sort','add'].includes(kind));
     const torrent=state.torrents.find(t=>t.hash===hash);const top=(title,desc='')=>`${['sort','add'].includes(kind)?'':'<div class="sheet-grab" aria-label="Swipe down to dismiss"><div class="sheet-handle"></div></div>'}<div class="dialog-top"><h2>${title}</h2><button class="dialog-close" data-action="dismiss" aria-label="Close">${icons.close}</button></div>${desc?`<p class="dialog-sub">${desc}</p>`:''}`;
-
-    if(kind==='info'){
-      mount.innerHTML='<section class="dialog floating-dialog tide-info-dialog" role="dialog" aria-modal="true" aria-label="About Tide">'
-        +top('About Tide')
-        +'<div class="info-current"><span>Installed version</span><strong>v'+esc(window.__TIDE_BUILD__||'0.22.0')+'</strong></div>'
-        +'<div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>'
-        +'<div class="info-section-label">This session</div><div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>'
-        +'<div class="info-section-label">Lifetime</div><div class="info-metrics"><div><span>Downloaded</span><strong id="infoLifetimeDown">—</strong></div><div><span>Uploaded</span><strong id="infoLifetimeUp">—</strong></div></div>'
-        +'<p id="infoTransferNote" class="info-note">Loading transfer statistics…</p>'
-        +'<div class="info-bottom-actions"><button type="button" data-action="check-updates" class="info-check">Check updates</button><a href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer">GitHub</a></div>'
-        +'<button type="button" class="info-signout" data-action="sign-out">Sign Out</button></section>';
-    }
+    if(kind==='info')mount.innerHTML=`<section class="dialog floating-dialog tide-info-dialog" role="dialog" aria-modal="true" aria-label="About Tide">
+      ${top('About Tide')}
+      <div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.0.0')}</strong></div>
+      <div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>
+      <div class="info-section-label">This session</div>
+      <div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>
+      <div class="info-section-label">Lifetime</div>
+      <div class="info-metrics"><div><span>Downloaded</span><strong id="infoLifetimeDown">—</strong></div><div><span>Uploaded</span><strong id="infoLifetimeUp">—</strong></div></div>
+      <p id="infoTransferNote" class="info-note">Loading transfer statistics…</p>
+      <div class="info-bottom-actions"><button type="button" data-action="check-updates" class="info-check">Check updates</button><a href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer">GitHub</a></div>
+      <button type="button" class="info-signout" data-action="sign-out">Sign Out</button>
+      </section>`;
     if(kind==='sort')mount.innerHTML=`<section class="dialog floating-dialog sort-alert" role="dialog" aria-modal="true" aria-label="Sort torrents">${top('Sort torrents')}<div class="sort-options">${[['eta','ETA'],['availability','Availability'],['dlspeed','Download speed'],['progress','Progress'],['size','Size'],['name','Name'],['state','Status']].map(([k,label])=>`<button class="sort-option ${state.sort===k?'active':''}" data-sort="${k}">${label}<span>${state.sort===k?'✓':' '}</span></button>`).join('')}</div><div class="sort-order"><span>Sort direction</span><button class="toggle-order" data-action="reverse">${state.descending?'Descending ↓':'Ascending ↑'}</button></div></section>`;
     if(kind==='add')mount.innerHTML=`<section class="dialog floating-dialog add-alert" role="dialog" aria-modal="true" aria-label="Add torrent">${top('Add a torrent','Paste a magnet link or upload a .torrent file.')}
       <form id="addForm"><label class="dialog-label" for="magnetInput">Magnet link or torrent URL</label><textarea id="magnetInput" spellcheck="false" autocomplete="off" placeholder="magnet:?xt=urn:btih:..." aria-label="Magnet or torrent URL" rows="2"></textarea><label class="dialog-label" for="torrentFile">Or select a .torrent file</label><label class="file-picker" for="torrentFile"><span class="file-picker-choose">Choose file</span><span class="file-selected" id="selectedFile">No file selected</span></label><input id="torrentFile" type="file" accept=".torrent,application/x-bittorrent"><button type="submit" class="add-alert-primary">Add torrent</button><button type="button" class="delete-alert-dismiss" data-action="dismiss">Cancel</button></form></section>`;
@@ -555,9 +671,8 @@
     const sort=e.target.closest('[data-sort]');if(sort){state.sort=sort.dataset.sort;savePref('sort',state.sort);dismiss();render();return;}
     const b=e.target.closest('[data-action]');if(b){const a=b.dataset.action,hash=b.dataset.hash;
       if(a==='sort')openModal('sort');if(a==='add')openModal('add');if(a==='info')openModal('info');if(a==='check-updates')void checkAboutUpdates();if(a==='sign-out')void signOut();
-      if(a==='search'){state.searchOpen=true;$('#searchWrap').hidden=false;renderRail();syncDeviceGeometry();requestAnimationFrame(()=>$('#searchInput').focus({preventScroll:true}));}
-      if(a==='erase-search'){state.search='';$('#searchInput').value='';render();$('#searchInput').focus({preventScroll:true});}
-      if(a==='clear-search'){state.searchOpen=false;state.search='';$('#searchInput').value='';$('#searchWrap').hidden=true;$('#searchInput').blur();document.documentElement.style.setProperty('--keyboard-lift','0px');render();}
+      if(a==='search')void openMobileSearch(b);
+      if(a==='clear-search')void closeMobileSearch();
       if(a==='deselect')clearSelection();
       if(a==='select-visible'){
         document.querySelectorAll('.torrent-card[data-hash]').forEach(card=>state.selection.add(card.dataset.hash));
@@ -572,7 +687,7 @@
     const card=e.target.closest('.torrent-card');if(card)selectTorrent(card.dataset.hash);
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(state.modal)dismiss();else if(state.searchOpen)document.querySelector('[data-action=clear-search]')?.click();else if(state.detailOpen)closeDetail();else if(state.selection.size)clearSelection();}if((e.key==='Enter'||e.key===' ')&&(e.target.matches('.torrent-card'))){e.preventDefault();selectTorrent(e.target.dataset.hash);}});
-  $('#searchInput').addEventListener('input',e=>{state.search=e.target.value;$('#searchWrap .bottom-search-clear').hidden=!state.search;render();});
+  $('#searchInput').addEventListener('input',e=>{state.search=e.target.value;render();});
   $('#desktopSearchInput').addEventListener('input',e=>{state.search=e.target.value;render();});
   $('#desktopSearchInput').addEventListener('keydown',e=>{if(e.key==='Escape'){e.target.value='';state.search='';render();}});
   document.addEventListener('keydown',e=>{
