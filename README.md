@@ -4,12 +4,12 @@ A mobile-first alternative qBittorrent WebUI, adapting to the iPhone Duo and des
 
 ## Install
 
-Download this repo and use the folder containing `private/` and `public/` as the **Alternative Web UI** directory in qBittorrent’s Web UI settings.
+Download the project and use the folder containing `private/` and `public/` as the **Alternative Web UI** directory in qBittorrent’s Web UI settings.
 
 ## Status
 
-Early development (v0.18). Tap the Tide logo for version information and qBittorrent session/lifetime transfer stats. Tide checks `version.json` on the public `main` branch for updates; it never requests torrent data from GitHub.
+Early development (v0.19). Tap the Tide logo for version information and qBittorrent session/lifetime transfer statistics. Tide compares against `version.json` on the public `main` branch for updates.
 
-## WebKit viewport experiment
+## Device layout
 
-v0.18 removes `viewport-fit=cover` to test a documented iOS 26 standalone-PWA issue where the physical bottom strip equals the status-bar height. It also removes the prior speculative 82px expansion. This may reposition the header relative to the system clock and should be checked on a physical Duo. `?viewport=1` still shows Tide's viewport diagnostic values.
+v0.19 restores the v0.17 `viewport-fit=cover` and original safe-area geometry. This puts the header and the right-hand Duo controls back in their earlier positions, at the cost of possibly restoring the unfolded-portrait bottom gap. `?viewport=1` displays diagnostic measurements.

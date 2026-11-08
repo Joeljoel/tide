@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '0.18.0';
+  window.__TIDE_BUILD__ = '0.19.0';
   // Input capabilities determine the desktop mode; width alone cannot distinguish
   // an unfolded Duo from a laptop. Folded and unfolded landscape retain the rail.
   // Unfolded portrait gets a floating bottom control group.
@@ -31,22 +31,20 @@
       vv ? vv.height+vv.offsetTop : 0].map(Number).filter(Number.isFinite);
     const plausible=candidates.filter(h=>h>=window.innerHeight && h<=window.innerHeight+190);
     const fullHeight=Math.max(window.innerHeight,...plausible);
-    // WebKit can exclude a status-bar-height strip when viewport-fit=cover.
-    // v0.18 uses the default viewport fit and drops the guessed extension.
-    const allowed=false;
+    const allowed=standalone && !desktop && duoPortrait && !editing && (!vv || Math.abs(vv.scale-1)<.01);
     // The host may reserve a physical strip outside WebKit's layout viewport.
     // Stretch only when a second browser-provided metric confirms the extra space.
     // Never guess based on a hardcoded Duo screen size, since folding changes it.
     const gap=allowed?Math.round(fullHeight-window.innerHeight):0;
-    document.documentElement.style.setProperty('--pwa-bottom-gap','0px');
+    document.documentElement.style.setProperty('--pwa-bottom-gap',(allowed&&gap<1?82:gap)+'px');
     const rootHeight=document.documentElement.getBoundingClientRect().height;
     const bodyHeight=document.body.getBoundingClientRect().height;
     const cssCandidate=Math.max(rootHeight,bodyHeight,window.innerHeight,document.documentElement.clientHeight);
     // Large viewport units occasionally exceed dynamic ones during a PWA pose transition.
     const lvProbe=document.getElementById('tideLargeViewportProbe');
     const largeViewport=lvProbe?.getBoundingClientRect().height||0;
-    const portraitHeaderTrial=0;
-    const shellHeight=(standalone && duoPortrait)?window.innerHeight:cssCandidate;
+    const portraitHeaderTrial=allowed&&fullHeight<=window.innerHeight+1?82:0;
+    const shellHeight=allowed?Math.max(cssCandidate,fullHeight,largeViewport,window.innerHeight+portraitHeaderTrial):cssCandidate;
     document.documentElement.style.setProperty('--tide-shell-height',Math.round(shellHeight)+'px');
     // Keep keyboard calculations separate from the physical-screen gap.
     const covered=vv && vv.scale===1 ? Math.max(0,window.innerHeight-(vv.height+vv.offsetTop)) : 0;
@@ -419,7 +417,7 @@
   }
   async function checkAboutUpdates(){
     if(state.modal!=='info')return;
-    const current=window.__TIDE_BUILD__||'0.18.0';
+    const current=window.__TIDE_BUILD__||'0.19.0';
     setInfoText('infoUpdateStatus','Checking GitHub…');
     const link=document.getElementById('infoUpdateLink');if(link)link.hidden=true;
     const controller=new AbortController();
@@ -448,7 +446,7 @@
     if(kind==='info'){
       mount.innerHTML='<section class="dialog floating-dialog tide-info-dialog" role="dialog" aria-modal="true" aria-label="About Tide">'
         +top('About Tide')
-        +'<div class="info-current"><span>Installed version</span><strong>v'+esc(window.__TIDE_BUILD__||'0.18.0')+'</strong></div>'
+        +'<div class="info-current"><span>Installed version</span><strong>v'+esc(window.__TIDE_BUILD__||'0.19.0')+'</strong></div>'
         +'<div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>'
         +'<div class="info-section-label">This session</div><div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>'
         +'<div class="info-section-label">Lifetime</div><div class="info-metrics"><div><span>Downloaded</span><strong id="infoLifetimeDown">—</strong></div><div><span>Uploaded</span><strong id="infoLifetimeUp">—</strong></div></div>'

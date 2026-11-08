@@ -1742,17 +1742,7 @@ body.tide-duo-portrait.duo-standalone::before{
 }
 
 
-/* Tide v0.18 — status-bar-aware standalone viewport and About Tide. */
-body.duo-standalone.tide-duo-portrait .shell {
-  height:100dvh !important;max-height:100dvh !important;
-  top:0 !important;bottom:0 !important;
-}
-body.duo-standalone.tide-duo-portrait::before{bottom:0 !important;}
-body.tide-duo-portrait.duo-standalone .topbar {
-  height:70px !important;min-height:70px !important;
-  padding-top:10px !important;padding-bottom:10px !important;
-}
-html{background:#0b151c;}
+/* Tide v0.19: restore v0.17 viewport and safe-area behaviour. */
 .brand-action{
   border:0;background:none;color:inherit;margin:0;padding:0;cursor:pointer;
   appearance:none;-webkit-appearance:none;text-align:left;-webkit-tap-highlight-color:transparent;
