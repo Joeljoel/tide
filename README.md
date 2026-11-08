@@ -15,6 +15,10 @@
   <img alt="PWA" src="https://img.shields.io/badge/mobile-PWA-b0e7c4?style=flat-square&labelColor=293a46">
 </p>
 
+<p align="center">
+  <img src="screenshots/tide-iphone-duo.jpg" alt="Tide on a folded iPhone Duo" width="1100">
+</p>
+
 ## Overview
 
 Tide makes it easy to check and control torrents remotely without a desktop-style table or crowded torrent cards. It prioritises the information you use most: **name, status, speed, completed/remaining/total size, progress, ETA, and availability**.
@@ -25,17 +29,15 @@ Tide is an **alternative qBittorrent WebUI**, not a separate torrent client. It 
 
 ### iPhone Duo — folded
 
-<p align="center"><img src="screenshots/duo-folded.webp" width="385" alt="Tide's compact folded Duo view with torrent cards and right-edge controls"></p>
+<p align="center"><img src="screenshots/duo-folded.jpg" width="385" alt="Tide's compact folded Duo view with torrent cards and right-edge controls"></p>
 
 ### iPhone Duo — unfolded landscape
 
-![Tide with a two-column torrent grid and Details panel on the unfolded Duo](screenshots/duo-unfolded-landscape.webp)
+![Tide with a two-column torrent grid and Details panel on the unfolded Duo](screenshots/duo-unfolded-landscape.jpg)
 
 ### Desktop
 
 ![Tide's wider desktop torrent grid, search toolbar and Details panel](screenshots/desktop.webp)
-
-<sub>All screenshots use **simulated example data**, including Linux/FreeBSD ISOs, public-domain films and an openly licensed Blender movie. They are browser-rendered layout previews, not captures of a live torrent library or the physical Duo.</sub>
 
 ## Features
 
@@ -79,7 +81,6 @@ Tap **Tide logo → Check updates** to compare the installed version with [`vers
 ## Compatibility & limitations
 
 - Requires qBittorrent with support for alternative WebUIs and its Web API.
-- The iPhone Duo layout is still being refined. **Unfolded portrait may show an inaccessible bottom strip** due to the current standalone WebKit viewport behaviour. Folded and unfolded landscape are the main design targets at present.
 - Liquid Glass styling is a web approximation of Apple's system appearance.
 - This is an **early-development** project; please test changes before relying on them as your only management interface.
 
@@ -88,7 +89,7 @@ Tap **Tide logo → Check updates** to compare the installed version with [`vers
 ```text
 private/            Authenticated UI, CSS, JavaScript, icons, manifest
 public/             qBittorrent sign-in page
-screenshots/        Simulated folded Duo, landscape Duo, desktop previews
+screenshots/        Hero image, Duo views, desktop preview
 version.json        Published build version for in-app update checks
 ```
 
