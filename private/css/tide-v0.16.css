@@ -1,0 +1,1695 @@
+:root {
+  color-scheme: dark;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  --bg: #0b1118;
+  --text: #f8f9ff;
+  --sub: #a3b0ba;
+  --dim: #83929e;
+  --glass: rgba(41, 52, 63, .42);
+  --glass-strong: rgba(38, 48, 59, .79);
+  --glass-line: rgba(255, 255, 255, .13);
+  --glass-highlight: rgba(255, 255, 255, .22);
+  --mint: #b0e7c4;
+  --blue: #b4cafe;
+  --amber: #f4cb8d;
+  --red: #ffa59f;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); min-height: 100%; }
+body { margin: 0; min-width: 0; min-height: 100vh; min-height: 100dvh; background: transparent; color: var(--text); }
+body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 67% 33% at 8% -8%, rgba(65, 134, 140, .22), transparent 90%),
+    radial-gradient(ellipse 90% 45% at 98% 92%, rgba(80, 92, 154, .13), transparent 80%),
+    linear-gradient(160deg, #0b131a 0%, #0c1119 55%, #111722 100%); }
+button, input, textarea { font: inherit; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button:disabled { opacity: .4; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--mint); outline-offset: 3px; }
+svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+button svg { width: 21px; height: 21px; }
+a { color: var(--mint); }
+[hidden] { display: none !important; }
+.shell { width: 100%; max-width: 1440px; margin: 0 auto; min-height: 100dvh; position: relative; z-index:1; }
+
+/* No upper-right controls: the Duo system UI occupies this zone in multiple orientations. */
+.topbar { display: flex; align-items: center; justify-content: flex-start; height: calc(66px + env(safe-area-inset-top, 0px));
+  padding: calc(9px + env(safe-area-inset-top, 0px)) 20px 10px; }
+.brand-wrap { display: flex; align-items: center; gap: 11px; }
+.brandmark { width: 35px; height: 35px; border: 1px solid rgba(189,255,222,.45); border-radius: 12px; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, rgba(141,234,204,.24), rgba(57,128,110,.27)); box-shadow: inset 0 1px 0 rgba(255,255,255,.2); transform: rotate(-5deg); }
+.brandmark-wave { position:absolute; left:5px; right:5px; top:12px; height:12px; border-top:3px solid #b7f5d1; border-radius:60% 50% 0 0; transform:rotate(-12deg); }
+.brandmark-wave.two { top:20px; left:10px; border-color: #effff4; transform:rotate(17deg); }
+.brand { font-size: 25px; font-weight: 740; letter-spacing: -1.5px; line-height: 1; }
+.brand-dot { color:var(--mint); }
+.demo-tag { margin-left: 13px; border: 1px solid var(--glass-line); background: rgba(255,255,255,.07); color:var(--sub); border-radius:999px; padding:5px 9px; font-size:11px; }
+
+.layout { display:grid; grid-template-columns:minmax(0, 1fr); }
+.list-panel { min-width: 0; padding: 6px 14px calc(118px + env(safe-area-inset-bottom, 0px)); }
+.stats-strip { display:flex; align-items:center; gap:16px; min-height:92px; border:1px solid var(--glass-line); border-top-color:var(--glass-highlight);
+  border-radius:24px; padding:17px 19px; background: linear-gradient(132deg, rgba(152,220,202,.11), rgba(153,169,224,.07)), var(--glass);
+  -webkit-backdrop-filter: blur(30px) saturate(1.4); backdrop-filter:blur(30px) saturate(1.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 12px 40px rgba(0,0,0,.12); }
+.stat-block { flex:1; min-width:0; }
+.stat-label { font-size:11px; color:var(--sub); font-weight:600; letter-spacing: .1px; white-space:nowrap; }
+.stat-arrow { font-size:17px; font-weight:700; margin-right:3px; vertical-align:-1px; }
+.stat-arrow.down { color:var(--mint); }.stat-arrow.up { color:var(--blue); }
+.stat-value { margin-top:5px; font-size:25px; font-variant-numeric:tabular-nums; font-weight:680; letter-spacing:-.85px; white-space:nowrap; }
+.stat-value small { font-size:12px; color:var(--sub); font-weight:500; letter-spacing:0; }
+.stat-divider { height:44px; width:1px; background:rgba(255,255,255,.13); flex:none; }
+.search-wrap { margin:15px 0 0; display:flex; align-items:center; gap:9px; height:48px; padding:0 12px; border-radius:15px;
+  border:1px solid var(--glass-line); background:rgba(255,255,255,.08); -webkit-backdrop-filter:blur(24px); backdrop-filter:blur(24px); }
+.search-wrap svg { width:20px; height:20px; color:var(--sub); flex:none; }
+.search-wrap input { color:var(--text); background:none; border:0; width:100%; min-width:0; outline:0; font-size:16px; }
+.search-wrap input:focus { outline:0; }.search-wrap button { background:none; border:0; color:var(--sub); font-size:19px; }
+.controls { display:flex; gap:9px; align-items:center; margin-top:21px; min-width:0; }
+.filter-row { display:flex; gap:7px; flex:1; min-width:0; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; touch-action:pan-x pan-y;
+  mask-image:linear-gradient(to right, black 96%, transparent); }
+.filter-row::-webkit-scrollbar { display:none; }
+.filter-chip { border:1px solid rgba(255,255,255,.11); color: #c3cbd5; background:rgba(255,255,255,.065);
+  font-size:12px; font-weight:610; white-space:nowrap; border-radius:100px; min-height:37px; padding:8px 14px; }
+.filter-chip.active { background:rgba(190,241,219,.21); border-color:rgba(196,244,218,.29); color:#ddffe8; }
+.sort-button { display:flex; align-items:center; justify-content:center; gap:6px; height:37px; padding:0 13px; flex:none;
+  border:1px solid rgba(255,255,255,.21); border-radius:100px; background:rgba(210,228,241,.14); color:var(--text); font-size:12px; font-weight:650;
+  -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); }
+.sort-button svg { width:16px; height:16px; }
+.list-meta { display:flex; justify-content:space-between; align-items:center; gap:10px; margin:20px 3px 10px; font-size:13px; color:var(--sub); }
+.list-meta span:last-child { font-size:11px; }
+.torrent-list { display:flex; flex-direction:column; gap:10px; }
+.torrent-card { width:100%; min-width:0; position:relative; border:1px solid var(--glass-line); border-top-color:var(--glass-highlight);
+  border-radius:21px; padding:16px 17px 15px; background:linear-gradient(150deg, rgba(255,255,255,.048), rgba(255,255,255,.01)), var(--glass);
+  -webkit-backdrop-filter:blur(28px) saturate(1.5); backdrop-filter:blur(28px) saturate(1.5);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 9px 25px rgba(0,0,0,.09);
+  transition:background .2s,border-color .2s; cursor:pointer; }
+.torrent-card:active { background:rgba(76,95,106,.55); }
+.torrent-card.selected { border-color:rgba(172,235,201,.50); background:linear-gradient(135deg,rgba(163,230,196,.12),rgba(255,255,255,.025)),var(--glass); }
+.torrent-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+.torrent-title { min-width:0; flex:1; font-size:14px; font-weight:650; letter-spacing:-.2px; line-height:1.36; overflow-wrap:anywhere;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.card-menu { display:grid; place-items:center; flex:none; width:30px; height:30px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.08);
+  border-radius:50%; color:#becbd2; margin:-3px -3px 0 0; touch-action:manipulation; }
+.card-menu svg { width:18px; }
+.card-status { display:flex; gap:7px; align-items:center; margin-top:8px; font-size:11px; font-weight:550; color:var(--sub); }
+.status-dot { display:inline-block; border-radius:50%; width:7px; height:7px; background:var(--sub); flex:none; }
+.status-downloading,.status-completed { color:var(--mint); }.status-downloading .status-dot,.status-completed .status-dot { background:var(--mint); }
+.status-seeding { color:var(--blue); }.status-seeding .status-dot { background:var(--blue); }
+.status-paused { color:var(--sub); }.status-paused .status-dot { background:var(--sub); }
+.status-stalled { color:var(--amber); }.status-stalled .status-dot { background:var(--amber); }
+.status-error { color:var(--red); }.status-error .status-dot { background:var(--red); }
+.progress-row { display:flex; justify-content:space-between; align-items:baseline; gap:9px; margin-top:12px; min-width:0; }
+.progress-value { font-size:23px; font-weight:700; letter-spacing:-.75px; flex:none; font-variant-numeric:tabular-nums; }
+.progress-value small { font-size:13px; letter-spacing:0; color:var(--sub); margin-left:1px; }
+.size-value { font-size:11px; font-weight:520; color:#bec9d0; letter-spacing:-.18px; font-variant-numeric:tabular-nums;
+  text-align:right; white-space:nowrap; min-width:0; }
+.size-value .size-total { color:var(--dim); }
+.size-value .size-sep { color:var(--dim); padding:0 2px; }
+.progress-track { height:5px; margin:9px 0 13px; border-radius:100px; background:rgba(255,255,255,.14); overflow:hidden; }
+.progress-fill { height:100%; border-radius:100px; background:linear-gradient(90deg,#8dc6ff,#b3eacc); min-width:0; transition:width .35s; }
+.progress-fill.stalled { background:var(--amber); }.progress-fill.paused { background:#8997a9; }.progress-fill.seeding { background:var(--blue); }
+.metric-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.metric { min-width:0; }
+.metric-label { font-size:10px; font-weight:570; margin-bottom:4px; color:var(--dim); white-space:nowrap; }
+.metric-value { font-size:13px; font-weight:640; white-space:nowrap; font-variant-numeric:tabular-nums; letter-spacing:-.13px; }
+.av-good { color:var(--mint); }.av-poor { color:var(--amber); }.av-zero { color:var(--red); }.av-unknown { color:var(--sub); }
+.empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:190px;
+  border:1px solid var(--glass-line); border-radius:21px; padding:28px 22px; color:var(--sub); background:var(--glass); }
+.empty-state strong { color:var(--text); font-weight:660; }.empty-state p { line-height:1.45; font-size:13px; max-width:340px; }
+.empty-icon { font-size:26px; margin-bottom:12px; }.loader { width:25px; height:25px; border:2px solid #4c5f66; border-top-color:var(--mint); border-radius:50%; animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.retry { margin-top:12px; border:0; border-radius:13px; padding:11px 18px; background:var(--mint); color:#14231e; font-weight:650; }
+
+/* Lower navigation stays out of the Duo's top-right OS control region. */
+.bottom-dock { position:fixed; z-index:20; left:50%; bottom:calc(12px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%);
+  display:flex; align-items:center; gap:5px; padding:6px; border:1px solid rgba(255,255,255,.24); border-top-color:rgba(255,255,255,.36);
+  border-radius:100px; background:rgba(68,80,94,.59); -webkit-backdrop-filter:blur(40px) saturate(1.8); backdrop-filter:blur(40px) saturate(1.8);
+  box-shadow:0 8px 34px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.16); }
+.dock-button { display:flex; justify-content:center; align-items:center; gap:7px; min-width:47px; height:46px;
+  padding:0 13px; color:#f3f7ff; border:0; border-radius:100px; background:transparent; touch-action:manipulation; }
+.dock-button:active { background:rgba(255,255,255,.19); }.dock-button svg { width:22px; height:22px; }
+.dock-separator { display:block; width:1px; height:25px; background:rgba(255,255,255,.21); margin:0 2px; }
+.dock-add { background:linear-gradient(145deg,#d7f5e2,#a7e5bb); color:#132f26; min-width:91px; font-size:14px; font-weight:690; }
+.dock-add:active { background:#e6fff0; }
+body.detail-active .bottom-dock { opacity:0; pointer-events:none; }
+
+/* Detail view: leading close/back control, never at the far upper-right. */
+.detail-panel { display:none; }
+.detail-inner { padding:23px 24px 120px; }
+.detail-placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:55dvh; color:var(--sub); }
+.placeholder-icon { display:grid; place-items:center; width:62px; height:62px; font-size:36px; color:var(--mint); border:1px solid var(--glass-line); background:var(--glass); border-radius:20px; }
+.detail-placeholder h2 { font-size:17px; font-weight:590; margin:15px 0 0; }
+.detail-header { display:flex; flex-direction:row-reverse; justify-content:flex-end; align-items:center; gap:11px; margin-bottom:21px; }
+.detail-title-kicker { color:var(--sub); font-size:15px; font-weight:620; letter-spacing:0; }
+.detail-close { display:grid; place-items:center; width:41px; height:41px; color:var(--text); background:rgba(255,255,255,.12);
+  border:1px solid var(--glass-line); border-radius:50%; }
+.detail-close svg { width:18px; height:18px; }
+.detail-name { font-size:22px; line-height:1.3; overflow-wrap:anywhere; font-weight:670; margin:0 0 13px; letter-spacing:-.45px; }
+.detail-status { display:inline-flex; align-items:center; gap:7px; border:1px solid var(--glass-line); border-radius:99px;
+  background:rgba(255,255,255,.07); padding:7px 11px; margin-bottom:21px; font-size:12px; }
+.detail-progress { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+.detail-progress strong { font-size:33px; letter-spacing:-1px; font-weight:710; }.detail-progress span { font-size:12px; color:var(--sub); text-align:right; }
+.detail-track { height:7px; margin:11px 0 22px; }
+.detail-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+.detail-stat { min-width:0; padding:15px 14px; background:var(--glass); border:1px solid var(--glass-line); border-top-color:var(--glass-highlight); border-radius:17px;
+  -webkit-backdrop-filter:blur(26px); backdrop-filter:blur(26px); }
+.detail-stat-label { color:var(--dim); font-size:11px; font-weight:570; margin-bottom:6px; }
+.detail-stat-value { font-size:16px; font-weight:680; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.detail-actions { display:flex; gap:8px; margin-top:18px; }
+.action-primary,.action-neutral,.action-danger { display:flex; justify-content:center; align-items:center; gap:9px; min-height:46px; border-radius:14px; padding:12px 15px; font-size:14px; font-weight:620; }
+.action-primary { border:0; background:var(--mint); color:#122920; flex:1; }
+.action-neutral { border:1px solid var(--glass-line); background:rgba(255,255,255,.13); color:var(--text); flex:1; }
+.action-danger { border:1px solid rgba(255,166,167,.25); background:rgba(246,100,104,.13); color:#ffb1ab; }
+.detail-actions svg { width:18px; height:18px; }
+.section-title { font-size:16px; font-weight:670; letter-spacing:-.3px; margin:29px 0 9px; }
+.files-list { display:flex; flex-direction:column; gap:0; }
+.file-item { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:13px 0; border-bottom:1px solid rgba(255,255,255,.12); }
+.file-name { font-size:13px; line-height:1.5; overflow-wrap:anywhere; }.file-secondary { font-size:11px; color:var(--dim); margin-top:4px; }
+.file-progress { font-size:12px; font-weight:630; color:var(--mint); flex:none; }
+.detail-fine { border-top:1px solid var(--glass-line); padding-top:15px; margin-top:25px; color:var(--dim); overflow-wrap:anywhere; font-size:11px; line-height:1.8; }
+
+/* Native-style bottom sheets. The handle and title support a downward drag. */
+.overlay { position:fixed; inset:0; z-index:35; background:rgba(0,0,0,.4); -webkit-backdrop-filter:blur(9px); backdrop-filter:blur(9px); }
+.modal-mount { position:relative; z-index:40; }
+.dialog { position:fixed; z-index:40; bottom:0; left:0; right:0; max-height:88dvh; overflow:auto; overscroll-behavior:contain;
+  padding:8px 19px calc(22px + env(safe-area-inset-bottom, 0px));
+  border:1px solid rgba(255,255,255,.22); border-bottom:0; border-radius:29px 29px 0 0;
+  background:linear-gradient(145deg,rgba(92,106,119,.40),rgba(33,43,55,.82)),rgba(22,32,42,.90);
+  -webkit-backdrop-filter:blur(42px) saturate(1.65); backdrop-filter:blur(42px) saturate(1.65);
+  box-shadow:0 -16px 60px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.14);
+  transform:translate3d(0,var(--sheet-drag,0px),0); transition:transform .24s cubic-bezier(.2,.8,.2,1); }
+.dialog.is-dragging { transition:none; }
+.sheet-grab { display:flex; align-items:flex-start; justify-content:center; width:100%; height:33px; padding:9px 0 12px; cursor:grab; touch-action:none; }
+.sheet-handle { width:37px; height:5px; display:block; border-radius:10px; background:rgba(238,245,252,.46); }
+.dialog-top { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; touch-action:none; }
+.dialog h2 { font-size:19px; font-weight:690; letter-spacing:-.45px; margin:0; }
+.dialog-close { display:grid; place-items:center; width:32px; height:32px; flex:none; background:rgba(255,255,255,.12); color:var(--text); border:0; border-radius:50%; }
+.dialog-close svg { width:16px; height:16px; }
+.dialog-sub { touch-action:none; font-size:13px; color:var(--sub); line-height:1.5; margin:0 0 16px; overflow-wrap:anywhere; }
+.dialog-label { display:block; font-size:12px; font-weight:580; color:var(--sub); margin:14px 0 9px; }
+.dialog textarea { background:rgba(0,0,0,.22); color:var(--text); font-size:16px; border:1px solid var(--glass-line); border-radius:14px; width:100%; min-height:94px; padding:13px; resize:vertical; }
+.dialog input[type=file] { max-width:100%; width:100%; background:rgba(0,0,0,.15); color:var(--text); border:1px dashed var(--glass-line); border-radius:13px; padding:14px; }
+.dialog-actions { display:flex; gap:9px; margin-top:19px; }.dialog-actions button { min-height:46px; }
+.sort-options { display:flex; flex-direction:column; background:rgba(0,0,0,.14); border:1px solid var(--glass-line); border-radius:17px; overflow:hidden; }
+.sort-option { display:flex; align-items:center; justify-content:space-between; min-height:51px; border:0; border-bottom:1px solid rgba(255,255,255,.1);
+  padding:13px 15px; background:transparent; color:var(--text); text-align:left; font-size:15px; font-weight:550; }
+.sort-option:last-child { border-bottom:0; }.sort-option.active { color:var(--mint); background:rgba(142,216,170,.12); }
+.sort-option span { display:grid; place-items:center; font-size:15px; color:var(--sub); }.sort-option.active span { color:var(--mint); }
+.sort-option svg { width:20px; height:20px; }
+.sort-order { display:flex; align-items:center; justify-content:space-between; margin-top:16px; padding:0 3px; font-size:13px; color:var(--sub); }
+.toggle-order { color:var(--text); background:rgba(255,255,255,.12); border:1px solid var(--glass-line); border-radius:12px; padding:9px 14px; }
+.danger-check { display:flex; align-items:center; gap:10px; font-size:13px; padding:12px 0; color:var(--text); }
+.danger-check input { width:19px; height:19px; accent-color:var(--red); }
+.toast { position:fixed; z-index:50; left:50%; bottom:calc(85px + env(safe-area-inset-bottom,0px)); transform:translate(-50%,10px);
+  max-width:calc(100vw - 28px); padding:12px 17px; border-radius:20px; border:1px solid var(--glass-highlight);
+  background:rgba(66,86,94,.88); -webkit-backdrop-filter:blur(30px); backdrop-filter:blur(30px); color:var(--text);
+  font-size:13px; font-weight:600; text-align:center; opacity:0; pointer-events:none; transition:opacity .2s,transform .2s; }
+.toast.show { opacity:1; transform:translate(-50%,0); }
+
+@media (min-width:600px) {
+  .topbar { padding-left:27px; }.list-panel { padding-left:25px; padding-right:25px; }
+  .torrent-card { padding:17px 20px; }.metric-value { font-size:14px; }
+  .dialog { left:50%; right:auto; width:min(540px,calc(100% - 28px)); transform:translate3d(-50%,var(--sheet-drag,0px),0);
+    bottom:calc(10px + env(safe-area-inset-bottom,0px)); border-bottom:1px solid rgba(255,255,255,.2); border-radius:28px; padding-bottom:20px; }
+}
+@media (min-width:850px) {
+  .layout { grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr); height:calc(100dvh - 66px - env(safe-area-inset-top,0px)); }
+  .list-panel { overflow-y:auto; min-width:0; padding:5px 22px 115px; scrollbar-width:thin; scrollbar-color:rgba(200,224,232,.17) transparent; }
+  .detail-panel { display:block; overflow-y:auto; min-width:0; border-left:1px solid var(--glass-line);
+    background:linear-gradient(145deg,rgba(130,150,172,.06),rgba(46,63,73,.14)); scrollbar-width:thin; scrollbar-color:rgba(200,224,232,.17) transparent; }
+  .detail-inner { padding:14px 24px 100px; }
+  .bottom-dock { left:25%; }
+  body.detail-active .bottom-dock { opacity:1; pointer-events:auto; }
+  .detail-header { margin-top:0; }
+}
+@media (max-width:849px) {
+  .detail-panel.mobile-open { display:block; position:fixed; inset:0; z-index:25; min-width:0; overflow-y:auto;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    background: radial-gradient(ellipse 70% 25% at 0 -5%,rgba(65,134,140,.22),transparent), var(--bg); }
+  .detail-panel.mobile-open .detail-inner { padding:17px 18px 35px; }
+  .detail-placeholder { display:none; }
+}
+@media (max-width:390px) {
+  .topbar { padding-left:15px; }.list-panel { padding-left:11px; padding-right:11px; }
+  .stats-strip { padding:15px 15px; }.stat-value { font-size:22px; }
+  .torrent-card { padding:14px 13px; }.progress-value { font-size:21px; }
+  .size-value { font-size:10px; letter-spacing:-.25px; }.metric-label { font-size:9.5px; }.metric-value { font-size:12px; }
+}
+@media (prefers-reduced-transparency:reduce) {
+  .torrent-card,.stats-strip,.bottom-dock,.detail-stat,.dialog,.search-wrap { -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(31,43,53,.98); }
+}
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; }
+}
+
+
+/* Tide 0.3 — compact header, glass dock, and proper bottom-safe-area treatment */
+:root { --bg:#080c13; --edge-reserve: 94px; }
+html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+button, input, textarea, select { -webkit-appearance:none; appearance:none; font-family:inherit; }
+button { border-radius:inherit; }
+/* iOS standalone apps can put the status widget on the right of the safe area.
+   Keep all interactive elements to its left; deliberately use the empty left-side top row. */
+.topbar {
+  height:74px; min-height:74px; padding:13px calc(var(--edge-reserve) + 9px) 11px 17px;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+}
+.topbar .brand-wrap { gap:9px; flex:none; }
+.topbar .brandmark { height:34px; width:34px; border-radius:11px; }
+.topbar .brand { font-size:25px; }
+.header-rates {
+  display:flex; flex-direction:column; justify-content:center; align-items:flex-end;
+  gap:4px; margin-left:auto; min-width:0; flex:none; font-variant-numeric:tabular-nums;
+}
+.header-rate { display:flex; align-items:center; justify-content:flex-end; gap:6px; white-space:nowrap; font-size:12px; font-weight:650; line-height:1.1; color:#dce9e6; }
+.header-rate-value { text-align:right; letter-spacing:-.15px; }
+.header-rate-value small { color:var(--dim); font-size:10px; font-weight:500; }
+.header-arrow { font-size:14px; font-weight:750; }
+.header-arrow.down { color:var(--mint); } .header-arrow.up { color:var(--blue); }
+.demo-tag { display:none!important; }
+.list-panel { padding-top:13px; }
+.controls { margin-top:0; }
+.list-meta { margin-top:15px; }
+.search-wrap { margin:0 0 16px; }
+.search-wrap input, input[type="search"], .dialog textarea, .dialog input[type="text"] { font-size:17px !important; -webkit-text-size-adjust:100%; }
+.search-wrap input::-webkit-search-cancel-button { -webkit-appearance:none; }
+.bottom-dock {
+  left:50%; right:auto; bottom:calc(13px + clamp(0px,env(safe-area-inset-bottom,0px),26px) - var(--pwa-bottom-gap,0px));
+  padding:5px; gap:5px; min-height:61px; border:1px solid rgba(255,255,255,.25);
+  border-top-color:rgba(255,255,255,.38); border-radius:100px;
+  background:linear-gradient(150deg,rgba(97,110,124,.84),rgba(42,55,66,.84));
+  box-shadow:0 14px 40px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.21);
+  -webkit-backdrop-filter:blur(38px) saturate(1.8); backdrop-filter:blur(38px) saturate(1.8);
+  transform:translate3d(-50%,0,0); width:max-content; max-width:calc(100% - 28px);
+  isolation:isolate; overflow:hidden;
+}
+.bottom-dock .dock-button {
+  -webkit-appearance:none; appearance:none; flex:0 0 auto;
+  border:1px solid transparent; border-radius:100px; background:rgba(255,255,255,.04);
+  color:#f4f8fb; box-shadow:none; height:49px; min-width:49px; padding:0 12px;
+  display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:650; line-height:1;
+}
+.bottom-dock .dock-button:active { background:rgba(255,255,255,.21); }
+.bottom-dock .dock-add {
+  min-width:88px; padding:0 16px;
+  background:linear-gradient(160deg,#e1f9eb,#a8e8c3); color:#142e21;
+  border-color:rgba(255,255,255,.45); box-shadow:inset 0 1px 0 rgba(255,255,255,.62);
+}
+.bottom-dock .dock-button svg { display:block; width:21px; height:21px; flex:none; }
+.bottom-dock .dock-button.dock-add svg { width:20px; height:20px; }
+.bottom-dock .dock-separator { margin:0 2px; height:26px; }
+/* Keep filters and cards close to the brand now that the tall speeds card has gone. */
+.torrent-card { background:linear-gradient(155deg,rgba(182,203,216,.13),rgba(52,66,81,.28)),rgba(21,30,39,.55); }
+.metric-label { text-transform:none; font-size:10.5px; letter-spacing:.05px; }
+.torrent-card .size-value { font-size:11px; }
+/* Avoid an iOS visual-viewport gap below presented sheets; give the entire sheet a solid material. */
+.overlay { bottom:calc(-1 * var(--pwa-bottom-gap,0px)); }
+.dialog {
+  bottom:calc(-1 * var(--pwa-bottom-gap,0px)); min-height:0; padding-bottom:calc(24px + clamp(0px,env(safe-area-inset-bottom,0px),30px) + var(--pwa-bottom-gap,0px));
+  background:linear-gradient(155deg,rgba(56,72,87,.98),rgba(24,36,49,.97));
+  border-radius:29px 29px 0 0;
+  -webkit-backdrop-filter:blur(36px) saturate(1.8); backdrop-filter:blur(36px) saturate(1.8);
+  -webkit-overflow-scrolling:touch;
+}
+.dialog::after { content:""; position:absolute; pointer-events:none; height:24px; bottom:-23px; left:-1px; right:-1px; background:rgba(24,36,49,.98); }
+.sheet-grab { height:34px; touch-action:none; }
+.dialog-top { min-height:33px; touch-action:pan-y; }
+.dialog h2 { font-size:20px; }
+.dialog-sub { touch-action:pan-y; }
+.dialog textarea { min-height:63px; max-height:160px; resize:vertical; border-radius:15px; }
+.dialog-label { text-transform:none; font-size:13px; }
+.file-picker { display:flex; align-items:center; justify-content:space-between; gap:9px; width:100%; min-height:52px;
+  border:1px solid var(--glass-line); border-radius:14px; background:rgba(255,255,255,.07); color:var(--text);
+  padding:10px 13px; cursor:pointer; font-size:14px; }
+.file-picker .file-picker-choose { color:#b6f1d0; font-weight:650; white-space:nowrap; }
+.file-picker .file-selected { color:var(--sub); flex:1; text-align:right; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+#torrentFile { position:absolute; opacity:0; height:1px; width:1px; overflow:hidden; pointer-events:none; }
+.dialog-actions button { -webkit-appearance:none; appearance:none; border-radius:14px; }
+@media(max-width:390px) {
+  :root { --edge-reserve:82px; }
+  .topbar { padding-left:12px; padding-right:calc(var(--edge-reserve) + 8px); gap:5px; }
+  .topbar .brandmark { height:30px; width:30px; }
+  .topbar .brand { font-size:22px; }
+  .topbar .brand-wrap { gap:7px; }
+  .header-rate { font-size:11px; gap:4px; }
+  .header-rate-value small { font-size:9px; }
+  .bottom-dock .dock-button { min-width:47px; height:47px; }
+}
+@media(min-width:600px) {
+  :root { --edge-reserve:114px; }
+  .topbar { height:72px; min-height:72px; padding-left:25px; padding-top:13px; padding-right:calc(var(--edge-reserve) + 15px); }
+  .header-rates { flex-direction:row; align-items:center; gap:20px; }
+  .header-rate { font-size:13px; }
+  .header-rate-value small { font-size:11px; }
+  .dialog { bottom:calc(-1 * var(--pwa-bottom-gap,0px)); border-bottom:0; border-radius:29px 29px 0 0; padding-bottom:calc(26px + clamp(0px,env(safe-area-inset-bottom,0px),30px) + var(--pwa-bottom-gap,0px)); }
+}
+@media(min-width:850px) {
+  .layout { height:calc(100dvh - 72px); }
+  .list-panel { padding-top:15px; }
+  .header-rates { margin-left:auto; }
+  .bottom-dock { left:25%; }
+}
+@media(max-height:530px) {
+  .dialog { max-height:calc(100dvh - 12px); }
+}
+@media(prefers-reduced-transparency:reduce) {
+  .bottom-dock, .dialog { -webkit-backdrop-filter:none; backdrop-filter:none; }
+}
+
+
+/* Tide 0.4 — iPhone Duo camera/connectivity overlay avoidance.
+   The OS status pill is physically over the PWA in the top-right, and is NOT
+   represented by env(safe-area-inset-right). Treat it as an exclusion zone
+   only for the first rows that actually sit underneath it. */
+:root { --duo-system-zone: 100px; }
+
+/* Folded / narrow mode: protect sort, search close and the start of details.
+   Filters remain horizontally scrollable in the reduced region. The cards
+   return to the normal full content width below the OS widget. */
+@media (max-width: 474px) {
+  :root { --duo-system-zone: clamp(88px, 22vw, 112px); }
+  .topbar { padding-right:calc(var(--duo-system-zone) + 12px); }
+  .controls {
+    margin-right: var(--duo-system-zone);
+    gap:8px;
+  }
+  .filter-row {
+    min-width:0;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    mask-image:linear-gradient(to right,black calc(100% - 17px),transparent 100%);
+  }
+  .sort-button {
+    flex:0 0 auto;
+    white-space:nowrap;
+    min-width:70px;
+    padding-inline:11px;
+    position:relative;
+    z-index:1;
+  }
+  .search-wrap {
+    margin-right:var(--duo-system-zone);
+    min-width:0;
+  }
+  .search-wrap button[data-action="clear-search"] {
+    width:37px;
+    height:39px;
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:12px;
+    color:var(--text);
+  }
+  .detail-panel.mobile-open .detail-header,
+  .detail-panel.mobile-open .detail-name,
+  .detail-panel.mobile-open .detail-status {
+    max-width:calc(100% - var(--duo-system-zone));
+  }
+  .detail-panel.mobile-open .detail-name {
+    overflow-wrap:anywhere;
+    word-break:normal;
+  }
+}
+
+/* Inner portrait: make the title bar feel like one considered top safe region,
+   aligned to the system clock and connectivity pill, rather than a narrow strip.
+   Rate figures stop well short of the status area. Landscape >=850px unchanged. */
+@media (min-width: 475px) and (max-width: 849px) and (orientation: portrait) {
+  .topbar {
+    position:relative;
+    height:94px;
+    min-height:94px;
+    padding:18px 158px 17px 23px;
+    border-bottom:0;
+    gap:13px;
+  }
+  .topbar::after {
+    content:'';
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:112px;
+    height:1px;
+    pointer-events:none;
+    background:linear-gradient(90deg,rgba(255,255,255,.09),rgba(255,255,255,.035) 85%,transparent);
+  }
+  .header-rates { margin-left:auto; }
+  .list-panel { padding-top:17px; }
+}
+@media (min-width: 475px) and (max-width: 599px) and (orientation: portrait) {
+  .topbar { padding-left:18px; padding-right:132px; height:86px; min-height:86px; }
+  .topbar .brandmark { width:32px; height:32px; }
+  .topbar .brand { font-size:24px; }
+  .header-rates { flex-direction:column; gap:4px; align-items:flex-end; }
+  .topbar::after { right:98px; }
+}
+/* When the unfolded inner screen uses compact CSS widths, its aspect ratio
+   alone is not a reliable way to detect posture. The safe exclusions above
+   therefore prioritize unobstructed controls over guessing a hardware hinge. */
+
+
+/* Tide 0.5 — right-side fixed action rail, always outside scroll containers. */
+:root { --rail-width: 66px; --rail-space: 87px; }
+.action-rail {
+  -webkit-appearance:none; appearance:none;
+  position:fixed; z-index:33;
+  top:max(204px,26dvh);
+  right:calc(8px + env(safe-area-inset-right,0px));
+  width:var(--rail-width);
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:7px 6px;
+  max-height:calc(100dvh - max(204px,26dvh) - 20px - env(safe-area-inset-bottom,0px));
+  overflow-y:auto; overflow-x:hidden; scrollbar-width:none; overscroll-behavior:contain;
+  border:1px solid rgba(255,255,255,.26);
+  border-top-color:rgba(255,255,255,.36);
+  border-radius:27px;
+  background:linear-gradient(150deg,rgba(104,123,135,.69),rgba(52,70,83,.69));
+  -webkit-backdrop-filter:blur(36px) saturate(1.7); backdrop-filter:blur(36px) saturate(1.7);
+  box-shadow:0 12px 45px rgba(0,0,0,.31),inset 0 1px 0 rgba(255,255,255,.18);
+  touch-action:pan-y;
+}
+.action-rail::-webkit-scrollbar {display:none;}
+.rail-utilities,.rail-selection {display:flex; flex-direction:column; align-items:center; gap:7px; width:100%;}
+.rail-button {
+  width:52px; height:49px; flex:0 0 auto; display:grid; place-items:center;
+  appearance:none; -webkit-appearance:none; border:1px solid transparent;
+  border-radius:20px; color:var(--text); background:rgba(255,255,255,.085);
+  padding:0; touch-action:manipulation; box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+.rail-button:active {background:rgba(255,255,255,.25);transform:scale(.96);}
+.rail-button svg {width:23px;height:23px;}
+.rail-add {background:linear-gradient(155deg,#e0faea,#a7e7c1); color:#173024; border-color:rgba(255,255,255,.44);}
+.rail-detail {color:#d4ffe7; background:rgba(171,235,202,.22); border-color:rgba(173,241,203,.3);}
+.rail-delete {color:#ffb7b7; background:rgba(243,97,106,.11);}
+.rail-separator {flex:none; width:29px; height:1px; background:rgba(255,255,255,.25); margin:4px 0;}
+/* Keep the obsolete dock entirely out of layout. */
+.bottom-dock {display:none!important;}
+/* The list is permanently inset to avoid being covered by the fixed rail. */
+.list-panel {padding-right:calc(var(--rail-space) + env(safe-area-inset-right,0px))!important;}
+.controls,.search-wrap {margin-right:0!important;}
+.filter-row {mask-image:linear-gradient(to right,black calc(100% - 17px),transparent 100%);}
+.sort-button {display:none;}
+/* List selection is step one; selected torrent commands are step two in the rail. */
+.selection-indicator {height:22px; width:22px; border-radius:50%; flex:none; border:1px solid rgba(255,255,255,.20); background:rgba(255,255,255,.07); display:grid; place-items:center; color:transparent;}
+.selection-indicator svg {width:14px;height:14px;}
+.torrent-card.selected .selection-indicator {color:#133526;background:#b7eccc;border-color:rgba(255,255,255,.44);}
+.torrent-card.selected {border-color:rgba(175,237,203,.65); box-shadow:0 0 0 1px rgba(175,237,203,.18),0 9px 25px rgba(0,0,0,.09);}
+/* At narrow widths the size string wraps beneath the percentage without clipping. */
+@media(max-width:590px) {
+  .progress-row {flex-wrap:wrap; row-gap:1px; align-items:baseline;}
+  .size-value {white-space:normal; overflow-wrap:anywhere; flex:1; text-align:right; line-height:1.3;}
+  .metric-grid {gap:3px;}
+  .metric-value {font-size:clamp(10px,2.65vw,13px);}
+  .metric-label {font-size:clamp(9px,2.3vw,10.5px);}
+}
+@media(max-width:390px) {
+  :root {--rail-width:60px;--rail-space:79px;}
+  .action-rail {right:5px; padding:6px 4px;}
+  .rail-button {width:48px;height:46px;border-radius:17px;}
+  .rail-button svg {width:21px;height:21px;}
+  .list-panel {padding-left:11px;}
+}
+/* Preserve a two-column workspace only while the user is viewing details. */
+@media(min-width:850px) {
+  .layout {display:block!important; height:calc(100dvh - 72px);}
+  .list-panel {height:100%;overflow-y:auto!important;max-width:none; padding-left:25px!important;}
+  .detail-panel {display:none!important;}
+  .shell.detail-open .layout {display:grid!important; grid-template-columns:minmax(0,1fr) minmax(0,.90fr);}
+  .shell.detail-open .detail-panel {display:block!important; min-height:0;overflow-y:auto;}
+  .shell.detail-open .detail-inner {padding:14px calc(var(--rail-space) + 13px) 100px 23px;}
+  .shell.detail-open .list-panel {padding-right:20px!important;}
+  .shell.detail-open .torrent-card {max-width:unset;}
+}
+/* In compact screens details cover the list and start in the top header region. */
+@media(max-width:849px) {
+  .detail-panel.mobile-open {display:block;inset:0;z-index:25; padding-top:0!important;}
+  .detail-panel.mobile-open .detail-inner {
+    padding:calc(9px + env(safe-area-inset-top,0px)) calc(var(--rail-space) + env(safe-area-inset-right,0px)) 38px 16px!important;
+  }
+  .detail-panel.mobile-open .detail-header {margin-top:0;margin-bottom:17px;}
+  .detail-panel.mobile-open .detail-header,
+  .detail-panel.mobile-open .detail-name,
+  .detail-panel.mobile-open .detail-status {max-width:none!important;}
+  .detail-name {font-size:clamp(18px,4.4vw,23px);}
+  .detail-stats {grid-template-columns:minmax(0,1fr);}
+  .detail-progress {flex-wrap:wrap;}
+  .detail-progress span {overflow-wrap:anywhere;}
+  .detail-panel.mobile-open .detail-inner {scroll-margin-top:0;}
+}
+@media(min-width:850px) {
+  .torrent-list {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:12px;}
+  .shell.detail-open .torrent-list {grid-template-columns:minmax(0,1fr);}
+}
+/* An open modal always overlays the rail, without interfering with swipe dismissal. */
+.overlay {z-index:38;}
+.modal-mount {z-index:40;}
+.toast {bottom:calc(22px + env(safe-area-inset-bottom,0px));}
+@media(max-height:690px) {
+  .action-rail {top:max(165px,23dvh);max-height:calc(100dvh - max(165px,23dvh) - 14px);}
+  .rail-button {height:44px;}
+  .rail-utilities,.rail-selection {gap:5px;}
+}
+@media(prefers-reduced-transparency:reduce){.action-rail{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(45,58,68,.96);}}
+
+
+/* Tide 0.6 — Duo native-inspired edge controls, exclusive rail states. */
+:root { --rail-slot: 76px; }
+html, body { overflow-x: clip; }
+/* All dimensions are based on the viewport's RIGHT EDGE, NOT safe-area-inset-right.
+   Duo reports that right inset as the OS status/control strip; adding it pushed v0.5 left. */
+.action-rail {
+  position:fixed !important;
+  right: 7px !important;
+  left:auto !important;
+  width:57px !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+  overflow:visible !important;
+  max-height:none !important;
+  z-index:33;
+  pointer-events:none;
+}
+.rail-buttons,.rail-cluster { display:flex; flex-direction:column; align-items:center; gap:13px; width:100%; }
+.rail-buttons {pointer-events:auto;}
+.action-rail[data-mode="global"] {top:clamp(205px, 50dvh, 510px); bottom:auto;}
+.action-rail[data-mode="selected"] {top:clamp(198px, 27dvh, 330px); bottom:auto;}
+.action-rail[data-mode="detail"] {
+  top:clamp(196px, 26dvh, 312px);
+  bottom:calc(26px + env(safe-area-inset-bottom,0px));
+  display:block;
+}
+.action-rail[data-mode="detail"] .rail-buttons {
+  display:flex; flex-direction:column; justify-content:space-between; height:100%;
+}
+.rail-button {
+  width:53px !important; height:53px !important;
+  display:grid; place-items:center; flex:none;
+  padding:0 !important; margin:0 !important;
+  -webkit-appearance:none; appearance:none;
+  border-radius:50% !important;
+  border:1px solid rgba(255,255,255,.17) !important;
+  color:#f2f5fa !important;
+  background:linear-gradient(145deg,rgba(83,89,97,.61),rgba(29,33,40,.82)) !important;
+  -webkit-backdrop-filter:blur(32px) saturate(1.4);
+  backdrop-filter:blur(32px) saturate(1.4);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 5px 18px rgba(0,0,0,.21);
+  touch-action:manipulation;
+}
+.rail-button:active {transform:scale(.94); background:rgba(108,124,130,.75) !important;}
+.rail-button svg {width:26px;height:26px;stroke-width:1.85;}
+/* Deletion remains red-accented, but never one-tap destructive. */
+.rail-destructive {color:#ffb2b2 !important;}
+/* The add control is the one accented action, similar to iOS control affordances. */
+.rail-add {color:#d4ffe5 !important;}
+.rail-utilities,.rail-selection,.rail-separator {display:none !important;}
+/* Content is inset precisely by the rail width, not by OS safe-area twice. */
+.list-panel {padding-right:calc(var(--rail-slot) + 8px) !important;}
+.controls,.filter-row,.search-wrap {margin-right:0 !important;}
+.controls {gap:0;}
+.filter-row {mask-image:none; padding-bottom:3px;}
+.inline-sort {
+  display:inline-flex;align-items:center;gap:5px;flex:none; min-height:37px;
+  -webkit-appearance:none;appearance:none; border-radius:999px !important;
+  padding:0 11px; background:rgba(211,231,240,.13);
+  color:var(--text);border:1px solid rgba(255,255,255,.18);
+  font-size:12px;font-weight:640;white-space:nowrap;
+}
+.inline-sort svg{width:15px;height:15px;flex:none;}
+/* Place sort among filters; it scrolls with the filter row like other chips. */
+.torrent-card {min-width:0;}
+.selection-indicator {
+  background:none; border:none; color:var(--sub);
+  height:25px;width:24px; border-radius:50%;
+}
+.selection-indicator svg {width:21px;height:21px;}
+.torrent-card.selected .selection-indicator {
+  background:rgba(183,236,204,.96);border:1px solid rgba(255,255,255,.32);
+  width:24px;height:24px;color:#173627;
+}
+.torrent-card.selected .selection-indicator svg{width:16px;height:16px;}
+/* Header remains in place when the document scrolls; opening Details never reveals
+   a fragment of the list above its panel. */
+.topbar {position:sticky;top:0;z-index:27; background:rgba(10,17,24,.80); -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);}
+/* Keep torrent details under the logo/speed header. No redundant Details/back row. */
+.detail-header {display:none !important;}
+.detail-panel.mobile-open {
+  top:74px !important;bottom:0 !important;right:0 !important;left:0 !important;
+  padding-top:0 !important; padding-bottom:0 !important;
+}
+.detail-panel.mobile-open .detail-inner {
+  padding:16px calc(var(--rail-slot) + 12px) calc(50px + env(safe-area-inset-bottom,0px)) 18px !important;
+}
+.detail-name {font-size:clamp(20px,4.25vw,26px);line-height:1.25;}
+/* Two-by-two stats on both Duo screens, as in the user's detail sketch. */
+@media(max-width:849px) {
+  .detail-panel.mobile-open .detail-stats {grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:9px;}
+  .detail-panel.mobile-open .detail-stat {padding:13px 11px;}
+  .detail-panel.mobile-open .detail-stat-label {font-size:11px;}
+  .detail-panel.mobile-open .detail-stat-value {font-size:15px;}
+}
+/* Landscape uses split view, with the rail inset applied to the DETAIL pane only. */
+@media(min-width:850px) {
+  .layout {height:calc(100dvh - 72px);}
+  .list-panel {padding-right:calc(var(--rail-slot) + 12px) !important;}
+  .shell.detail-open .list-panel {padding-right:16px !important;}
+  .shell.detail-open .detail-inner {padding:19px calc(var(--rail-slot) + 18px) 95px 20px !important;}
+  .detail-name {overflow-wrap:anywhere;}
+  .detail-name {font-size:22px;}
+}
+/* Portrait Duo displays a top system island. Tighten our header. On the PWA,
+   pull the shell upward into the unused inset on the left, clear of the island. */
+@media(min-width:475px) and (max-width:849px) and (orientation:portrait) {
+  .topbar {height:73px;min-height:73px;padding:11px 128px 10px 20px;}
+  .topbar::after {right:85px;}
+  .list-panel {padding-top:7px;}
+  body.duo-standalone .shell {margin-top:calc(-1 * clamp(35px, env(safe-area-inset-top, 0px), 62px));}
+  body.duo-standalone .topbar {height:88px;min-height:88px;padding-top:22px;}
+  body.duo-standalone .detail-panel.mobile-open {top:calc(88px - clamp(35px, env(safe-area-inset-top, 0px), 62px)) !important;}
+}
+/* With a 320–382 CSS pixel viewport the cards are narrower but the controls
+   remain at the physical right edge; avoid shrinking tappable hit targets. */
+@media(max-width:390px) {
+  :root{--rail-slot:68px;}
+  .action-rail {right:4px !important;width:52px !important;}
+  .rail-button {width:49px !important;height:49px !important;}
+  .rail-button svg {width:23px;height:23px;}
+  .list-panel {padding-right:calc(var(--rail-slot) + 6px) !important;}
+  .detail-panel.mobile-open .detail-inner {padding-right:calc(var(--rail-slot) + 6px) !important;}
+}
+/* Small landscape: a four-button context rail must still fit without scrolling. */
+@media(max-height:620px) {
+  .action-rail[data-mode="global"] {top:clamp(95px,33dvh,190px);}
+  .action-rail[data-mode="selected"] {top:clamp(95px,25dvh,140px);}
+  .action-rail[data-mode="detail"] {top:clamp(95px,23dvh,135px);bottom:10px;}
+  .rail-cluster {gap:7px;}
+  .rail-button {width:45px !important;height:45px !important;}
+  .rail-button svg {width:22px;height:22px;}
+}
+@media(prefers-reduced-transparency:reduce) {
+  .rail-button{-webkit-backdrop-filter:none;backdrop-filter:none;background:#2a3440 !important;}
+}
+
+@media(min-width:475px) and (max-width:849px) {
+  .detail-panel.mobile-open {top:73px !important;}
+}
+
+
+/* Tide 0.7 — separate iOS-inspired glass controls, bottom anchored, real bulk selection */
+:root {--rail-slot: 78px;--rail-button-size: 48px;--rail-edge: 22px;--rail-bottom: calc(23px + env(safe-area-inset-bottom, 0px));}
+/* A body-level fixed rail must not follow list scrolling or the card scroller. */
+.action-rail,
+.action-rail[data-mode="global"],
+.action-rail[data-mode="selected"],
+.action-rail[data-mode="detail"] {
+  position: fixed !important;
+  top: clamp(166px, 21dvh, 196px) !important;
+  bottom: var(--rail-bottom) !important;
+  right: var(--rail-edge) !important;
+  left: auto !important;
+  width: var(--rail-button-size) !important;
+  max-height: none !important;
+  display: block !important;
+  overflow: visible !important;
+  border:0 !important;
+  background:none !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  margin:0 !important;
+  pointer-events:none;
+  transform:none !important;
+}
+.rail-buttons {display:flex !important;flex-direction:column !important;justify-content:space-between !important;align-items:center !important;height:100% !important;width:100% !important;pointer-events:none !important;}
+.rail-cluster {display:flex !important; flex-direction:column !important;gap:11px !important;width:100% !important;align-items:center !important;pointer-events:none !important;}
+.rail-top {margin:0;}
+.rail-bottom {margin-top:auto;}
+.rail-button,
+.rail-button.rail-add,
+.rail-button.rail-destructive {
+  position:relative;
+  display:grid !important;
+  place-items:center;
+  flex:none !important;
+  width:var(--rail-button-size) !important;
+  height:var(--rail-button-size) !important;
+  min-width:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  isolation:isolate;
+  color:rgba(252,254,255,.96) !important;
+  border-radius:50% !important;
+  border:1px solid rgba(248,253,255,.26) !important;
+  /* Subtle refractive luminance: soft top highlight and the darker lower edge. */
+  background:
+    radial-gradient(ellipse 80% 42% at 42% 5%, rgba(255,255,255,.23),transparent 94%),
+    radial-gradient(ellipse 65% 65% at 87% 90%,rgba(175,198,230,.065),transparent 94%),
+    linear-gradient(155deg,rgba(174,196,215,.26),rgba(74,88,102,.28) 46%,rgba(22,29,38,.46) 100%) !important;
+  -webkit-backdrop-filter:blur(28px) saturate(1.75) brightness(1.12) !important;
+  backdrop-filter:blur(28px) saturate(1.75) brightness(1.12) !important;
+  box-shadow:
+    inset 0 1.15px .5px rgba(255,255,255,.53),
+    inset .75px .5px 1.6px rgba(255,255,255,.12),
+    inset 0 -2px 3px rgba(6,10,18,.33),
+    0 4px 14px rgba(0,0,0,.21),
+    0 1px 2px rgba(0,0,0,.18) !important;
+  pointer-events:auto !important;
+  touch-action:manipulation;
+  transition: transform .15s ease, filter .15s ease;
+}
+.rail-button::before {content:'';position:absolute;inset:1.2px;border:1px solid rgba(240,250,255,.10);border-radius:inherit;pointer-events:none;}
+.rail-button::after {content:'';position:absolute;inset:auto 24% 1.5px;height:1px;background:rgba(219,240,254,.15);filter:blur(.4px);pointer-events:none;}
+.rail-button svg {position:relative;z-index:1;width:23px !important;height:23px !important;stroke-width:1.8 !important;}
+.rail-button.rail-destructive {color:#ffd9dc !important;}
+.rail-button.rail-add {color:#f7fff9 !important;}
+.rail-button:active {transform:scale(.94) !important;filter:brightness(1.22);}
+.rail-button:disabled {opacity:.38 !important;cursor:not-allowed;filter:grayscale(.45);}
+.rail-button:disabled:active {transform:none !important;}
+/* Keep the rail aligned to the actual Duo camera lane, as Safari does (inset 22px from the edge). */
+@media (max-width:390px){:root {--rail-slot:70px;--rail-edge:17px;--rail-button-size:43px;}}
+/* On an unfolded display, the rail is still aligned with the right-hand system lane. */
+@media(min-width:850px){:root{--rail-edge:24px;--rail-slot:86px;--rail-button-size:47px;}}
+/* Preserve physical tap size while fitting all controls on shorter unfolded landscape postures. */
+@media(max-height:550px){
+  :root{--rail-bottom:calc(10px + env(safe-area-inset-bottom, 0px));--rail-button-size:42px;}
+  .action-rail,.action-rail[data-mode="global"],.action-rail[data-mode="selected"],.action-rail[data-mode="detail"]{top:clamp(87px,22dvh,115px) !important;}
+  .rail-cluster {gap:7px !important;}
+  .rail-button svg{width:21px !important;height:21px !important;}
+}
+/* Set list content to stop in front of the camera/control strip on all folds. */
+.list-panel{padding-right:calc(var(--rail-slot) + 7px) !important;}
+@media(min-width:850px){.shell.detail-open .list-panel{padding-right:16px !important;}.shell.detail-open .detail-inner{padding-right:calc(var(--rail-slot) + 15px) !important;}}
+@media(max-width:849px){.detail-panel.mobile-open .detail-inner{padding-right:calc(var(--rail-slot) + 8px) !important;}}
+/* iOS-filter row: pinned Sort at right, mask ONLY the scrolling chip viewport. */
+.controls {display:flex !important;gap:8px !important;align-items:center !important;min-width:0 !important;}
+.filter-viewport {position:relative;flex:1 1 auto;min-width:0;overflow:hidden;isolation:isolate;}
+.filter-viewport::after {content:'';position:absolute;right:-1px;top:0;bottom:0;width:29px;pointer-events:none;z-index:2;
+  background:linear-gradient(90deg,transparent,rgba(12,20,28,.89));}
+.filter-row {display:flex;gap:7px;max-width:100%;overflow-x:auto;min-width:0;mask-image:none !important;-webkit-mask-image:none !important;padding-right:18px;padding-bottom:2px;scrollbar-width:none;}
+.filter-chip{flex:none;}
+.inline-sort {position:relative !important;display:inline-flex !important;flex:none !important;min-width:71px;justify-content:center;border-radius:999px !important;min-height:38px;padding:0 11px;
+  background:linear-gradient(140deg,rgba(180,207,219,.21),rgba(91,117,130,.17)) !important;
+  border:1px solid rgba(255,255,255,.2) !important;
+  -webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);}
+.inline-sort svg{width:16px;height:16px;}
+/* Selection indicators communicate real multi selection with an unchecked circle. */
+.selection-indicator {width:25px;height:25px;border:1px solid rgba(225,242,255,.37);border-radius:50%;flex:none;color:transparent;background:rgba(255,255,255,.025);margin:0 !important;}
+.torrent-card.selected .selection-indicator {background:linear-gradient(135deg,rgba(198,246,228,.95),rgba(155,216,190,.95));border-color:rgba(244,255,250,.75);color:#143226;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 2px 9px rgba(126,220,171,.14);}
+.torrent-card.selected{border-color:rgba(174,232,202,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 0 1px rgba(172,238,204,.10),0 10px 24px rgba(0,0,0,.1);}
+/* More restrained fallback when transparency is reduced. */
+@media(prefers-reduced-transparency:reduce){.rail-button,.rail-button.rail-add,.rail-button.rail-destructive {background:#303b49 !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}}
+@media(prefers-reduced-motion:reduce){.rail-button{transition:none !important;}}
+
+/* Fade only while another filter remains offscreen; reveal already-viewed items fully. */
+.filter-viewport::after{opacity:0;transition:opacity .16s ease;}
+.filter-viewport.fade-right::after{opacity:1;}
+.filter-viewport::before{content:'';position:absolute;top:0;bottom:0;left:0;width:22px;pointer-events:none;opacity:0;z-index:2;background:linear-gradient(90deg,rgba(12,20,28,.89),transparent);transition:opacity .16s ease;}
+.filter-viewport.fade-left::before{opacity:1;}
+/* Neutral silver-glass body, avoiding an opaque, brightly tinted control surface. */
+.rail-button,.rail-button.rail-add,.rail-button.rail-destructive {
+ background:
+ radial-gradient(ellipse 78% 38% at 43% 3%, rgba(255,255,255,.22),transparent 95%),
+ radial-gradient(ellipse 67% 60% at 86% 95%,rgba(221,231,247,.04),transparent 94%),
+ linear-gradient(150deg,rgba(195,204,216,.20),rgba(96,103,114,.24) 49%,rgba(28,30,36,.44) 100%) !important;
+}
+@media(prefers-reduced-transparency:reduce){.rail-button,.rail-button.rail-add,.rail-button.rail-destructive{background:#303b49 !important;}}
+
+
+/* Tide 0.8: tune the right-hand controls against the supplied Duo Safari screenshot.
+   This material is deliberately quieter than the previous glossy interpretation:
+   almost neutral charcoal, a diffuse top light, minimal border, no glass glints. */
+:root {
+  --rail-button-size: 48px;
+  --rail-edge: 24px;  /* 24px outside margin + 24px radius = camera-lane centre */
+  --rail-slot: 80px;
+  /* Never add safe-area inset on top of a fixed arbitrary bottom margin.
+     Installed iOS PWAs already report their protected home-indicator region here. */
+  --rail-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+}
+.action-rail, .action-rail[data-mode="global"],
+.action-rail[data-mode="selected"], .action-rail[data-mode="detail"] {
+  right: var(--rail-edge) !important;
+  bottom: var(--rail-bottom) !important;
+  width: var(--rail-button-size) !important;
+}
+.rail-cluster { gap: 11px !important; }
+.rail-button,
+.rail-button.rail-add,
+.rail-button.rail-destructive {
+  width: var(--rail-button-size) !important;
+  height: var(--rail-button-size) !important;
+  border-radius: 50% !important;
+  color: #f9f9fb !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  /* Native Safari's controls are softly lit charcoal, not bright frosted glass. */
+  background: linear-gradient(180deg,
+    rgba(46,46,49,.82) 0%,
+    rgba(35,35,38,.90) 50%,
+    rgba(29,29,32,.94) 100%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.08) !important;
+  backdrop-filter: blur(16px) saturate(1.08) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.13),
+    inset 0 -1px 0 rgba(0,0,0,.16),
+    0 2px 5px rgba(0,0,0,.16) !important;
+  filter:none !important;
+}
+/* Remove the concentric rings and specular chrome strokes from 0.7. */
+.rail-button::before, .rail-button::after {content:none !important;display:none !important;}
+.rail-button.rail-add { color: #f9f9fb !important; }
+.rail-button.rail-destructive { color: #ffc9c9 !important; }
+.rail-button svg {
+  width: 23px !important;
+  height: 23px !important;
+  stroke-width: 1.9 !important;
+}
+.rail-button:active {
+  transform:scale(.96) !important;
+  background:rgba(64,65,68,.92) !important;
+  filter:none !important;
+}
+/* The native camera lane remains the same size in the narrow folded posture. */
+@media(max-width:390px) {
+  :root { --rail-button-size: 48px; --rail-edge: 22px; --rail-slot: 76px; }
+  .rail-button, .rail-button.rail-add, .rail-button.rail-destructive {
+    width:var(--rail-button-size) !important;height:var(--rail-button-size) !important;
+  }
+}
+/* Preserve tappability and clearance when the unfolded viewport is very short. */
+@media(max-height:550px) {
+  :root {--rail-button-size:44px;--rail-bottom:max(8px,env(safe-area-inset-bottom,0px));}
+  .rail-cluster {gap:7px !important;}
+  .rail-button, .rail-button.rail-add, .rail-button.rail-destructive {
+    width:var(--rail-button-size) !important;height:var(--rail-button-size) !important;
+  }
+  .rail-button svg {width:22px !important;height:22px !important;}
+}
+@media(prefers-reduced-transparency: reduce){
+  .rail-button,.rail-button.rail-add,.rail-button.rail-destructive{
+    background:#28282b !important;
+    -webkit-backdrop-filter:none !important;
+    backdrop-filter:none !important;
+  }
+}
+
+
+/* Tide 0.9 — material and elevated-control placement refined against the user's
+   Duo Safari screenshot. Safari on pure black looks charcoal; Tide uses a blue
+   backdrop, so the material must let the blue colour transmit through it. */
+.rail-button,
+.rail-button.rail-add,
+.rail-button.rail-destructive {
+  background: linear-gradient(180deg,
+    rgba(155, 170, 182, .24) 0%,
+    rgba(133, 148, 164, .19) 55%,
+    rgba(120, 135, 151, .17) 100%) !important;
+  border: 1px solid rgba(235, 244, 252, .15) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.12) brightness(1.03) !important;
+  backdrop-filter: blur(24px) saturate(1.12) brightness(1.03) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -1px 0 rgba(8,12,19,.07),
+    0 2px 5px rgba(0,0,0,.14) !important;
+}
+.rail-button:active {
+  background: rgba(155,175,191,.31) !important;
+}
+/* Safari's elevated Back control begins around 175px below the top of a
+   466×678 CSS viewport; the circle centre is ~199px. Lower ONLY the
+   upper contextual buttons, leaving the bottom cluster docked as before. */
+.action-rail[data-mode="selected"],
+.action-rail[data-mode="detail"] {
+  top: calc(clamp(166px, 21dvh, 196px) + 9px) !important;
+}
+@media(max-height:550px) {
+  .action-rail[data-mode="selected"],
+  .action-rail[data-mode="detail"] {
+    top: calc(clamp(87px, 22dvh, 115px) + 7px) !important;
+  }
+}
+@media(prefers-reduced-transparency: reduce) {
+  .rail-button,.rail-button.rail-add,.rail-button.rail-destructive {
+    background: #303b49 !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+
+/* Tide v0.10 — closer to iOS system symbol weights and a floating delete alert.
+   The confirmation is independent of the standard bottom-sheet system. */
+.rail-button svg.symbol-refined {
+  width: 22px !important;
+  height: 22px !important;
+  stroke-width: 1.7 !important;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+@media(max-height:550px) {
+  .rail-button svg.symbol-refined {width:21px !important;height:21px !important;}
+}
+body.delete-dialog-open .overlay {
+  background: rgba(4, 7, 12, .36);
+  -webkit-backdrop-filter: blur(14px) saturate(.8);
+  backdrop-filter: blur(14px) saturate(.8);
+}
+/* The rail remains fixed and the alert sits in front, to its left. */
+.dialog.floating-dialog {
+  position:fixed;
+  z-index:42;
+  left:auto;
+  top:auto;
+  right:calc(var(--rail-edge) + var(--rail-button-size) + 13px);
+  bottom:max(15px, env(safe-area-inset-bottom,0px));
+  width:min(365px, calc(100vw - var(--rail-edge) - var(--rail-button-size) - 27px));
+  max-height:calc(100dvh - 30px);
+  margin:0;
+  padding:26px 23px 16px;
+  overflow-y:auto;
+  border:1px solid rgba(241,247,255,.18);
+  border-radius:34px;
+  background:
+    linear-gradient(150deg,rgba(96,105,120,.47),rgba(47,51,62,.72) 66%,rgba(38,43,54,.77)),
+    rgba(35,44,54,.55);
+  color:#f7f8fb;
+  box-shadow:0 24px 64px rgba(0,0,0,.31), inset 0 1px 0 rgba(255,255,255,.13);
+  -webkit-backdrop-filter:blur(35px) saturate(1.25);
+  backdrop-filter:blur(35px) saturate(1.25);
+  transform:translate3d(0,var(--sheet-drag,0px),0);
+  transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .18s ease;
+  -webkit-overflow-scrolling:touch;
+}
+.dialog.floating-dialog::after {display:none !important;content:none !important;}
+.dialog.floating-dialog.is-dragging {transition:none;}
+.delete-alert-heading {
+  color:#f8f9fd;
+  font-size:21px !important;
+  line-height:1.22;
+  font-weight:620 !important;
+  letter-spacing:-.55px;
+  margin:0 0 17px !important;
+}
+.delete-alert-copy {
+  color:rgba(250,251,255,.94);
+  font-size:17px;
+  line-height:1.43;
+  letter-spacing:-.14px;
+  margin:0 0 11px;
+}
+.delete-alert-name {
+  color:rgba(249,251,255,.78);
+  font-weight:570;
+  font-size:13px;
+  line-height:1.4;
+  max-height:2.8em;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+  overflow-wrap:anywhere;
+  margin:0 0 17px;
+}
+.delete-alert-note {
+  margin:0 0 17px;
+  color:rgba(244,248,252,.81);
+  font-size:15px;
+  line-height:1.45;
+}
+.delete-alert-files {
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:13px 13px;
+  margin:0 0 17px;
+  border-radius:18px;
+  background:rgba(212,226,246,.09);
+  border:1px solid rgba(243,248,255,.08);
+  color:#f2f4f8;
+  font-size:13px;
+  font-weight:530;
+  cursor:pointer;
+  user-select:none;
+}
+.delete-alert-files input {
+  position:absolute;
+  inset:0;
+  width:100%;height:100%;
+  margin:0;
+  opacity:0;
+  cursor:pointer;
+  z-index:2;
+}
+.delete-alert-checkbox {
+  flex:none;
+  display:grid;
+  place-items:center;
+  width:20px;
+  height:20px;
+  border-radius:6px;
+  border:1.5px solid rgba(241,247,255,.58);
+  background:rgba(11,20,30,.17);
+}
+.delete-alert-checkbox svg {
+  width:15px;height:15px;
+  color:#183b2b;
+  opacity:0;
+  stroke-width:2.5;
+}
+.delete-alert-files input:checked + .delete-alert-checkbox {
+  background:#b7ebce;
+  border-color:#d8ffeb;
+}
+.delete-alert-files input:checked + .delete-alert-checkbox svg {opacity:1;}
+.delete-alert-primary {
+  display:block;
+  width:100%;
+  min-height:52px;
+  border:0;
+  border-radius:999px;
+  background:rgba(215,224,236,.15);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
+  color:#ff858b;
+  font-size:17px;
+  letter-spacing:-.26px;
+  font-weight:650;
+  cursor:pointer;
+}
+.delete-alert-primary:active {background:rgba(230,237,247,.22);}
+.delete-alert-dismiss {
+  display:block;
+  margin:9px auto 0;
+  background:transparent;
+  border:0;
+  min-height:32px;
+  padding:4px 20px;
+  color:rgba(239,245,254,.73);
+  font-size:14px;
+  font-weight:550;
+  cursor:pointer;
+}
+.delete-alert-dismiss:focus-visible,
+.delete-alert-primary:focus-visible,
+.delete-alert-files:focus-within {outline:2px solid rgba(176,232,207,.86);outline-offset:3px;}
+@media(min-width:850px){
+  .dialog.floating-dialog {width:min(395px,calc(100vw - 120px));}
+}
+@media(max-width:390px){
+  .dialog.floating-dialog {padding:21px 17px 12px;border-radius:29px;right:calc(var(--rail-edge) + var(--rail-button-size) + 8px);width:calc(100vw - var(--rail-edge) - var(--rail-button-size) - 22px);}
+  .delete-alert-heading {font-size:19px !important;}
+  .delete-alert-copy {font-size:15px;}
+  .delete-alert-note {font-size:13px;}
+  .delete-alert-files {font-size:12px;padding:11px 9px;}
+}
+@media(max-height:550px){
+  .dialog.floating-dialog {padding-top:17px;padding-bottom:10px;bottom:8px;max-height:calc(100dvh - 16px);}
+  .delete-alert-heading {margin-bottom:9px !important;}
+  .delete-alert-note {margin-bottom:10px;}
+  .delete-alert-files {margin-bottom:10px;}
+  .delete-alert-primary {min-height:44px;}
+}
+@media(prefers-reduced-transparency:reduce){
+  .dialog.floating-dialog {background:#333f4c; -webkit-backdrop-filter:none;backdrop-filter:none;}
+}
+@media(prefers-reduced-motion:reduce){
+  .dialog.floating-dialog {transition:none;}
+}
+
+
+/* Tide v0.11 — viewport-locked app: ONE scroll container per workspace panel. */
+html, body {
+  width:100%;height:100%;min-height:0 !important;
+  overflow:hidden !important;
+  overscroll-behavior:none;
+}
+body {position:fixed;inset:0;}
+.shell,
+body.duo-standalone .shell {
+  position:fixed !important;
+  inset:0 !important;
+  margin:0 !important;
+  max-width:none !important;
+  width:100% !important;
+  height:100dvh !important;
+  min-height:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+  isolation:isolate;
+}
+.topbar, body.duo-standalone .topbar {
+  position:relative !important;
+  inset:auto !important;
+  flex:0 0 auto !important;
+  z-index:27;
+}
+.layout,
+.shell.detail-open .layout {
+  position:relative !important;
+  display:block;
+  flex:1 1 auto !important;
+  height:auto !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+.list-panel {
+  height:100% !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  overscroll-behavior-y:contain !important;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+}
+/* Compact details are a separate pane atop the list, not a fixed page overlay.
+   Only its own content moves. The logo/speed header remains outside it. */
+@media(max-width:849px){
+  .detail-panel.mobile-open,
+  body.duo-standalone .detail-panel.mobile-open {
+    display:block !important;
+    position:absolute !important;
+    inset:0 !important;
+    top:0 !important;
+    bottom:0 !important;
+    height:100% !important;
+    padding:0 !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+    overscroll-behavior-y:contain;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y;
+    background:radial-gradient(ellipse 70% 25% at 0 -5%,rgba(65,134,140,.22),transparent),var(--bg);
+    z-index:25;
+  }
+  .shell.detail-open .list-panel {
+    visibility:hidden;
+    pointer-events:none;
+  }
+  .detail-panel.mobile-open .detail-inner {
+    padding-top:13px !important;
+  }
+}
+/* Wide layout keeps two independent scrolling panels when Details is open. */
+@media(min-width:850px){
+  .layout,.shell.detail-open .layout {min-height:0 !important;height:auto !important;}
+  .shell.detail-open .layout {display:grid !important;grid-template-columns:minmax(0,1fr) minmax(0,.90fr);}
+  .shell.detail-open .list-panel,
+  .shell.detail-open .detail-panel {height:100% !important;min-height:0 !important;overflow-y:auto !important;overscroll-behavior-y:contain !important;-webkit-overflow-scrolling:touch;}
+  .shell.detail-open .detail-panel{position:relative !important;}
+}
+/* Floating system-inspired dialogs share the same translucent surface as Delete. */
+.dialog.floating-dialog {
+  left:auto !important;
+  right:calc(var(--rail-edge) + var(--rail-button-size) + 13px) !important;
+  top:auto !important;
+  bottom:max(15px, env(safe-area-inset-bottom,0px)) !important;
+  transform:translate3d(0,var(--sheet-drag,0px),0) !important;
+  max-height:calc(100dvh - 30px) !important;
+  overscroll-behavior:contain;
+}
+.dialog.floating-dialog.sort-alert,
+.dialog.floating-dialog.add-alert {
+  padding:23px 21px 17px;
+}
+.floating-dialog .dialog-top {margin-bottom:15px;touch-action:none;}
+.floating-dialog .dialog-top h2 {font-size:21px !important;font-weight:660;letter-spacing:-.55px;}
+.floating-dialog .dialog-close {
+  background:rgba(224,235,247,.14);
+  border:1px solid rgba(255,255,255,.09);
+  width:31px;height:31px;
+}
+.floating-dialog .dialog-sub {color:rgba(239,245,250,.78);font-size:14px;margin-bottom:15px;}
+.floating-dialog .sort-options {
+  background:rgba(9,18,26,.20);
+  border:1px solid rgba(235,247,255,.11);
+  border-radius:19px;
+}
+.floating-dialog .sort-option {
+  min-height:45px;padding:11px 13px;font-size:14px;
+  border-bottom-color:rgba(255,255,255,.085);
+}
+.floating-dialog .sort-option.active {background:rgba(185,236,209,.11);color:#c7f2d8;}
+.floating-dialog .sort-order {font-size:13px;margin-top:14px;}
+.floating-dialog .toggle-order {
+  border:0;border-radius:999px;padding:10px 12px;
+  background:rgba(220,231,242,.15);
+  color:#eef4fb;font-size:13px;
+}
+.floating-dialog .dialog-label {color:rgba(234,241,251,.8);font-size:12px;letter-spacing:0;margin-top:14px;}
+.floating-dialog textarea {
+  background:rgba(4,11,17,.25);
+  border-color:rgba(228,244,250,.14);
+  min-height:77px;
+  resize:vertical;
+  padding:12px 13px;
+  font-size:16px !important;
+  line-height:1.35;
+}
+.floating-dialog .file-picker {background:rgba(235,247,255,.09);border-color:rgba(240,246,255,.14);}
+.floating-dialog .file-picker-choose {color:#d0f5e1;}
+.add-alert-primary {
+  display:block;width:100%;min-height:51px;margin-top:20px;
+  border:0;border-radius:999px;
+  color:#d1f3dc;background:rgba(170,229,195,.19);
+  font-size:16px;font-weight:660;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+.add-alert-primary:active{background:rgba(184,242,208,.3);}
+.floating-dialog .delete-alert-dismiss {display:block;}
+@media(max-width:390px){
+  .dialog.floating-dialog.sort-alert,
+  .dialog.floating-dialog.add-alert {padding:18px 15px 11px;}
+  .floating-dialog .dialog-top h2 {font-size:18px !important;}
+  .floating-dialog .sort-option {min-height:40px;padding:9px 10px;}
+  .floating-dialog .sort-order{flex-wrap:wrap;gap:8px;}
+  .floating-dialog .dialog-sub{font-size:12px;}
+}
+@media(max-height:550px){
+  .dialog.floating-dialog {max-height:calc(100dvh - 16px) !important;bottom:8px !important;}
+  .dialog.floating-dialog.sort-alert,
+  .dialog.floating-dialog.add-alert {padding:14px 16px 10px;}
+  .floating-dialog .dialog-top {margin-bottom:10px;}
+  .floating-dialog .sort-option {min-height:38px;padding:8px 12px;}
+}
+/* A slightly softer, more balanced trash outline—not an embedded SF Symbol font. */
+.rail-button svg.sf-trash {width:22px !important;height:22px !important;stroke-width:1.82 !important;}
+
+
+/* Tide 0.12 — physical viewport expansion on Duo standalone portrait.
+   The device can expose a small strip outside 100dvh; use only the measured
+   non-keyboard difference, and keep the page itself completely unscrollable. */
+body.duo-standalone .shell {
+  height:calc(100dvh + var(--pwa-bottom-gap,0px)) !important;
+}
+/* The background must cover the same physical area as the expanded shell. */
+body.duo-standalone::before {bottom:calc(-1 * var(--pwa-bottom-gap,0px));}
+@media(min-width:475px) and (max-width:849px) and (orientation:portrait){
+  body.duo-standalone .shell {height:calc(100dvh + var(--pwa-bottom-gap,0px)) !important;}
+  .list-panel {padding-bottom:calc(36px + env(safe-area-inset-bottom,0px)) !important;}
+}
+
+/* Native iOS-style bottom search: its input sits immediately left of the
+   right-edge Search/Close action, rather than consuming a row above filters. */
+.search-wrap.bottom-search {
+  position:fixed !important;
+  z-index:32;
+  left:auto !important;
+  right:calc(var(--rail-edge) + var(--rail-button-size) + 10px) !important;
+  bottom:calc(var(--rail-bottom) + var(--keyboard-lift,0px)) !important;
+  width:min(440px, calc(100vw - var(--rail-edge) - var(--rail-button-size) - 28px)) !important;
+  height:var(--rail-button-size) !important;
+  min-height:44px;
+  margin:0 !important;
+  padding:0 10px 0 15px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:1px solid rgba(245,250,255,.20);
+  background:linear-gradient(165deg,rgba(135,154,168,.30),rgba(75,88,105,.38));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 7px 22px rgba(0,0,0,.26);
+  -webkit-backdrop-filter:blur(28px) saturate(1.3);
+  backdrop-filter:blur(28px) saturate(1.3);
+  pointer-events:auto;
+}
+.search-wrap.bottom-search[hidden] {display:none !important;}
+.search-wrap.bottom-search svg {width:18px;height:18px;flex:none;color:rgba(230,240,248,.8)}
+.search-wrap.bottom-search input {
+  -webkit-appearance:none;appearance:none;
+  font-size:17px !important;
+  line-height:1.2;
+  border:0;
+  background:transparent;
+  outline:0;
+  width:100%;min-width:0;
+  padding:0;
+  color:#f7f9fb;
+  caret-color:#c5eed7;
+}
+.search-wrap.bottom-search input::placeholder{color:rgba(223,233,240,.65)}
+.search-wrap.bottom-search .bottom-search-clear {width:28px;height:28px;border:0;border-radius:50%;flex:none;color:rgba(239,248,255,.86);background:rgba(205,220,234,.15);font-size:13px;}
+/* Only one control shows while search is active: the close button, at the
+   same vertical centre as the search field. Other rail actions stay hidden. */
+.action-rail[data-mode="search"] {z-index:34;bottom:calc(var(--rail-bottom) + var(--keyboard-lift,0px)) !important;}
+.action-rail[data-mode="search"] .rail-cluster {gap:0 !important;}
+@media(max-height:550px){
+  .search-wrap.bottom-search {min-height:40px;}
+}
+
+/* Hierarchical file browser. Root and nested directories expand/collapse and
+   display byte-weighted progress. Subfolders are indented, never horizontal-scroll. */
+.files-list[role="tree"] {margin-top:8px;min-width:0;}
+.tree-group,.tree-children {min-width:0;}
+.file-folder-row {
+  -webkit-appearance:none;appearance:none;
+  width:100%;min-width:0;
+  display:flex;align-items:center;gap:9px;
+  padding:12px 8px 12px var(--tree-indent,8px);
+  border:0;border-bottom:1px solid rgba(245,250,255,.085);
+  border-radius:0;
+  background:transparent;
+  color:#f0f5fa;
+  text-align:left;
+  touch-action:manipulation;
+}
+.file-folder-row:active{background:rgba(206,226,242,.08)}
+.file-folder-icon,.file-leaf-icon{display:inline-grid;place-items:center;flex:none;color:#a9d7f3;}
+.file-folder-icon svg{width:21px;height:21px;stroke-width:1.6;}
+.file-folder-name{flex:1;min-width:0;overflow-wrap:anywhere;font-size:13px;font-weight:650;line-height:1.4;}
+.file-folder-summary{flex:none;font-size:10px;color:var(--dim);white-space:nowrap;}
+.file-folder-percentage{flex:none;font-size:12px;font-weight:630;color:#c7dee4;font-variant-numeric:tabular-nums;}
+.folder-chevron{width:17px;height:17px;flex:none;color:var(--sub);transition:transform .18s ease;}
+.folder-chevron.expanded{transform:rotate(180deg)}
+.tree-file{
+  min-width:0;gap:9px;
+  padding:11px 8px 11px var(--tree-indent,8px) !important;
+  align-items:center;
+}
+.file-leaf-icon svg{width:17px;height:19px;stroke-width:1.55;}
+.file-leaf-icon{color:#8e9ead;}
+.file-leaf-main{flex:1;min-width:0;}
+.file-name{font-size:12px;line-height:1.36;overflow-wrap:anywhere;}
+.file-secondary{font-size:10px;line-height:1.35;margin-top:2px;}
+.file-progress{flex:none;color:var(--mint);font-size:12px;font-variant-numeric:tabular-nums;}
+@media(max-width:390px){
+  .file-folder-summary{display:none;}
+  .file-folder-row{gap:6px;}
+  .file-folder-name{font-size:12px;}
+}
+@media(prefers-reduced-motion:reduce){.folder-chevron{transition:none;}}
+
+
+/* Tide v0.13 — distinct controls for desktop, unfolded-portrait Duo and the
+   original folded / landscape Duo. Input modality, not only screen width,
+   decides whether this is a pointer-and-keyboard desktop. */
+.desktop-tools,.desktop-selectionbar{display:none;}
+body.tide-desktop .action-rail{display:none !important;}
+body.tide-desktop .search-wrap.bottom-search{display:none !important;}
+body.tide-desktop .topbar{
+  padding:12px 24px !important;gap:20px !important;min-height:74px !important;height:74px !important;
+  background:rgba(11,18,27,.64);border-bottom:1px solid rgba(225,241,255,.09);
+}
+body.tide-desktop .header-rates{margin-left:16px;gap:16px;flex-direction:row;align-items:center;}
+body.tide-desktop .desktop-tools{display:flex;align-items:center;gap:9px;min-width:0;margin-left:auto;}
+body.tide-desktop .desktop-search{
+  height:41px;display:flex;align-items:center;gap:9px;
+  border-radius:12px;min-width:100px;width:clamp(150px,20vw,285px);
+  padding:0 11px;border:1px solid rgba(245,250,255,.14);
+  background:rgba(167,189,207,.10);color:#a7b5c0;
+}
+body.tide-desktop .desktop-search svg{width:18px;height:18px;flex:none;stroke-width:1.85;}
+body.tide-desktop .desktop-search input{width:100%;min-width:0;outline:0;border:0;background:transparent;color:#f7fafb;font-size:15px !important;}
+body.tide-desktop .desktop-search input::placeholder{color:#9fadb9;}
+.desktop-tool{
+  min-height:40px;border-radius:12px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;
+  gap:8px;white-space:nowrap;flex:none;border:1px solid rgba(237,251,255,.16);
+  background:rgba(158,185,204,.12);color:#f3f7fb;font-weight:620;font-size:13px;
+}
+.desktop-tool svg{width:18px;height:18px;stroke-width:1.75;flex:none;}
+.desktop-tool:active{background:rgba(177,207,220,.22);}
+.desktop-tool.destructive{color:#ffbcbf;background:rgba(253,107,106,.085);border-color:rgba(255,148,148,.16);}
+.desktop-add{background:rgba(166,228,192,.20);color:#d5f4e0;border-color:rgba(196,245,216,.25);}
+body.tide-desktop .list-panel{
+  padding:18px 24px 80px !important;
+  height:100% !important;
+  scrollbar-width:thin;
+}
+body.tide-desktop .controls{margin:0 !important;}
+body.tide-desktop .desktop-selectionbar:not([hidden]){
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  margin:18px 0 0;padding:10px 13px;border-radius:15px;
+  border:1px solid rgba(183,233,203,.19);
+  background:rgba(151,210,181,.10);position:sticky;top:0;z-index:13;
+  -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
+}
+.desktop-selection-count{font-size:13px;font-weight:650;color:#d0f3df;white-space:nowrap;}
+.desktop-selection-actions{display:flex;flex-wrap:wrap;gap:8px;}
+body.tide-desktop .desktop-selectionbar .desktop-tool{min-height:34px;padding:0 11px;font-size:12px;}
+body.tide-desktop .desktop-selectionbar .desktop-tool svg{height:16px;width:16px;}
+body.tide-desktop .list-meta{margin-top:15px;}
+body.tide-desktop .torrent-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,385px),1fr));align-items:start;gap:12px;}
+body.tide-desktop .torrent-card{height:100%;padding:18px 19px 17px;border-radius:18px;}
+body.tide-desktop .torrent-title{font-size:14px;}
+body.tide-desktop .shell.detail-open .layout{grid-template-columns:minmax(0,1.07fr) minmax(0,.93fr) !important;}
+body.tide-desktop .shell.detail-open .detail-inner{padding:20px 27px 70px !important;}
+body.tide-desktop .shell.detail-open .list-panel{padding-right:20px !important;}
+body.tide-desktop .shell.detail-open .torrent-list{grid-template-columns:1fr;}
+body.tide-desktop .shell.detail-open .detail-panel{border-left:1px solid rgba(230,245,255,.12);}
+body.tide-desktop .shell.detail-open .detail-inner{padding-right:27px !important;}
+@media(max-width:800px){
+  body.tide-desktop .desktop-tool span{display:none;}
+  body.tide-desktop .header-rates{gap:10px;margin-left:4px;}
+  body.tide-desktop .topbar{gap:12px !important;padding-left:14px !important;padding-right:14px !important;}
+  body.tide-desktop .desktop-tools{gap:6px;}
+}
+
+/* Unfolded Duo portrait: bottom floating toolbar (no wasted right strip).
+   The existing single rail renders its context-specific action groups. */
+body.tide-duo-portrait .action-rail,
+body.tide-duo-portrait .action-rail[data-mode="global"],
+body.tide-duo-portrait .action-rail[data-mode="selected"],
+body.tide-duo-portrait .action-rail[data-mode="detail"],
+body.tide-duo-portrait .action-rail[data-mode="search"]{
+  position:fixed !important;top:auto !important;right:auto !important;left:50% !important;
+  bottom:calc(max(18px,env(safe-area-inset-bottom,0px)) + var(--keyboard-lift,0px)) !important;
+  transform:translateX(-50%) !important;
+  width:max-content !important;height:auto !important;max-width:calc(100vw - 32px) !important;
+  padding:5px !important;border-radius:999px !important;
+  display:flex !important;align-items:center !important;justify-content:center !important;
+  background:linear-gradient(160deg,rgba(135,160,178,.19),rgba(95,115,135,.20)) !important;
+  border:1px solid rgba(250,255,255,.16) !important;
+  -webkit-backdrop-filter:blur(30px) saturate(1.2) !important;
+  backdrop-filter:blur(30px) saturate(1.2) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.12),0 7px 20px rgba(0,0,0,.19) !important;
+  z-index:33 !important;
+}
+body.tide-duo-portrait .rail-buttons{width:auto !important;height:auto !important;display:flex !important;flex-direction:row !important;gap:5px !important;align-items:center !important;justify-content:center !important;}
+body.tide-duo-portrait .rail-cluster{width:auto !important;height:auto !important;display:flex !important;flex-direction:row !important;gap:5px !important;align-items:center !important;margin:0 !important;}
+body.tide-duo-portrait .rail-top:not(:last-child){padding-right:8px;margin-right:3px !important;border-right:1px solid rgba(244,251,255,.17);}
+body.tide-duo-portrait .rail-button{
+  width:46px !important;height:46px !important;
+  border-color:rgba(251,255,255,.08) !important;
+  background:rgba(155,179,192,.11) !important;
+  box-shadow:none !important;
+}
+body.tide-duo-portrait .list-panel{padding-right:20px !important;padding-left:20px !important;padding-bottom:110px !important;}
+body.tide-duo-portrait .controls{padding-right:0 !important;}
+body.tide-duo-portrait .detail-panel.mobile-open .detail-inner{padding-right:20px !important;padding-left:20px !important;padding-bottom:125px !important;}
+body.tide-duo-portrait .topbar{
+  height:82px !important;min-height:82px !important;padding:12px 27px !important;
+}
+body.tide-duo-portrait .header-rates{margin-right:clamp(58px,11vw,115px);}
+/* On exceptionally wide portrait screens keep the details pane overlay, not split. */
+body.tide-duo-portrait .shell.detail-open .layout{display:block !important;}
+body.tide-duo-portrait .detail-panel.mobile-open{position:absolute !important;inset:0 !important;z-index:25 !important;height:100% !important;}
+body.tide-duo-portrait .search-wrap.bottom-search{
+  right:calc(max(18px,(100vw - 560px)/2) + 58px) !important;
+  left:auto !important;width:min(486px,calc(100vw - 120px)) !important;
+  bottom:calc(max(18px,env(safe-area-inset-bottom,0px)) + var(--keyboard-lift,0px) + 3px) !important;
+}
+body.tide-duo-portrait .action-rail[data-mode="search"]{
+  left:auto !important;right:max(18px,calc((100vw - 560px)/2)) !important;
+  transform:none !important;
+}
+body.tide-duo-portrait .action-rail[data-mode="search"] .rail-button{width:46px!important;height:46px!important;}
+
+/* Standalone-height fallback: avoid double safe-area additions and preserve the
+   exposed bottom background even where WebKit reserves a non-layout strip. */
+body.duo-standalone:not(.tide-desktop) .shell{
+  height:calc(100dvh + var(--pwa-bottom-gap,0px)) !important;
+}
+html,body{background:#0c121c;}
+body.duo-standalone::before{bottom:calc(-1 * var(--pwa-bottom-gap,0px));}
+/* Optional diagnostics, only shown at ?viewport=1. They never obstruct actions
+   in normal use and report values locally without sending information. */
+.viewport-diagnostics{
+  position:fixed;z-index:60;left:10px;bottom:55px;max-width:270px;
+  white-space:pre-wrap;font-size:11px;line-height:1.5;
+  background:rgba(11,16,25,.94);padding:10px;border-radius:9px;
+  border:1px solid rgba(255,255,255,.20);color:#dce9f0;
+  pointer-events:none;
+}
+@media(prefers-reduced-transparency:reduce){
+ body.tide-duo-portrait .action-rail{background:#273744 !important;backdrop-filter:none !important;}
+}
+
+
+/* Tide v0.14 — Duo portrait and desktop detail motion */
+/* Keep the folded and unfolded-landscape positions unchanged. */
+body.tide-duo-portrait .topbar .header-rates{
+  /* Reserve the Duo's complete camera/indicator lane, including the upload text. */
+  margin-right:clamp(135px, 18vw, 180px) !important;
+  flex:0 0 auto;
+}
+@media(max-width:690px){
+  body.tide-duo-portrait .topbar {padding-left:17px!important;gap:8px!important;}
+  body.tide-duo-portrait .topbar .header-rates {margin-right:clamp(104px,17vw,125px)!important;}
+  body.tide-duo-portrait .header-rate-value {font-size:13px!important;}
+}
+/* Some standalone PWAs expose a different screen or outer window height. Use
+   a verified value instead of a hard-coded extension, and extend the gradient
+   behind the work area even when WebKit reserves the bottom for its host. */
+body.duo-standalone.tide-duo-portrait .shell {
+  height:var(--tide-shell-height,100dvh) !important;
+  max-height:none !important;
+}
+body.duo-standalone.tide-duo-portrait::before{
+  bottom:calc(-1 * var(--pwa-bottom-gap,0px));
+}
+/* Maintain the dark-blue lower-page colour if iOS draws a host-owned strip. */
+html {background:#111722;}
+/* Desktop detail transition: the panel fades into place; the list cards are
+   animated by FLIP transforms in JS, keeping grid reflow quick and legible. */
+body.tide-desktop .shell.detail-open .detail-panel {
+  animation:tide-detail-enter 260ms cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes tide-detail-enter{
+  from{opacity:0;transform:translate3d(16px,0,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+@media(prefers-reduced-motion:reduce){
+  body.tide-desktop .shell.detail-open .detail-panel{animation:none!important;}
+}
+
+
+/* v0.15 — desktop action positioning and Duo portrait materials */
+/* Desktop selection never changes the geometry of the list or cards. */
+body.tide-desktop .desktop-selectionbar:not([hidden]){
+  display:flex !important; position:fixed !important;
+  top:auto !important; bottom:20px !important;
+  left:50% !important; right:auto !important; transform:translateX(-50%) !important;
+  max-width:calc(100vw - 36px) !important; margin:0 !important;
+  z-index:34 !important; flex-wrap:nowrap !important;
+  gap:16px !important; padding:9px 12px !important;
+  box-shadow:0 12px 38px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.12);
+}
+body.tide-desktop .desktop-selection-actions{flex-wrap:nowrap !important;}
+/* Sorting is a desktop popover aligned just beneath the Sort button. */
+body.tide-desktop .dialog.floating-dialog.sort-alert{
+  position:fixed !important;
+  left:var(--desktop-sort-x,12px) !important;
+  top:var(--desktop-sort-y,100px) !important;
+  bottom:auto !important;right:auto !important;
+  width:min(316px,calc(100vw - 24px)) !important;
+  max-height:calc(100dvh - var(--desktop-sort-y,100px) - 12px) !important;
+  overflow-y:auto !important;
+  transform:none !important;
+  padding:16px !important;
+  border-radius:22px !important;
+  box-shadow:0 16px 54px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.13);
+}
+body.tide-desktop:has(.sort-alert) .overlay{
+  background:transparent !important;
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
+}
+/* Visible second path to close Details on desktop; contextual toolbar remains. */
+.desktop-detail-back{display:none;}
+body.tide-desktop .desktop-detail-back{
+  display:inline-flex;align-items:center;gap:8px;
+  color:#d5e8f2;background:rgba(204,222,235,.10);
+  border:1px solid rgba(243,251,255,.17);border-radius:999px;
+  padding:9px 15px;margin:0 0 21px;
+  font-size:13px;font-weight:620;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+}
+body.tide-desktop .desktop-detail-back svg{width:17px;height:17px;}
+body.tide-desktop .desktop-detail-back:hover{background:rgba(204,222,235,.19);}
+/* Unfolded portrait: native-like free-floating button discs, no shared pill. */
+body.tide-duo-portrait .action-rail,
+body.tide-duo-portrait .action-rail[data-mode="global"],
+body.tide-duo-portrait .action-rail[data-mode="selected"],
+body.tide-duo-portrait .action-rail[data-mode="detail"],
+body.tide-duo-portrait .action-rail[data-mode="search"]{
+  background:transparent !important;
+  border:0 !important;box-shadow:none !important;
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
+  padding:0 !important;
+}
+body.tide-duo-portrait .rail-buttons,
+body.tide-duo-portrait .rail-cluster{gap:9px !important;}
+body.tide-duo-portrait .rail-top:not(:last-child){padding:0 !important;margin:0 !important;border:0 !important;}
+body.tide-duo-portrait .rail-button{
+  background:rgba(145,163,180,.16) !important;
+  border:1px solid rgba(240,246,255,.12) !important;
+  border-radius:999px !important;
+  -webkit-backdrop-filter:blur(24px) saturate(1.15) !important;
+  backdrop-filter:blur(24px) saturate(1.15) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.10),0 5px 16px rgba(0,0,0,.16) !important;
+}
+body.tide-duo-portrait .rail-button:active{background:rgba(186,203,218,.23) !important;}
+/* Prefer a measured containing viewport over 100dvh when they disagree.
+   WebKit may reserve a physical strip outside any web-renderable viewport;
+   this handles only space available to the document. */
+body.duo-standalone.tide-duo-portrait .shell{
+  height:var(--tide-shell-height,100%) !important;
+  min-height:0 !important;
+}
+@media(prefers-reduced-transparency:reduce){
+ body.tide-duo-portrait .rail-button{background:#33414f !important;backdrop-filter:none !important;}
+}
+@media(max-width:620px){
+  body.tide-desktop .desktop-selectionbar:not([hidden]){gap:7px !important;}
+  body.tide-desktop .desktop-selection-count{font-size:11px;}
+}
+
+
+/* v0.16: Duo landscape fixed-width workspace and portrait action refinements. */
+#tideLargeViewportProbe {position:fixed;top:0;height:100lvh;width:0;visibility:hidden;pointer-events:none;z-index:-10;}
+.landscape-controls-slot {display:none;}
+/* Full-width filters sit outside the list/details split in landscape.
+   Their position and width do not change when the detail panel opens. */
+body.tide-duo-landscape .landscape-controls-slot {
+  display:flex;flex:0 0 auto;align-items:center;min-height:60px;
+  padding:10px calc(var(--rail-space) + 16px) 9px 23px;
+  border-bottom:1px solid rgba(232,247,255,.065);
+}
+body.tide-duo-landscape .landscape-controls-slot .controls {width:100% !important;margin:0 !important;}
+body.tide-duo-landscape .layout,
+body.tide-duo-landscape .shell.detail-open .layout {min-height:0 !important;flex:1 1 0 !important;height:auto !important;}
+body.tide-duo-landscape .list-panel {padding-top:15px !important;}
+/* Three cards when list-only, two identically sized cards when Details is open.
+   The wider details pane takes approximately one card column, not half the list. */
+@media(min-width:850px) {
+ body.tide-duo-landscape .torrent-list {display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;align-items:start;gap:12px;}
+ body.tide-duo-landscape .shell.detail-open .layout {display:grid !important;grid-template-columns:minmax(0,1.78fr) minmax(0,1fr) !important;}
+ body.tide-duo-landscape .shell.detail-open .torrent-list {grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+ body.tide-duo-landscape .shell.detail-open .list-panel {padding-right:15px !important;}
+ body.tide-duo-landscape .shell.detail-open .detail-panel {display:block !important;min-width:0 !important;}
+ body.tide-duo-landscape .shell.detail-open .detail-inner {padding:17px calc(var(--rail-space) + 8px) 90px 18px !important;}
+ body.tide-duo-landscape .shell.detail-open .detail-panel {animation:tide-detail-enter 260ms cubic-bezier(.22,1,.36,1) both;}
+}
+@media(min-width:850px) and (max-width:1000px) {
+ body.tide-duo-landscape .torrent-list {grid-template-columns:repeat(3,minmax(0,1fr)) !important;}
+ body.tide-duo-landscape .shell.detail-open .torrent-list {grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+ body.tide-duo-landscape .torrent-card {padding:14px 12px !important;}
+ body.tide-duo-landscape .torrent-title {font-size:12px !important;}
+ body.tide-duo-landscape .size-value {font-size:10px !important;}
+}
+@media(prefers-reduced-motion:reduce){body.tide-duo-landscape .shell.detail-open .detail-panel {animation:none !important;}}
+/* Portrait Sort appears just below its trigger, rather than near the bottom toolbar. */
+body.tide-duo-portrait .dialog.floating-dialog.sort-alert {
+  position:fixed !important;left:var(--portrait-sort-x,20px) !important;
+  right:auto !important;top:max(10px,var(--portrait-sort-y,110px)) !important;
+  bottom:auto !important;transform:none !important;
+  width:min(316px,calc(100vw - 24px)) !important;
+  max-height:calc(100dvh - max(10px,var(--portrait-sort-y,110px)) - 10px) !important;
+  padding:16px !important;overflow-y:auto !important;border-radius:23px !important;
+  box-shadow:0 12px 46px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.11);
+}
+/* Separate navigation (Back / Deselect) from destructive and playback actions. */
+body.tide-duo-portrait .action-rail[data-mode="selected"] .rail-top:not(:last-child),
+body.tide-duo-portrait .action-rail[data-mode="detail"] .rail-top:not(:last-child) {
+  margin-right:27px !important;
+}
+body.tide-duo-portrait .action-rail[data-mode="selected"] .rail-buttons,
+body.tide-duo-portrait .action-rail[data-mode="detail"] .rail-buttons {gap:9px !important;}
+/* Keep the viewport height anchored to the largest actually exposed browser dimension.
+   Screen pixels outside a WebKit standalone viewport remain OS-owned. */
+body.duo-standalone.tide-duo-portrait .shell {
+  height:max(var(--tide-shell-height,100dvh),100lvh) !important;
+}

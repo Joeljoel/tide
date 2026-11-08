@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111722">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tide">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="description" content="An uncluttered qBittorrent WebUI for iPhone and foldable screens.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="favicon.svg">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/tide-v0.16.css">
+  <title>Tide 0.16</title>
+</head>
+<body>
+  <div id="tideLargeViewportProbe" aria-hidden="true"></div>
+  <div id="app" class="shell">
+    <header class="topbar" aria-label="Tide and transfer speeds">
+      <div class="brand-wrap">
+        <div class="brandmark" aria-hidden="true"><span class="brandmark-wave"></span><span class="brandmark-wave two"></span></div>
+        <div class="brand">tide<span class="brand-dot">.</span></div>
+      </div>
+      <div class="header-rates" aria-label="Global transfer speeds">
+        <div class="header-rate"><span class="header-arrow down" aria-hidden="true">↓</span><span class="header-rate-value" id="totalDownload">—</span></div>
+        <div class="header-rate"><span class="header-arrow up" aria-hidden="true">↑</span><span class="header-rate-value" id="totalUpload">—</span></div>
+      </div>
+      <div class="desktop-tools" id="desktopTools" role="toolbar" aria-label="Torrent controls">
+        <label class="desktop-search" aria-label="Search torrents">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m16 16 4.5 4.5"/></svg>
+          <input id="desktopSearchInput" type="search" placeholder="Search torrents" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Search torrents">
+        </label>
+        <button class="desktop-tool" type="button" data-action="refresh" aria-label="Refresh torrents" title="Refresh torrents"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.3 10.3a7.65 7.65 0 1 0-1.55 6.45"/><path d="M19.3 4.9v5.4h-5.4"/></svg><span>Refresh</span></button>
+        <button class="desktop-tool desktop-add" type="button" data-action="add" aria-label="Add torrent" title="Add torrent"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add torrent</span></button>
+      </div>
+      <span class="demo-tag" id="demoTag" hidden>Preview</span>
+    </header>
+
+    <div id="landscapeControlsSlot" class="landscape-controls-slot" aria-label="Torrents filters"></div>
+    <div class="layout">
+      <main class="list-panel">
+        <span id="controlsHome" hidden></span>
+        <div class="controls">
+          <div class="filter-viewport">
+            <div class="filter-row" id="filterRow" role="group" aria-label="Filter torrents">
+              <button class="filter-chip active" data-filter="all">All</button>
+              <button class="filter-chip" data-filter="downloading">Downloading</button>
+              <button class="filter-chip" data-filter="stalled">Stalled</button>
+              <button class="filter-chip" data-filter="completed">Completed</button>
+              <button class="filter-chip" data-filter="paused">Paused</button>
+              <button class="filter-chip" data-filter="seeding">Seeding</button>
+            </div>
+          </div>
+          <button class="inline-sort" data-action="sort" aria-label="Sort torrents" title="Sort torrents">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg><span id="sortLabel">ETA</span>
+          </button>
+        </div>
+        <div class="list-meta"><span id="listDescription">Torrents</span><span id="lastUpdated"></span></div>
+        <div class="torrent-list" id="torrentList"><div class="empty-state"><div class="loader"></div><p>Connecting to qBittorrent…</p></div></div>
+      </main>
+      <aside class="detail-panel" id="detailPanel" aria-label="Torrent details">
+        <div id="detailInner" class="detail-inner"><div class="detail-placeholder"><span class="placeholder-icon">≋</span><h2>Select a torrent</h2></div></div>
+      </aside>
+    </div>
+
+    <!-- Desktop actions float above the viewport, never inside the list flow. -->
+    <div class="desktop-selectionbar" id="desktopSelectionBar" role="toolbar" aria-label="Selected torrent actions" hidden></div>
+    <!-- One right-edge rail: global, selected, and detail states are mutually exclusive. -->
+    <nav class="action-rail" id="actionRail" aria-label="Tide controls" data-mode="global">
+      <div id="railButtons" class="rail-buttons"></div>
+    </nav>
+    <!-- Bottom-docked search sits beside, not above, the right-edge search action. -->
+    <div class="search-wrap bottom-search" id="searchWrap" role="search" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m16 16 4.5 4.5"/></svg>
+      <input id="searchInput" type="search" placeholder="Search torrents" enterkeyhint="search" autocapitalize="off" autocomplete="off" spellcheck="false" aria-label="Search torrents">
+      <button type="button" class="bottom-search-clear" data-action="erase-search" aria-label="Clear search" hidden>✕</button>
+    </div>
+    <div class="overlay" id="overlay" hidden></div>
+    <div class="modal-mount" id="modalMount"></div>
+    <div class="toast" role="status" aria-live="polite" id="toast"></div>
+    <pre id="viewportDiagnostics" class="viewport-diagnostics" hidden></pre>
+  </div>
+  <script src="js/tide-v0.16.js" defer></script>
+</body>
+</html>
