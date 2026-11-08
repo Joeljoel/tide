@@ -721,11 +721,13 @@
     const torrent=state.torrents.find(t=>t.hash===hash);const top=(title,desc='')=>`${['sort','add'].includes(kind)?'':'<div class="sheet-grab" aria-label="Swipe down to dismiss"><div class="sheet-handle"></div></div>'}<div class="dialog-top"><h2>${title}</h2><button class="dialog-close" data-action="dismiss" aria-label="Close">${icons.close}</button></div>${desc?`<p class="dialog-sub">${desc}</p>`:''}`;
     if(kind==='settings'){
       mount.innerHTML=`<section class="dialog floating-dialog tide-settings-dialog" role="dialog" aria-modal="true" aria-label="Settings">
-        ${top('Settings')}
-        <div class="settings-tabs" role="tablist" aria-label="Settings sections">
-          <button type="button" role="tab" data-settings-tab="tide">Tide</button>
-          <button type="button" role="tab" data-settings-tab="qbittorrent">qBittorrent</button>
-          <button type="button" role="tab" data-settings-tab="about">About</button>
+        <div class="settings-toolbar">
+          <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+            <button type="button" role="tab" data-settings-tab="tide">Tide</button>
+            <button type="button" role="tab" data-settings-tab="qbittorrent">qBittorrent</button>
+            <button type="button" role="tab" data-settings-tab="about">About</button>
+          </div>
+          <button type="button" class="dialog-close settings-close" data-action="dismiss" aria-label="Close settings" title="Close settings">${icons.close}</button>
         </div>
         <div class="settings-panel" id="settingsPanel" role="tabpanel"></div>
       </section>`;
