@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '0.17.0';
+  window.__TIDE_BUILD__ = '0.18.0';
   // Input capabilities determine the desktop mode; width alone cannot distinguish
   // an unfolded Duo from a laptop. Folded and unfolded landscape retain the rail.
   // Unfolded portrait gets a floating bottom control group.
@@ -31,20 +31,22 @@
       vv ? vv.height+vv.offsetTop : 0].map(Number).filter(Number.isFinite);
     const plausible=candidates.filter(h=>h>=window.innerHeight && h<=window.innerHeight+190);
     const fullHeight=Math.max(window.innerHeight,...plausible);
-    const allowed=standalone && !desktop && duoPortrait && !editing && (!vv || Math.abs(vv.scale-1)<.01);
+    // WebKit can exclude a status-bar-height strip when viewport-fit=cover.
+    // v0.18 uses the default viewport fit and drops the guessed extension.
+    const allowed=false;
     // The host may reserve a physical strip outside WebKit's layout viewport.
     // Stretch only when a second browser-provided metric confirms the extra space.
     // Never guess based on a hardcoded Duo screen size, since folding changes it.
     const gap=allowed?Math.round(fullHeight-window.innerHeight):0;
-    document.documentElement.style.setProperty('--pwa-bottom-gap',(allowed&&gap<1?82:gap)+'px');
+    document.documentElement.style.setProperty('--pwa-bottom-gap','0px');
     const rootHeight=document.documentElement.getBoundingClientRect().height;
     const bodyHeight=document.body.getBoundingClientRect().height;
     const cssCandidate=Math.max(rootHeight,bodyHeight,window.innerHeight,document.documentElement.clientHeight);
     // Large viewport units occasionally exceed dynamic ones during a PWA pose transition.
     const lvProbe=document.getElementById('tideLargeViewportProbe');
     const largeViewport=lvProbe?.getBoundingClientRect().height||0;
-    const portraitHeaderTrial=allowed&&fullHeight<=window.innerHeight+1?82:0;
-    const shellHeight=allowed?Math.max(cssCandidate,fullHeight,largeViewport,window.innerHeight+portraitHeaderTrial):cssCandidate;
+    const portraitHeaderTrial=0;
+    const shellHeight=(standalone && duoPortrait)?window.innerHeight:cssCandidate;
     document.documentElement.style.setProperty('--tide-shell-height',Math.round(shellHeight)+'px');
     // Keep keyboard calculations separate from the physical-screen gap.
     const covered=vv && vv.scale===1 ? Math.max(0,window.innerHeight-(vv.height+vv.offsetTop)) : 0;
@@ -370,9 +372,89 @@
       <h3 class="section-title">Files ${files.length?'· '+files.length:''}</h3><div class="files-list" role="tree" aria-label="Torrent folder and file structure">${files.length?renderFileTree(files):'<div class="file-secondary">File details will appear here when available.</div>'}</div>
       <div class="detail-fine">${t.save_path?'Save location · '+esc(t.save_path)+'<br>':''}Seeds · ${esc(t.num_seeds??'—')} &nbsp; Peers · ${esc(t.num_leechs??'—')} &nbsp; Ratio · ${Number(t.ratio||0).toFixed(2)}</div>`;
   }
+
+  // qBittorrent session totals from transfer/info, lifetime from sync/maindata.
+  const infoValue = v => Number.isFinite(Number(v)) && v!==null && v!==undefined && v!=='' && +v>=0 ? bytes(Number(v)) : '—';
+  const versionParts = v => String(v).replace(/^v/i,'').split('.').map(Number);
+  function compareVersions(a,b){
+    const x=versionParts(a),y=versionParts(b);
+    for(let i=0;i<Math.max(x.length,y.length);i++){
+      if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)?1:-1;
+    }
+    return 0;
+  }
+  function setInfoText(id,text){const el=document.getElementById(id);if(el)el.textContent=text;}
+  async function loadAboutTransferTotals(){
+    if(state.modal!=='info')return;
+    if(demo){
+      setInfoText('infoSessionDown',bytes(18.2*1024**3));setInfoText('infoSessionUp',bytes(2.8*1024**3));
+      setInfoText('infoLifetimeDown',bytes(11.7*1024**4));setInfoText('infoLifetimeUp',bytes(8.4*1024**4));
+      setInfoText('infoTransferNote','Sample values · Preview mode');return;
+    }
+    let transfer;
+    try{
+      transfer=await api('GET','transfer/info');
+      if(state.modal!=='info')return;
+      setInfoText('infoSessionDown',infoValue(transfer?.dl_info_data));
+      setInfoText('infoSessionUp',infoValue(transfer?.up_info_data));
+      setInfoText('infoLifetimeDown',infoValue(transfer?.alltime_dl));
+      setInfoText('infoLifetimeUp',infoValue(transfer?.alltime_ul));
+      setInfoText('infoTransferNote','Totals reported by qBittorrent');
+    }catch(e){
+      if(state.modal==='info')setInfoText('infoTransferNote','qBittorrent statistics unavailable: '+(e.message||'Connection error'));
+      return;
+    }
+    if(transfer?.alltime_dl!==undefined && transfer?.alltime_ul!==undefined)return;
+    try{
+      const main=await api('GET','sync/maindata?rid=0');
+      if(state.modal!=='info')return;
+      const totals=main?.server_state||{};
+      setInfoText('infoLifetimeDown',infoValue(totals.alltime_dl));
+      setInfoText('infoLifetimeUp',infoValue(totals.alltime_ul));
+      if(totals.alltime_dl===undefined || totals.alltime_ul===undefined)
+        setInfoText('infoTransferNote','Lifetime totals are unavailable on this qBittorrent version.');
+    }catch(e){
+      if(state.modal==='info')setInfoText('infoTransferNote','Session totals shown; lifetime totals could not be retrieved.');
+    }
+  }
+  async function checkAboutUpdates(){
+    if(state.modal!=='info')return;
+    const current=window.__TIDE_BUILD__||'0.18.0';
+    setInfoText('infoUpdateStatus','Checking GitHub…');
+    const link=document.getElementById('infoUpdateLink');if(link)link.hidden=true;
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),7000);
+    try{
+      const response=await fetch('https://raw.githubusercontent.com/Joeljoel/tide/main/version.json?nocache='+Date.now(),
+        {credentials:'omit',cache:'no-store',signal:controller.signal,headers:{'Accept':'application/json'}});
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      const data=await response.json();
+      if(!/^\d+\.\d+(?:\.\d+)?$/.test(String(data.version||'')))throw new Error('Invalid version data');
+      if(state.modal!=='info')return;
+      const comparison=compareVersions(data.version,current);
+      if(comparison>0){
+        setInfoText('infoUpdateStatus','Update available: v'+data.version);
+        if(link){link.href='https://github.com/Joeljoel/tide';link.hidden=false;}
+      }else if(comparison===0)setInfoText('infoUpdateStatus','Up to date');
+      else setInfoText('infoUpdateStatus','Newer than the published build');
+    }catch(e){if(state.modal==='info')setInfoText('infoUpdateStatus','Could not check GitHub · Try again');}
+    finally{clearTimeout(timer);}
+  }
+
   const overlay=$('#overlay'),mount=$('#modalMount');
   function openModal(kind,hash=null){state.modal=kind;overlay.hidden=false;document.body.style.overflow='hidden';document.body.classList.toggle('delete-dialog-open',['delete','sort','add'].includes(kind));
     const torrent=state.torrents.find(t=>t.hash===hash);const top=(title,desc='')=>`${['sort','add'].includes(kind)?'':'<div class="sheet-grab" aria-label="Swipe down to dismiss"><div class="sheet-handle"></div></div>'}<div class="dialog-top"><h2>${title}</h2><button class="dialog-close" data-action="dismiss" aria-label="Close">${icons.close}</button></div>${desc?`<p class="dialog-sub">${desc}</p>`:''}`;
+
+    if(kind==='info'){
+      mount.innerHTML='<section class="dialog floating-dialog tide-info-dialog" role="dialog" aria-modal="true" aria-label="About Tide">'
+        +top('About Tide')
+        +'<div class="info-current"><span>Installed version</span><strong>v'+esc(window.__TIDE_BUILD__||'0.18.0')+'</strong></div>'
+        +'<div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>'
+        +'<div class="info-section-label">This session</div><div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>'
+        +'<div class="info-section-label">Lifetime</div><div class="info-metrics"><div><span>Downloaded</span><strong id="infoLifetimeDown">—</strong></div><div><span>Uploaded</span><strong id="infoLifetimeUp">—</strong></div></div>'
+        +'<p id="infoTransferNote" class="info-note">Loading transfer statistics…</p>'
+        +'<div class="info-bottom-actions"><button type="button" data-action="check-updates" class="info-check">Check updates</button><a href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer">GitHub</a></div></section>';
+    }
     if(kind==='sort')mount.innerHTML=`<section class="dialog floating-dialog sort-alert" role="dialog" aria-modal="true" aria-label="Sort torrents">${top('Sort torrents')}<div class="sort-options">${[['eta','ETA'],['availability','Availability'],['dlspeed','Download speed'],['progress','Progress'],['size','Size'],['name','Name'],['state','Status']].map(([k,label])=>`<button class="sort-option ${state.sort===k?'active':''}" data-sort="${k}">${label}<span>${state.sort===k?'✓':' '}</span></button>`).join('')}</div><div class="sort-order"><span>Sort direction</span><button class="toggle-order" data-action="reverse">${state.descending?'Descending ↓':'Ascending ↑'}</button></div></section>`;
     if(kind==='add')mount.innerHTML=`<section class="dialog floating-dialog add-alert" role="dialog" aria-modal="true" aria-label="Add torrent">${top('Add a torrent','Paste a magnet link or upload a .torrent file.')}
       <form id="addForm"><label class="dialog-label" for="magnetInput">Magnet link or torrent URL</label><textarea id="magnetInput" spellcheck="false" autocomplete="off" placeholder="magnet:?xt=urn:btih:..." aria-label="Magnet or torrent URL" rows="2"></textarea><label class="dialog-label" for="torrentFile">Or select a .torrent file</label><label class="file-picker" for="torrentFile"><span class="file-picker-choose">Choose file</span><span class="file-selected" id="selectedFile">No file selected</span></label><input id="torrentFile" type="file" accept=".torrent,application/x-bittorrent"><button type="submit" class="add-alert-primary">Add torrent</button><button type="button" class="delete-alert-dismiss" data-action="dismiss">Cancel</button></form></section>`;
@@ -411,6 +493,7 @@
         }
       }
       if(['sort','add'].includes(kind))dialog.querySelector('.dialog-close')?.focus({preventScroll:true});
+      if(kind==='info'){void loadAboutTransferTotals();void checkAboutUpdates();}
     }
   }
   function dismiss(){state.modal='';overlay.hidden=true;mount.innerHTML='';document.body.style.overflow='';document.body.classList.remove('delete-dialog-open');sheetGesture=null;}
@@ -455,7 +538,7 @@
     const filter=e.target.closest('[data-filter]');if(filter){state.filter=filter.dataset.filter;savePref('filter',state.filter);render();return;}
     const sort=e.target.closest('[data-sort]');if(sort){state.sort=sort.dataset.sort;savePref('sort',state.sort);dismiss();render();return;}
     const b=e.target.closest('[data-action]');if(b){const a=b.dataset.action,hash=b.dataset.hash;
-      if(a==='sort')openModal('sort');if(a==='add')openModal('add');
+      if(a==='sort')openModal('sort');if(a==='add')openModal('add');if(a==='info')openModal('info');if(a==='check-updates')void checkAboutUpdates();
       if(a==='search'){state.searchOpen=true;$('#searchWrap').hidden=false;renderRail();syncDeviceGeometry();requestAnimationFrame(()=>$('#searchInput').focus({preventScroll:true}));}
       if(a==='erase-search'){state.search='';$('#searchInput').value='';render();$('#searchInput').focus({preventScroll:true});}
       if(a==='clear-search'){state.searchOpen=false;state.search='';$('#searchInput').value='';$('#searchWrap').hidden=true;$('#searchInput').blur();document.documentElement.style.setProperty('--keyboard-lift','0px');render();}
