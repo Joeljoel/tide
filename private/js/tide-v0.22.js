@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '0.21.0';
+  window.__TIDE_BUILD__ = '0.22.0';
   // Input capabilities determine the desktop mode; width alone cannot distinguish
   // an unfolded Duo from a laptop. Folded and unfolded landscape retain the rail.
   // Unfolded portrait gets a floating bottom control group.
@@ -419,7 +419,7 @@
   }
   async function checkAboutUpdates(){
     if(state.modal!=='info')return;
-    const current=window.__TIDE_BUILD__||'0.21.0';
+    const current=window.__TIDE_BUILD__||'0.22.0';
     setInfoText('infoUpdateStatus','Checking GitHub…');
     const link=document.getElementById('infoUpdateLink');if(link)link.hidden=true;
     const controller=new AbortController();
@@ -463,7 +463,7 @@
     if(kind==='info'){
       mount.innerHTML='<section class="dialog floating-dialog tide-info-dialog" role="dialog" aria-modal="true" aria-label="About Tide">'
         +top('About Tide')
-        +'<div class="info-current"><span>Installed version</span><strong>v'+esc(window.__TIDE_BUILD__||'0.21.0')+'</strong></div>'
+        +'<div class="info-current"><span>Installed version</span><strong>v'+esc(window.__TIDE_BUILD__||'0.22.0')+'</strong></div>'
         +'<div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>'
         +'<div class="info-section-label">This session</div><div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>'
         +'<div class="info-section-label">Lifetime</div><div class="info-metrics"><div><span>Downloaded</span><strong id="infoLifetimeDown">—</strong></div><div><span>Uploaded</span><strong id="infoLifetimeUp">—</strong></div></div>'
