@@ -1,6 +1,8 @@
-<h1 align="center">
-  <img src="assets/tide-logo.svg" width="264" alt="tide.">
-</h1>
+<p align="center">
+  <img src="private/favicon.svg" width="96" height="96" alt="Tide app icon">
+</p>
+
+<h1 align="center">tide.</h1>
 
 <p align="center">
   A minimal, touch-first alternative WebUI for <a href="https://www.qbittorrent.org/">qBittorrent</a>.<br>
@@ -8,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-0.20.0-293a46?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-0.21.0-293a46?style=flat-square">
   <img alt="Status" src="https://img.shields.io/badge/status-early%20development-293a46?style=flat-square">
   <img alt="PWA" src="https://img.shields.io/badge/mobile-PWA-b0e7c4?style=flat-square&labelColor=293a46">
 </p>
