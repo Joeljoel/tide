@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="private/icon-512.png" width="96" height="96" alt="Tide logo">
+  <img src="private/favicon.svg" width="96" height="96" alt="Tide logo">
 </p>
 
 <h1 align="center">Tide</h1>
@@ -27,13 +27,13 @@ Tide is an **alternative qBittorrent WebUI**, not a separate torrent client. It 
 
 ## Screenshots
 
-### iPhone Duo — folded
+### iPhone Duo
 
-<p align="center"><img src="screenshots/duo-folded.jpg" width="385" alt="Tide's compact folded Duo view with torrent cards and right-edge controls"></p>
-
-### iPhone Duo — unfolded landscape
-
-![Tide with a two-column torrent grid and Details panel on the unfolded Duo](screenshots/duo-unfolded-landscape.jpg)
+<p align="center">
+  <img src="screenshots/duo-folded.jpg" width="32%" alt="Tide on the folded iPhone Duo">
+  &nbsp;&nbsp;
+  <img src="screenshots/duo-unfolded-landscape.jpg" width="64%" alt="Tide on the unfolded iPhone Duo in landscape">
+</p>
 
 ### Desktop
 
