@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '0.19.0';
+  window.__TIDE_BUILD__ = '0.20.0';
   // Input capabilities determine the desktop mode; width alone cannot distinguish
   // an unfolded Duo from a laptop. Folded and unfolded landscape retain the rail.
   // Unfolded portrait gets a floating bottom control group.
@@ -77,13 +77,15 @@
   if (!allowedFilters.includes(state.filter)) state.filter = 'all';
   if (!allowedSorts.includes(state.sort)) state.sort = 'eta';
   const mock = [
-    {hash:'demo-odyssey',name:'The.Odyssey.2026.2160p.UHD.Bluray.Remux.HDR.HEVC.DTS-HD.MA.5.1-CiNEPHiLES',size:88.2*1024**3,progress:.0325,dlspeed:19.1*1024**2,upspeed:1.17*1024**2,eta:7440,availability:9.99,state:'downloading',num_seeds:7,num_leechs:43,ratio:.09,save_path:'/downloads/movies'},
-    {hash:'demo-angel',name:'Angel.Dust.1994.DVDRip.XviD-iLS',size:1.47*1024**3,progress:1,dlspeed:0,upspeed:0,eta:8640000,availability:2.41,state:'stoppedUP',num_seeds:0,num_leechs:0,ratio:0,save_path:'/downloads/movies'},
-    {hash:'demo-archive',name:'Creative.Assets.Collection.Vol.04',size:22.4*1024**3,progress:.674,dlspeed:0,upspeed:0,eta:8640000,availability:.82,state:'stalledDL',num_seeds:0,num_leechs:2,ratio:.16,save_path:'/downloads/misc'},
-    {hash:'demo-ubuntu',name:'ubuntu-26.04.1-desktop-amd64.iso',size:6.2*1024**3,progress:1,dlspeed:0,upspeed:0.75*1024**2,eta:8640000,availability:11.28,state:'uploading',num_seeds:8,num_leechs:1,ratio:2.45,save_path:'/downloads/isos'},
-    {hash:'demo-art',name:'Studio_Project_Backup_Nov_2026.tar',size:4.65*1024**3,progress:.281,dlspeed:2.8*1024**2,upspeed:0,eta:1820,availability:1.23,state:'downloading',num_seeds:3,num_leechs:5,ratio:0,save_path:'/downloads/archive'}
-  ];
-  const icons = {
+    {hash:'demo-ubuntu',name:'Ubuntu LTS Desktop ISO (amd64).iso',size:5.9*1024**3,progress:.68,dlspeed:7.7*1024**2,upspeed:.23*1024**2,eta:1038,availability:12.4,state:'downloading',num_seeds:26,num_leechs:8,ratio:.05,save_path:'/downloads/linux-isos'},
+    {hash:'demo-fedora',name:'Fedora Workstation Live ISO (x86_64).iso',size:2.8*1024**3,progress:.41,dlspeed:5.2*1024**2,upspeed:.14*1024**2,eta:1956,availability:8.7,state:'downloading',num_seeds:17,num_leechs:12,ratio:.03,save_path:'/downloads/linux-isos'},
+    {hash:'demo-debian',name:'Debian Stable Netinst ISO (amd64).iso',size:678*1024**2,progress:1,dlspeed:0,upspeed:.65*1024**2,eta:8640000,availability:23.0,state:'uploading',num_seeds:31,num_leechs:3,ratio:2.14,save_path:'/downloads/linux-isos'},
+    {hash:'demo-night',name:'Night of the Living Dead (1968) — Public Domain.mp4',size:2.6*1024**3,progress:.87,dlspeed:3.5*1024**2,upspeed:0,eta:234,availability:3.25,state:'downloading',num_seeds:9,num_leechs:4,ratio:.12,save_path:'/downloads/public-domain-films'},
+    {hash:'demo-moon',name:'A Trip to the Moon (1902) — Public Domain.mp4',size:1.32*1024**3,progress:1,dlspeed:0,upspeed:0,eta:8640000,availability:5.9,state:'stoppedUP',num_seeds:0,num_leechs:0,ratio:0.8,save_path:'/downloads/public-domain-films'},
+    {hash:'demo-arch',name:'Arch Linux Installation ISO (x86_64).iso',size:1.25*1024**3,progress:.54,dlspeed:0,upspeed:0,eta:8640000,availability:.82,state:'stalledDL',num_seeds:1,num_leechs:1,ratio:0,save_path:'/downloads/linux-isos'},
+    {hash:'demo-bunny',name:'Big Buck Bunny (Blender Open Movie, CC BY).mp4',size:876*1024**2,progress:1,dlspeed:0,upspeed:0.45*1024**2,eta:8640000,availability:17.2,state:'uploading',num_seeds:11,num_leechs:3,ratio:3.1,save_path:'/downloads/open-movies'},
+    {hash:'demo-freebsd',name:'FreeBSD Release Installer ISO (amd64).iso',size:3.1*1024**3,progress:.23,dlspeed:1.5*1024**2,upspeed:0,eta:3408,availability:1.21,state:'downloading',num_seeds:4,num_leechs:1,ratio:0,save_path:'/downloads/os-images'}
+  ];  const icons = {
     dots:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>',
     close:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
     play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.4 4.7c0-.89.95-1.44 1.72-.99l11.2 7.33c.69.45.69 1.47 0 1.92l-11.2 7.33c-.77.45-1.72-.1-1.72-.99Z" fill="currentColor" stroke="none"/></svg>',
@@ -312,12 +314,12 @@
   // 'Season 1/Episode 1.mkv'). We build a tree without assuming a save path or
   // operating-system separator, and aggregate folder progress by file bytes.
   function demoFiles(t){
-    if(t.hash==='demo-odyssey')return [
-      {name:'The.Odyssey.2026/Feature/The.Odyssey.2026.mkv',size:t.size*.94,progress:t.progress},
-      {name:'The.Odyssey.2026/Extras/Behind the scenes.mp4',size:t.size*.035,progress:.71},
-      {name:'The.Odyssey.2026/Extras/Stills/poster.jpg',size:t.size*.005,progress:1},
-      {name:'The.Odyssey.2026/Subtitles/English.srt',size:98000,progress:1},
-      {name:'The.Odyssey.2026/Subtitles/Japanese.srt',size:91000,progress:.58},
+    if(t.hash==='demo-bunny')return [
+      {name:'Big Buck Bunny/Film/Big Buck Bunny.mp4',size:t.size*.94,progress:t.progress},
+      {name:'Big Buck Bunny/Extras/Production featurette.mp4',size:t.size*.035,progress:.71},
+      {name:'Big Buck Bunny/Extras/Stills/poster.jpg',size:t.size*.005,progress:1},
+      {name:'Big Buck Bunny/Subtitles/English.srt',size:98000,progress:1},
+      {name:'Big Buck Bunny/Subtitles/Japanese.srt',size:91000,progress:.58},
       {name:'readme.txt',size:1200,progress:1}
     ];
     return [
@@ -417,7 +419,7 @@
   }
   async function checkAboutUpdates(){
     if(state.modal!=='info')return;
-    const current=window.__TIDE_BUILD__||'0.19.0';
+    const current=window.__TIDE_BUILD__||'0.20.0';
     setInfoText('infoUpdateStatus','Checking GitHub…');
     const link=document.getElementById('infoUpdateLink');if(link)link.hidden=true;
     const controller=new AbortController();
@@ -439,6 +441,21 @@
     finally{clearTimeout(timer);}
   }
 
+  async function signOut(){
+    if(state.busy)return;
+    if(demo){dismiss();notify('Sign Out is available when connected to qBittorrent.');return;}
+    const button=mount.querySelector('[data-action="sign-out"]');
+    state.busy=true;
+    if(button){button.disabled=true;button.textContent='Signing out…';}
+    try{
+      await api('POST','auth/logout');
+      state.torrents=[];state.selection.clear();state.selected=null;state.error=null;
+      window.location.replace(new URL('./',window.location.href).href);
+    }catch(error){
+      notify(error?.message||'Could not sign out. Try again.');
+      if(button?.isConnected){button.disabled=false;button.textContent='Sign Out';}
+    }finally{state.busy=false;}
+  }
   const overlay=$('#overlay'),mount=$('#modalMount');
   function openModal(kind,hash=null){state.modal=kind;overlay.hidden=false;document.body.style.overflow='hidden';document.body.classList.toggle('delete-dialog-open',['delete','sort','add'].includes(kind));
     const torrent=state.torrents.find(t=>t.hash===hash);const top=(title,desc='')=>`${['sort','add'].includes(kind)?'':'<div class="sheet-grab" aria-label="Swipe down to dismiss"><div class="sheet-handle"></div></div>'}<div class="dialog-top"><h2>${title}</h2><button class="dialog-close" data-action="dismiss" aria-label="Close">${icons.close}</button></div>${desc?`<p class="dialog-sub">${desc}</p>`:''}`;
@@ -446,12 +463,13 @@
     if(kind==='info'){
       mount.innerHTML='<section class="dialog floating-dialog tide-info-dialog" role="dialog" aria-modal="true" aria-label="About Tide">'
         +top('About Tide')
-        +'<div class="info-current"><span>Installed version</span><strong>v'+esc(window.__TIDE_BUILD__||'0.19.0')+'</strong></div>'
+        +'<div class="info-current"><span>Installed version</span><strong>v'+esc(window.__TIDE_BUILD__||'0.20.0')+'</strong></div>'
         +'<div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>'
         +'<div class="info-section-label">This session</div><div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>'
         +'<div class="info-section-label">Lifetime</div><div class="info-metrics"><div><span>Downloaded</span><strong id="infoLifetimeDown">—</strong></div><div><span>Uploaded</span><strong id="infoLifetimeUp">—</strong></div></div>'
         +'<p id="infoTransferNote" class="info-note">Loading transfer statistics…</p>'
-        +'<div class="info-bottom-actions"><button type="button" data-action="check-updates" class="info-check">Check updates</button><a href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer">GitHub</a></div></section>';
+        +'<div class="info-bottom-actions"><button type="button" data-action="check-updates" class="info-check">Check updates</button><a href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer">GitHub</a></div>'
+        +'<button type="button" class="info-signout" data-action="sign-out">Sign Out</button></section>';
     }
     if(kind==='sort')mount.innerHTML=`<section class="dialog floating-dialog sort-alert" role="dialog" aria-modal="true" aria-label="Sort torrents">${top('Sort torrents')}<div class="sort-options">${[['eta','ETA'],['availability','Availability'],['dlspeed','Download speed'],['progress','Progress'],['size','Size'],['name','Name'],['state','Status']].map(([k,label])=>`<button class="sort-option ${state.sort===k?'active':''}" data-sort="${k}">${label}<span>${state.sort===k?'✓':' '}</span></button>`).join('')}</div><div class="sort-order"><span>Sort direction</span><button class="toggle-order" data-action="reverse">${state.descending?'Descending ↓':'Ascending ↑'}</button></div></section>`;
     if(kind==='add')mount.innerHTML=`<section class="dialog floating-dialog add-alert" role="dialog" aria-modal="true" aria-label="Add torrent">${top('Add a torrent','Paste a magnet link or upload a .torrent file.')}
@@ -536,7 +554,7 @@
     const filter=e.target.closest('[data-filter]');if(filter){state.filter=filter.dataset.filter;savePref('filter',state.filter);render();return;}
     const sort=e.target.closest('[data-sort]');if(sort){state.sort=sort.dataset.sort;savePref('sort',state.sort);dismiss();render();return;}
     const b=e.target.closest('[data-action]');if(b){const a=b.dataset.action,hash=b.dataset.hash;
-      if(a==='sort')openModal('sort');if(a==='add')openModal('add');if(a==='info')openModal('info');if(a==='check-updates')void checkAboutUpdates();
+      if(a==='sort')openModal('sort');if(a==='add')openModal('add');if(a==='info')openModal('info');if(a==='check-updates')void checkAboutUpdates();if(a==='sign-out')void signOut();
       if(a==='search'){state.searchOpen=true;$('#searchWrap').hidden=false;renderRail();syncDeviceGeometry();requestAnimationFrame(()=>$('#searchInput').focus({preventScroll:true}));}
       if(a==='erase-search'){state.search='';$('#searchInput').value='';render();$('#searchInput').focus({preventScroll:true});}
       if(a==='clear-search'){state.searchOpen=false;state.search='';$('#searchInput').value='';$('#searchWrap').hidden=true;$('#searchInput').blur();document.documentElement.style.setProperty('--keyboard-lift','0px');render();}
