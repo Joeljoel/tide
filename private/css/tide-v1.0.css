@@ -2080,3 +2080,9 @@ html[data-tide-theme="light"] .info-current strong{color:#1b3242;}
 html[data-tide-theme="light"] .info-update-row{color:#285544;}
 html[data-tide-theme="light"] .settings-tabs button.active{color:#1d5237!important;}
 html[data-tide-theme="light"] .settings-savebar [role=status]{color:#245d43!important;}
+html[data-tide-theme="light"] .size-value{color:#405667!important;}
+html[data-tide-theme="light"] .size-value .size-total,
+html[data-tide-theme="light"] .size-value .size-sep{color:#627482!important;}
+html[data-tide-theme="light"] .progress-track{background:rgba(67,93,110,.17)!important;}
+html[data-tide-theme="light"] .selection-indicator{border-color:rgba(55,85,99,.40)!important;background:rgba(226,238,244,.70)!important;}
+html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88,.54)!important;}
