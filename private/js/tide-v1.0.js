@@ -1,6 +1,20 @@
 (() => {
   'use strict';
   window.__TIDE_BUILD__ = '1.0.0';
+  const themePreference = (()=>{try{return localStorage.getItem('tide_appearance')||'dark';}catch{return 'dark';}})();
+  const systemAppearance=window.matchMedia?.('(prefers-color-scheme: light)');
+  function setAppearance(value){
+    const preference=['system','dark','light'].includes(value)?value:'system';
+    const light=preference==='light'||(preference==='system'&&!!systemAppearance?.matches);
+    document.documentElement.dataset.tideTheme=light?'light':'dark';
+    document.documentElement.style.colorScheme=light?'light':'dark';
+    const themeMeta=document.querySelector('meta[name="theme-color"]');
+    if(themeMeta)themeMeta.content=light?'#e8eff3':'#111722';
+    try{localStorage.setItem('tide_appearance',preference);}catch{}
+    return preference;
+  }
+  let appearance=setAppearance(themePreference);
+  systemAppearance?.addEventListener?.('change',()=>{if(appearance==='system')setAppearance('system');});
   // Input capabilities determine the desktop mode; width alone cannot distinguish
   // an unfolded Duo from a laptop. Folded and unfolded landscape retain the rail.
   // Unfolded portrait gets a floating bottom control group.
@@ -75,7 +89,7 @@
   const savePref = (key, value) => { try { localStorage.setItem('tide_' + key, value); } catch {} };
   const state = {
     torrents: [], filter: readPref('filter', 'all'), sort: readPref('sort','eta'), descending: readPref('descending', 'false') === 'true',
-    search: '', searchOpen: false, selected: null, selection: new Set(), detailOpen: false, files: [], collapsedFolders: new Set(), version: 5, modal: '', busy: false, error: null, lastUpdate: null
+    settingsTab:'tide', search: '', searchOpen: false, selected: null, selection: new Set(), detailOpen: false, files: [], collapsedFolders: new Set(), version: 5, modal: '', busy: false, error: null, lastUpdate: null
   };
   // Search uses the normal torrent workspace. Its floating controls sit above
   // the results and keep their position when the software keyboard appears.
@@ -485,6 +499,7 @@
   }
   // About Tide: qBittorrent provides session totals through transfer/info; 
   // sync/maindata?rid=0 additionally exposes alltime_dl and alltime_ul.
+  const settingsAboutOpen=()=>state.modal==='settings'&&state.settingsTab==='about';
   const infoValue = v => Number.isFinite(Number(v)) && v!==null && v!==undefined && v!=='' && +v>=0 ? bytes(Number(v)) : '—';
   const versionParts = v => String(v).replace(/^v/i,'').split('.').map(Number);
   function compareVersions(a,b){
@@ -496,7 +511,7 @@
   }
   function setInfoText(id,text){const el=document.getElementById(id);if(el)el.textContent=text;}
   async function loadAboutTransferTotals(){
-    if(state.modal!=='info')return;
+    if(!settingsAboutOpen())return;
     if(demo){
       setInfoText('infoSessionDown',bytes(18.2*1024**3));setInfoText('infoSessionUp',bytes(2.8*1024**3));
       setInfoText('infoLifetimeDown',bytes(11.7*1024**4));setInfoText('infoLifetimeUp',bytes(8.4*1024**4));
@@ -505,7 +520,7 @@
     let transfer;
     try{
       transfer=await api('GET','transfer/info');
-      if(state.modal!=='info')return;
+      if(!settingsAboutOpen())return;
       setInfoText('infoSessionDown',infoValue(transfer?.dl_info_data));
       setInfoText('infoSessionUp',infoValue(transfer?.up_info_data));
       // Some client builds may already include lifetime totals in transfer/info.
@@ -513,24 +528,24 @@
       setInfoText('infoLifetimeUp',infoValue(transfer?.alltime_ul));
       setInfoText('infoTransferNote','Totals reported by qBittorrent');
     }catch(e){
-      if(state.modal==='info')setInfoText('infoTransferNote','qBittorrent statistics unavailable: '+(e.message||'Connection error'));
+      if(settingsAboutOpen())setInfoText('infoTransferNote','qBittorrent statistics unavailable: '+(e.message||'Connection error'));
       return;
     }
     if(transfer?.alltime_dl!==undefined && transfer?.alltime_ul!==undefined)return;
     try{
       const main=await api('GET','sync/maindata?rid=0');
-      if(state.modal!=='info')return;
+      if(!settingsAboutOpen())return;
       const totals=main?.server_state||{};
       setInfoText('infoLifetimeDown',infoValue(totals.alltime_dl));
       setInfoText('infoLifetimeUp',infoValue(totals.alltime_ul));
       if(totals.alltime_dl===undefined || totals.alltime_ul===undefined)
         setInfoText('infoTransferNote','Lifetime totals are unavailable on this qBittorrent version.');
     }catch(e){
-      if(state.modal==='info')setInfoText('infoTransferNote','Session totals shown; lifetime totals could not be retrieved.');
+      if(settingsAboutOpen())setInfoText('infoTransferNote','Session totals shown; lifetime totals could not be retrieved.');
     }
   }
   async function checkAboutUpdates(){
-    if(state.modal!=='info')return;
+    if(!settingsAboutOpen())return;
     const current=window.__TIDE_BUILD__||'1.0.0';
     setInfoText('infoUpdateStatus','Checking GitHub…');
     const link=document.getElementById('infoUpdateLink');if(link)link.hidden=true;
@@ -542,14 +557,14 @@
       if(!response.ok)throw new Error('HTTP '+response.status);
       const data=await response.json();
       if(!/^\d+\.\d+(?:\.\d+)?$/.test(String(data.version||'')))throw new Error('Invalid version data');
-      if(state.modal!=='info')return;
+      if(!settingsAboutOpen())return;
       const comparison=compareVersions(data.version,current);
       if(comparison>0){
         setInfoText('infoUpdateStatus','Update available: v'+data.version);
         if(link){link.href='https://github.com/Joeljoel/tide';link.hidden=false;}
       }else if(comparison===0)setInfoText('infoUpdateStatus','Up to date');
       else setInfoText('infoUpdateStatus','Newer than the published build');
-    }catch(e){if(state.modal==='info')setInfoText('infoUpdateStatus','Could not check GitHub · Try again');}
+    }catch(e){if(settingsAboutOpen())setInfoText('infoUpdateStatus','Could not check GitHub · Try again');}
     finally{clearTimeout(timer);}
   }
 
@@ -572,12 +587,25 @@
       if(button?.isConnected){button.disabled=false;button.textContent='Sign Out';}
     }finally{state.busy=false;}
   }
-  const overlay=$('#overlay'),mount=$('#modalMount');
-  function openModal(kind,hash=null){state.modal=kind;overlay.hidden=false;document.body.style.overflow='hidden';document.body.classList.toggle('delete-dialog-open',['delete','sort','add'].includes(kind));
-    const torrent=state.torrents.find(t=>t.hash===hash);const top=(title,desc='')=>`${['sort','add'].includes(kind)?'':'<div class="sheet-grab" aria-label="Swipe down to dismiss"><div class="sheet-handle"></div></div>'}<div class="dialog-top"><h2>${title}</h2><button class="dialog-close" data-action="dismiss" aria-label="Close">${icons.close}</button></div>${desc?`<p class="dialog-sub">${desc}</p>`:''}`;
-    if(kind==='info')mount.innerHTML=`<section class="dialog floating-dialog tide-info-dialog" role="dialog" aria-modal="true" aria-label="About Tide">
-      ${top('About Tide')}
-      <div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.0.0')}</strong></div>
+
+  const qbDemoPreferences={
+    dl_limit:0,up_limit:1024,alt_dl_limit:5120,alt_up_limit:512,
+    save_path:'/downloads',start_paused_enabled:false,queueing_enabled:true,auto_tmm_enabled:false
+  };
+  let qbPreferences=null;
+  let qbAltMode=false;
+  let qbSettingsBusy=false;
+  let qbSettingsRequest=0;
+  const settingBoolean=(key,label,description)=>{
+    if(!Object.prototype.hasOwnProperty.call(qbPreferences||{},key))return '';
+    return `<label class="settings-toggle-row"><span><strong>${label}</strong><small>${description}</small></span><input type="checkbox" data-pref="${key}" ${qbPreferences[key]?'checked':''}><span class="settings-switch" aria-hidden="true"></span></label>`;
+  };
+  const settingLimit=(key,label)=>{
+    if(!Object.prototype.hasOwnProperty.call(qbPreferences||{},key))return '';
+    return `<label class="settings-field"><span>${label} <small>KiB/s · 0 = unlimited</small></span><input type="number" inputmode="numeric" data-pref="${key}" min="0" max="100000000" step="1" value="${esc(qbPreferences[key]??0)}"></label>`;
+  };
+  function settingsAboutHTML(){
+    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.0.0')}</strong></div>
       <div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>
       <div class="info-section-label">This session</div>
       <div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>
@@ -585,8 +613,124 @@
       <div class="info-metrics"><div><span>Downloaded</span><strong id="infoLifetimeDown">—</strong></div><div><span>Uploaded</span><strong id="infoLifetimeUp">—</strong></div></div>
       <p id="infoTransferNote" class="info-note">Loading transfer statistics…</p>
       <div class="info-bottom-actions"><button type="button" data-action="check-updates" class="info-check">Check updates</button><a href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer">GitHub</a></div>
-      <button type="button" class="info-signout" data-action="sign-out">Sign Out</button>
+      <button type="button" class="info-signout" data-action="sign-out">Sign Out</button>`;
+  }
+  function settingsQBHTML(){
+    if(!qbPreferences)return `<div class="settings-loading">Loading qBittorrent preferences…</div>`;
+    return `<form id="qbSettingsForm" class="settings-form">
+      <p class="settings-caption">Changes are applied to qBittorrent when saved.</p>
+      <h3 class="settings-group-heading">Speed limits</h3>
+      <div class="settings-pair">${settingLimit('dl_limit','Download')}${settingLimit('up_limit','Upload')}</div>
+      <h3 class="settings-group-heading">Alternative limits</h3>
+      <label class="settings-toggle-row"><span><strong>Use alternative limits</strong><small>Switch between normal and alternative speeds</small></span><input type="checkbox" id="qbAltLimits" ${qbAltMode?'checked':''}><span class="settings-switch" aria-hidden="true"></span></label>
+      <div class="settings-pair">${settingLimit('alt_dl_limit','Download')}${settingLimit('alt_up_limit','Upload')}</div>
+      <h3 class="settings-group-heading">Downloads</h3>
+      ${Object.prototype.hasOwnProperty.call(qbPreferences,'save_path')?`<label class="settings-field settings-path"><span>Default save location</span><input type="text" data-pref="save_path" spellcheck="false" autocomplete="off" value="${esc(qbPreferences.save_path||'')}" placeholder="/downloads"></label>`:''}
+      ${settingBoolean('start_paused_enabled','Start new torrents paused','New torrents wait until you resume them')}
+      ${settingBoolean('queueing_enabled','Torrent queueing','Limit simultaneous active torrents')}
+      ${settingBoolean('auto_tmm_enabled','Automatic torrent management','Organise new torrents with automatic management')}
+      <div class="settings-savebar"><span id="qbSettingsStatus" role="status" aria-live="polite"></span><button class="settings-save" type="submit">Save changes</button></div>
+    </form>`;
+  }
+  function renderSettingsTab(tab){
+    if(state.modal!=='settings')return;
+    state.settingsTab=['tide','qbittorrent','about'].includes(tab)?tab:'tide';
+    mount.querySelectorAll('[data-settings-tab]').forEach(button=>{
+      const active=button.dataset.settingsTab===state.settingsTab;
+      button.classList.toggle('active',active);
+      button.setAttribute('aria-selected',String(active));
+      button.tabIndex=active?0:-1;
+    });
+    const target=mount.querySelector('#settingsPanel');if(!target)return;
+    if(state.settingsTab==='about'){
+      target.innerHTML=settingsAboutHTML();
+      void loadAboutTransferTotals();void checkAboutUpdates();
+    }else if(state.settingsTab==='qbittorrent'){
+      target.innerHTML=settingsQBHTML();
+      if(!qbPreferences)void loadQBSettings();
+    }else{
+      target.innerHTML=`<div class="settings-group-heading">Appearance</div>
+        <p class="settings-caption">Choose how Tide looks on this device.</p>
+        <div class="settings-appearance" role="radiogroup" aria-label="Appearance">
+        ${[['system','System','Match your device'],['dark','Dark','Dark interface'],['light','Light','Light interface']].map(([value,label,desc])=>`<button type="button" role="radio" aria-checked="${appearance===value}" class="settings-appearance-option ${appearance===value?'active':''}" data-appearance="${value}"><span>${label}<small>${desc}</small></span><span aria-hidden="true">${appearance===value?'✓':''}</span></button>`).join('')}
+        </div>`;
+    }
+  }
+  async function loadQBSettings(){
+    if(state.modal!=='settings'||state.settingsTab!=='qbittorrent')return;
+    const request=++qbSettingsRequest;
+    if(demo){qbPreferences={...qbDemoPreferences};qbAltMode=false;renderSettingsTab('qbittorrent');return;}
+    try{
+      const [prefs,mode]=await Promise.all([api('GET','app/preferences'),api('GET','transfer/speedLimitsMode')]);
+      if(request!==qbSettingsRequest||state.modal!=='settings'||state.settingsTab!=='qbittorrent')return;
+      if(!prefs||typeof prefs!=='object'||Array.isArray(prefs))throw new Error('Unexpected preferences response');
+      qbPreferences=prefs;
+      qbAltMode=Number(mode)===1;
+      renderSettingsTab('qbittorrent');
+    }catch(error){
+      if(request!==qbSettingsRequest||state.modal!=='settings'||state.settingsTab!=='qbittorrent')return;
+      mount.querySelector('#settingsPanel').innerHTML=`<div class="settings-error">Unable to load qBittorrent settings.<p>${esc(error.message||'Connection error')}</p><button type="button" data-action="reload-qb-settings">Retry</button></div>`;
+    }
+  }
+  async function saveQBSettings(event){
+    event.preventDefault();
+    if(qbSettingsBusy||!qbPreferences||state.modal!=='settings')return;
+    const form=event.target;
+    const changed={};
+    for(const input of form.querySelectorAll('[data-pref]')){
+      const key=input.dataset.pref;
+      if(!Object.prototype.hasOwnProperty.call(qbPreferences,key))continue;
+      let value;
+      if(input.type==='checkbox')value=input.checked;
+      else if(input.type==='number'){
+        if(!/^\d+$/.test(input.value.trim())||Number(input.value)>100000000){
+          input.setCustomValidity('Enter a whole number between 0 and 100,000,000');
+          input.reportValidity();input.addEventListener('input',()=>input.setCustomValidity(''),{once:true});return;
+        }
+        value=Number(input.value);
+      }else{
+        value=input.value.trim();
+        if(!value){input.setCustomValidity('Enter a save location');input.reportValidity();input.addEventListener('input',()=>input.setCustomValidity(''),{once:true});return;}
+      }
+      if(value!==qbPreferences[key])changed[key]=value;
+    }
+    const alternate=form.querySelector('#qbAltLimits')?.checked;
+    const modeChanged=Boolean(alternate)!==qbAltMode;
+    const status=form.querySelector('#qbSettingsStatus');
+    if(!Object.keys(changed).length&&!modeChanged){status.textContent='No changes';return;}
+    const button=form.querySelector('.settings-save');
+    qbSettingsBusy=true;button.disabled=true;status.textContent='Saving…';
+    try{
+      if(!demo){
+        if(Object.keys(changed).length)await api('POST','app/setPreferences',{json:JSON.stringify(changed)});
+        if(modeChanged)await api('POST','transfer/toggleSpeedLimitsMode');
+        const [newPrefs,newMode]=await Promise.all([api('GET','app/preferences'),api('GET','transfer/speedLimitsMode')]);
+        qbPreferences=newPrefs;qbAltMode=Number(newMode)===1;
+      }else{Object.assign(qbPreferences,changed);qbAltMode=Boolean(alternate);}
+      if(state.modal==='settings'&&state.settingsTab==='qbittorrent'){
+        renderSettingsTab('qbittorrent');
+        const feedback=mount.querySelector('#qbSettingsStatus');if(feedback)feedback.textContent=demo?'Saved in preview':'Saved';
+      }
+    }catch(error){
+      if(status.isConnected)status.textContent='Could not save: '+(error.message||'Connection error');
+    }finally{qbSettingsBusy=false;if(button.isConnected)button.disabled=false;}
+  }
+
+  const overlay=$('#overlay'),mount=$('#modalMount');
+  function openModal(kind,hash=null){state.modal=kind;overlay.hidden=false;document.body.style.overflow='hidden';document.body.classList.toggle('delete-dialog-open',['delete','sort','add'].includes(kind));
+    const torrent=state.torrents.find(t=>t.hash===hash);const top=(title,desc='')=>`${['sort','add'].includes(kind)?'':'<div class="sheet-grab" aria-label="Swipe down to dismiss"><div class="sheet-handle"></div></div>'}<div class="dialog-top"><h2>${title}</h2><button class="dialog-close" data-action="dismiss" aria-label="Close">${icons.close}</button></div>${desc?`<p class="dialog-sub">${desc}</p>`:''}`;
+    if(kind==='settings'){
+      mount.innerHTML=`<section class="dialog floating-dialog tide-settings-dialog" role="dialog" aria-modal="true" aria-label="Settings">
+        ${top('Settings')}
+        <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+          <button type="button" role="tab" data-settings-tab="tide">Tide</button>
+          <button type="button" role="tab" data-settings-tab="qbittorrent">qBittorrent</button>
+          <button type="button" role="tab" data-settings-tab="about">About</button>
+        </div>
+        <div class="settings-panel" id="settingsPanel" role="tabpanel"></div>
       </section>`;
+      renderSettingsTab(state.settingsTab);
+    }
     if(kind==='sort')mount.innerHTML=`<section class="dialog floating-dialog sort-alert" role="dialog" aria-modal="true" aria-label="Sort torrents">${top('Sort torrents')}<div class="sort-options">${[['eta','ETA'],['availability','Availability'],['dlspeed','Download speed'],['progress','Progress'],['size','Size'],['name','Name'],['state','Status']].map(([k,label])=>`<button class="sort-option ${state.sort===k?'active':''}" data-sort="${k}">${label}<span>${state.sort===k?'✓':' '}</span></button>`).join('')}</div><div class="sort-order"><span>Sort direction</span><button class="toggle-order" data-action="reverse">${state.descending?'Descending ↓':'Ascending ↑'}</button></div></section>`;
     if(kind==='add')mount.innerHTML=`<section class="dialog floating-dialog add-alert" role="dialog" aria-modal="true" aria-label="Add torrent">${top('Add a torrent','Paste a magnet link or upload a .torrent file.')}
       <form id="addForm"><label class="dialog-label" for="magnetInput">Magnet link or torrent URL</label><textarea id="magnetInput" spellcheck="false" autocomplete="off" placeholder="magnet:?xt=urn:btih:..." aria-label="Magnet or torrent URL" rows="2"></textarea><label class="dialog-label" for="torrentFile">Or select a .torrent file</label><label class="file-picker" for="torrentFile"><span class="file-picker-choose">Choose file</span><span class="file-selected" id="selectedFile">No file selected</span></label><input id="torrentFile" type="file" accept=".torrent,application/x-bittorrent"><button type="submit" class="add-alert-primary">Add torrent</button><button type="button" class="delete-alert-dismiss" data-action="dismiss">Cancel</button></form></section>`;
@@ -625,10 +769,10 @@
         }
       }
       if(['sort','add'].includes(kind))dialog.querySelector('.dialog-close')?.focus({preventScroll:true});
-      if(kind==='info'){void loadAboutTransferTotals();void checkAboutUpdates();}
+
     }
   }
-  function dismiss(){state.modal='';overlay.hidden=true;mount.innerHTML='';document.body.style.overflow='';document.body.classList.remove('delete-dialog-open');sheetGesture=null;}
+  function dismiss(){++qbSettingsRequest;state.modal='';overlay.hidden=true;mount.innerHTML='';document.body.style.overflow='';document.body.classList.remove('delete-dialog-open');sheetGesture=null;}
   let toastTimer;
   function notify(message){const e=$('#toast');e.textContent=message;e.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove('show'),3200);}
   async function mutate(action,hash,deleteFiles=false){
@@ -667,12 +811,15 @@
   }
   document.addEventListener('click', e=>{
     const fold=e.target.closest('[data-folder-toggle]');if(fold){const key=fold.dataset.folderToggle;if(state.collapsedFolders.has(key))state.collapsedFolders.delete(key);else state.collapsedFolders.add(key);renderDetail();return;}
+    const tab=e.target.closest('[data-settings-tab]');if(tab){renderSettingsTab(tab.dataset.settingsTab);return;}
+    const theme=e.target.closest('[data-appearance]');if(theme){appearance=setAppearance(theme.dataset.appearance);renderSettingsTab('tide');return;}
     const filter=e.target.closest('[data-filter]');if(filter){state.filter=filter.dataset.filter;savePref('filter',state.filter);render();return;}
     const sort=e.target.closest('[data-sort]');if(sort){state.sort=sort.dataset.sort;savePref('sort',state.sort);dismiss();render();return;}
     const b=e.target.closest('[data-action]');if(b){const a=b.dataset.action,hash=b.dataset.hash;
-      if(a==='sort')openModal('sort');if(a==='add')openModal('add');if(a==='info')openModal('info');if(a==='check-updates')void checkAboutUpdates();if(a==='sign-out')void signOut();
+      if(a==='sort')openModal('sort');if(a==='add')openModal('add');if(a==='info'){state.settingsTab='about';openModal('settings');}if(a==='settings'){state.settingsTab='tide';openModal('settings');}if(a==='check-updates')void checkAboutUpdates();if(a==='sign-out')void signOut();
       if(a==='search')void openMobileSearch(b);
       if(a==='clear-search')void closeMobileSearch();
+      if(a==='reload-qb-settings'){qbPreferences=null;renderSettingsTab('qbittorrent');}
       if(a==='deselect')clearSelection();
       if(a==='select-visible'){
         document.querySelectorAll('.torrent-card[data-hash]').forEach(card=>state.selection.add(card.dataset.hash));
@@ -700,7 +847,7 @@
     }
   });
   $('#searchInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.target.blur();}});
-  mount.addEventListener('submit',e=>{if(e.target.id==='addForm')addTorrent(e);});
+  mount.addEventListener('submit',e=>{if(e.target.id==='addForm')addTorrent(e);if(e.target.id==='qbSettingsForm')void saveQBSettings(e);});
   mount.addEventListener('change',e=>{if(e.target.id==='torrentFile'){const target=$('#selectedFile');if(target)target.textContent=e.target.files?.[0]?.name||'No file selected';}});
   overlay.addEventListener('click',dismiss);
   // Drag any non-editable sheet surface down to close. Native scrolling is kept when
