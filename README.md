@@ -1,8 +1,6 @@
-<p align="center">
-  <img src="private/favicon.svg" width="96" height="96" alt="Tide logo">
-</p>
-
-<h1 align="center">Tide</h1>
+<h1 align="center">
+  <img src="assets/tide-logo.svg" width="264" alt="tide.">
+</h1>
 
 <p align="center">
   A minimal, touch-first alternative WebUI for <a href="https://www.qbittorrent.org/">qBittorrent</a>.<br>
@@ -81,7 +79,6 @@ Tap **Tide logo → Check updates** to compare the installed version with [`vers
 ## Compatibility & limitations
 
 - Requires qBittorrent with support for alternative WebUIs and its Web API.
-- Liquid Glass styling is a web approximation of Apple's system appearance.
 - This is an **early-development** project; please test changes before relying on them as your only management interface.
 
 ## Project structure
