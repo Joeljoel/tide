@@ -66,6 +66,20 @@ jobs:
           Download the Source code ZIP below, extract it, and configure qBittorrent's alternative Web UI to the folder containing `private/` and `public/`. Existing installs can replace their Tide files and reopen the PWA. See the README for full instructions.
           EOF
             )
+          elif [[ "$version" == "1.2.0" ]]; then
+            notes=$(cat <<'EOF'
+          ## What's new in Tide 1.2.0
+          
+          - Automatic left/right control placement in the iPhone Duo inner Split View.
+          - Left-side rail and matching content/header gutter when Tide occupies the left half.
+          - Existing right-side controls preserved in the right half and other layouts.
+          - Dynamic safe-area detection when moving between Split View halves.
+          
+          ## Installation
+          
+          Download the Source code ZIP, replace your Tide files, and reopen the PWA. See the README for full setup instructions.
+          EOF
+            )
           else
             notes=$(printf '%s\n\n%s\n' \
               "Tide $version is a touch-first alternative qBittorrent WebUI, designed for the iPhone Duo and desktop." \

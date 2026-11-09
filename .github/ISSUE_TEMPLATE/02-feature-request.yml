@@ -1,0 +1,49 @@
+name: "Feature request"
+description: "Suggest an improvement or new capability for Tide."
+title: "[Feature] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check for similar requests before submitting. Focus on the problem you want to solve and how the change would help.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      placeholder: "Describe what is difficult or missing in the current experience."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like Tide to do?
+      placeholder: "Describe the proposed feature or behaviour."
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where would this be useful?
+      options:
+        - "All devices"
+        - "iPhone Duo folded"
+        - "iPhone Duo unfolded portrait"
+        - "iPhone Duo unfolded landscape"
+        - "Desktop"
+        - "Other / not sure"
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or workarounds
+      description: "Optional. How do you handle this today?"
+    validations:
+      required: false
+  - type: textarea
+    id: examples
+    attributes:
+      label: Mockups, examples, or additional context
+      description: "Optional. Drag screenshots or sketches here, or link to related issues."
+    validations:
+      required: false

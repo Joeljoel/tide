@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '1.1.1';
+  window.__TIDE_BUILD__ = '1.2.1-beta.1';
   const themePreference = (()=>{try{return localStorage.getItem('tide_appearance')||'dark';}catch{return 'dark';}})();
   const systemAppearance=window.matchMedia?.('(prefers-color-scheme: light)');
   function setAppearance(value){
@@ -15,13 +15,56 @@
   }
   let appearance=setAppearance(themePreference);
   systemAppearance?.addEventListener?.('change',()=>{if(appearance==='system')setAppearance('system');});
+  // iPhone Duo Split View: the successful display lab established that
+  // both halves are portrait-shaped (~469 x 669 CSS px) while the physical
+  // device reports landscape. Left reports safe L/R = 0/0, right = 0/~84.
+  // screenX reports 0 on both, so it cannot determine window position.
+  const splitSafeProbe=document.getElementById('tideSplitSafeProbe');
+  let splitProbePhase=false;
+  let lastSplitSide=null;
+  function classifyDuoSplitSide(m){
+    const candidate=m.iphone && !m.desktop && m.width>=350 && m.width<=540
+      && m.height>m.width && m.landscapeReported;
+    if(!candidate)return null;
+    if(m.safeLeft<=10 && m.safeRight>=35)return 'right';
+    if(m.safeLeft<=10 && m.safeRight<=10)return 'left';
+    return null; // Unrecognised insets: retain Tide's default right rail.
+  }
+  function detectDuoSplitSide(){
+    const landscapeReported=/^landscape/i.test(screen.orientation?.type||'')
+      || (typeof window.orientation==='number' && Math.abs(window.orientation)===90);
+    const width=window.innerWidth,height=window.innerHeight;
+    const fine=window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
+    // Avoid style measurements outside plausible Duo Split View windows.
+    if(!splitSafeProbe || !/iPhone/i.test(navigator.userAgent) || fine
+      || width<350 || width>540 || height<=width || !landscapeReported)return null;
+    // Side changes do not necessarily emit a resize event on iOS. Toggle
+    // equivalent env() declarations before reading computed insets.
+    splitProbePhase=!splitProbePhase;
+    const insetStyle=edge=>splitProbePhase
+      ? 'env(safe-area-inset-'+edge+',0px)'
+      : 'calc(env(safe-area-inset-'+edge+',0px) + 0px)';
+    splitSafeProbe.style.paddingLeft=insetStyle('left');
+    splitSafeProbe.style.paddingRight=insetStyle('right');
+    const computed=getComputedStyle(splitSafeProbe);
+    const safeLeft=parseFloat(computed.paddingLeft);
+    const safeRight=parseFloat(computed.paddingRight);
+    if(!Number.isFinite(safeLeft)||!Number.isFinite(safeRight))return null;
+    return classifyDuoSplitSide({
+      iphone:true,desktop:false,width,height,landscapeReported,safeLeft,safeRight
+    });
+  }
+  function syncDuoSplitPlacement(){
+    const side=detectDuoSplitSide();
+    if(side===lastSplitSide)return;
+    lastSplitSide=side;
+    document.body.classList.toggle('tide-split-left',side==='left');
+    document.body.classList.toggle('tide-split-right',side==='right');
+    document.body.dataset.tideSplitSide=side||'unknown';
+  }
   // Input capabilities determine the desktop mode; width alone cannot distinguish
   // an unfolded Duo from a laptop. Folded and unfolded landscape retain the rail.
   // Unfolded portrait gets a floating bottom control group.
-  // Retain the largest valid unfolded-landscape height for the same width.
-  // On an iOS PWA, 100dvh can shrink after portrait → landscape rotation.
-  let lastLandscapeViewport=null;
-  let geometrySettleTimer=null;
   const syncDeviceGeometry = () => {
     const standalone=window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone===true;
     const fine=window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
@@ -41,6 +84,14 @@
     }
     document.body.classList.toggle('duo-standalone',!!standalone);
     const editing=document.activeElement?.matches?.('input,textarea,[contenteditable=true]');
+    // The physical Duo's unfolded window can keep 100dvh at a smaller
+    // 587px after rotation while 100vh/100lvh still measure 669px.
+    // On-device testing confirmed 100vh restores BOTH unfolded poses.
+    // Mark only the full inner display (never folded or half Split View).
+    // Suspend the override during text editing so the software keyboard
+    // retains its existing dynamic viewport handling.
+    document.documentElement.classList.toggle('tide-duo-full-inner-vh',
+      !!(standalone && (duoPortrait || duoLandscape) && !editing));
     // Some versions of WebKit expose screen and web viewport dimensions that
     // differ by an OS-reserved strip. Do not require screen.width to equal the
     // viewport width: foldables can report physical/outer-screen dimensions.
@@ -64,24 +115,6 @@
     const portraitHeaderTrial=allowed&&fullHeight<=window.innerHeight+1?82:0;
     const shellHeight=allowed?Math.max(cssCandidate,fullHeight,largeViewport,window.innerHeight+portraitHeaderTrial):cssCandidate;
     document.documentElement.style.setProperty('--tide-shell-height',Math.round(shellHeight)+'px');
-
-    // Fix the rotation-only landscape gap without modifying the existing
-    // portrait workaround. The document may report a smaller 100dvh after
-    // returning from portrait even while outer/screen/visual metrics or
-    // its last good landscape measurement confirm more usable height.
-    let landscapeHeight=0;
-    if(standalone && duoLandscape && !editing && (!vv || Math.abs(vv.scale-1)<.01)){
-      const largeLandscape=largeViewport>=window.innerHeight-2
-        && largeViewport<=window.innerHeight+190 ? largeViewport : 0;
-      let measured=Math.max(fullHeight,largeLandscape);
-      if(lastLandscapeViewport && Math.abs(lastLandscapeViewport.width-window.innerWidth)<=24)
-        measured=Math.max(measured,lastLandscapeViewport.height);
-      // Do not let a stale portrait-sized screen metric stretch landscape.
-      landscapeHeight=Math.round(Math.min(measured,window.innerHeight+190));
-      lastLandscapeViewport={width:window.innerWidth,height:landscapeHeight};
-    }
-    document.documentElement.style.setProperty('--tide-landscape-shell-height',
-      landscapeHeight?landscapeHeight+'px':'0px');
     // Keep keyboard calculations separate from the physical-screen gap.
     const covered=vv && vv.scale===1 ? Math.max(0,window.innerHeight-(vv.height+vv.offsetTop)) : 0;
     const keyboard=editing && covered>115 ? Math.round(covered) : 0;
@@ -94,25 +127,23 @@
     const diagnostics=document.getElementById('viewportDiagnostics');
     if(diagnostics){
       diagnostics.hidden=new URLSearchParams(location.search).get('viewport')!=='1';
-      if(!diagnostics.hidden) diagnostics.textContent=`Tide viewport · ${desktop?'desktop':duoPortrait?'Duo portrait':'rail'}\nscreen ${screen.width}×${screen.height} · avail ${screen.availHeight} · outer ${outerHeight}\ninner ${innerWidth}×${innerHeight} · doc ${document.documentElement.clientHeight}\nvisual ${Math.round(vv?.width||0)}×${Math.round(vv?.height||0)} + ${Math.round(vv?.offsetTop||0)}\nstandalone ${standalone} · gap ${gap} · root ${Math.round(rootHeight)} · body ${Math.round(bodyHeight)} · large ${Math.round(largeViewport)} · trial ${portraitHeaderTrial} · shell ${Math.round(document.getElementById('app')?.getBoundingClientRect().height||0)} · landscape target ${landscapeHeight}`;
+      if(!diagnostics.hidden) diagnostics.textContent=`Tide viewport · ${desktop?'desktop':duoPortrait?'Duo portrait':'rail'}\nscreen ${screen.width}×${screen.height} · avail ${screen.availHeight} · outer ${outerHeight}\ninner ${innerWidth}×${innerHeight} · doc ${document.documentElement.clientHeight}\nvisual ${Math.round(vv?.width||0)}×${Math.round(vv?.height||0)} + ${Math.round(vv?.offsetTop||0)}\nstandalone ${standalone} · gap ${gap} · root ${Math.round(rootHeight)} · body ${Math.round(bodyHeight)} · large ${Math.round(largeViewport)} · trial ${portraitHeaderTrial} · shell ${Math.round(document.getElementById('app')?.getBoundingClientRect().height||0)}`;
     }
+    syncDuoSplitPlacement();
   };
-  // WebKit reports orientation and viewport-size changes in separate phases.
-  // Re-measure after layout commits, and again once the rotation settles.
-  const settleDeviceGeometry=()=>{
-    syncDeviceGeometry();
-    requestAnimationFrame(()=>requestAnimationFrame(syncDeviceGeometry));
-    clearTimeout(geometrySettleTimer);
-    geometrySettleTimer=setTimeout(syncDeviceGeometry,350);
-  };
-  window.addEventListener('resize',settleDeviceGeometry,{passive:true});
-  window.addEventListener('orientationchange',settleDeviceGeometry,{passive:true});
+  window.addEventListener('resize',syncDeviceGeometry,{passive:true});
+  window.addEventListener('orientationchange',syncDeviceGeometry,{passive:true});
   window.visualViewport?.addEventListener('scroll',syncDeviceGeometry,{passive:true});
-  window.visualViewport?.addEventListener('resize',settleDeviceGeometry,{passive:true});
+  window.visualViewport?.addEventListener('resize',syncDeviceGeometry,{passive:true});
   window.matchMedia?.('(hover: hover) and (pointer: fine)')?.addEventListener?.('change',syncDeviceGeometry);
   window.addEventListener('pageshow',syncDeviceGeometry,{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncDeviceGeometry();});
   syncDeviceGeometry();
+  // Split View can move between halves with unchanged viewport dimensions.
+  // Re-read the safe area only while the page is visible; the normal
+  // orientation/resize listeners above also update the placement.
+  setInterval(()=>{if(!document.hidden)syncDuoSplitPlacement();},400);
+  window.addEventListener('focus',syncDuoSplitPlacement,{passive:true});
   const $ = (selector, root=document) => root.querySelector(selector);
   const demo = location.protocol === 'file:' || new URLSearchParams(location.search).get('demo') === '1';
   const readPref = (key, fallback) => { try { return localStorage.getItem('tide_' + key) || fallback; } catch { return fallback; } };
@@ -592,7 +623,7 @@
   }
   async function checkAboutUpdates(){
     if(!settingsAboutOpen())return;
-    const current=window.__TIDE_BUILD__||'1.1.0';
+    const current=window.__TIDE_BUILD__||'1.2.1-beta.1';
     const parsed=parseVersion(current);
     if(!parsed){setInfoText('infoUpdateStatus','Unrecognised installed version');return;}
     const beta=parsed.pre.length>0;
@@ -601,8 +632,8 @@
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),7000);
     try{
       const sources=[{ref:'main',url:'https://github.com/Joeljoel/tide'}];
-      // Prerelease installs check the current Settings PR as well as main.
-      if(beta)sources.push({ref:'feature/settings-menu',url:'https://github.com/Joeljoel/tide/pull/1'});
+      // Prerelease builds follow their active feature branch as well as main.
+      if(beta)sources.push({ref:'fix/landscape-viewport-rotation-1.1.1',url:'https://github.com/Joeljoel/tide/pull/3'});
       const results=await Promise.allSettled(sources.map(async source=>{
         const response=await fetch('https://raw.githubusercontent.com/Joeljoel/tide/'+source.ref+'/version.json?nocache='+Date.now(),
           {credentials:'omit',cache:'no-store',signal:controller.signal,headers:{'Accept':'application/json'}});
@@ -661,7 +692,7 @@
     return `<label class="settings-field"><span>${label} <small>KiB/s · 0 = unlimited</small></span><input type="number" inputmode="numeric" data-pref="${key}" min="0" max="100000000" step="1" value="${esc(qbPreferences[key]??0)}"></label>`;
   };
   function settingsAboutHTML(){
-    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.1.0')}</strong></div>
+    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.2.1-beta.1')}</strong></div>
       <div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>
       <div class="info-section-label">This session</div>
       <div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>

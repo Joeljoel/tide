@@ -2338,11 +2338,83 @@ html[data-tide-theme="light"] .search-wrap.bottom-search input::placeholder {
   }
 }
 
-/* v1.1.1 — recover the full unfolded-landscape workspace after a
-   portrait → landscape rotation in iOS standalone mode. 100dvh can retain
-   the portrait transition's reduced height. Use independently measured,
-   bounded landscape height when greater than the CSS dynamic viewport.
-   This does not change the known portrait gap or other layouts. */
-body.duo-standalone.tide-duo-landscape:not(.tide-desktop) .shell {
-  height:max(100dvh,var(--tide-landscape-shell-height,0px)) !important;
+
+/* v1.2.0 — iPhone Duo left-hand inner Split View window.
+   The detector applies tide-split-left only to a portrait-shaped half
+   window on a landscape-oriented iPhone with safe areas near 0 / 0.
+   All rules are opt-in: right Split View, folded and full-screen remain
+   exactly as in v1.1.0. */
+#tideSplitSafeProbe {
+  position:fixed;
+  left:-2000px;top:-2000px;
+  width:1px;height:1px;
+  visibility:hidden;pointer-events:none;
+  padding-left:env(safe-area-inset-left,0px);
+  padding-right:env(safe-area-inset-right,0px);
+}
+
+/* Mirror the full rail, including selected/detail contextual controls.
+   Rail lies in the reserved left-side gutter, not over torrent content. */
+body.tide-split-left:not(.tide-desktop) .action-rail,
+body.tide-split-left:not(.tide-desktop) .action-rail[data-mode="global"],
+body.tide-split-left:not(.tide-desktop) .action-rail[data-mode="selected"],
+body.tide-split-left:not(.tide-desktop) .action-rail[data-mode="detail"] {
+  left:var(--rail-edge) !important;
+  right:auto !important;
+  transform:none !important;
+}
+body.tide-split-left:not(.tide-desktop) .list-panel {
+  padding-left:calc(var(--rail-slot) + 7px) !important;
+  padding-right:14px !important;
+}
+/* The detail pane covers the list on these narrow windows, so reserve
+   the same left-side controls gutter inside its scrollable content. */
+body.tide-split-left:not(.tide-desktop) .detail-panel.mobile-open .detail-inner {
+  padding-left:calc(var(--rail-slot) + 7px) !important;
+  padding-right:14px !important;
+}
+
+/* Search is a special rail mode positioned at the TOP. Move Close to
+   the left and give the input the rest of the row to its right. */
+body.tide-split-left.tide-search-open:not(.tide-desktop) .action-rail[data-mode="search"] {
+  left:var(--rail-edge) !important;
+  right:auto !important;
+  transform:none !important;
+}
+body.tide-split-left.tide-search-open:not(.tide-desktop) .search-wrap.bottom-search {
+  left:calc(var(--rail-edge) + var(--rail-button-size) + 12px) !important;
+  right:14px !important;
+  width:auto !important;
+}
+
+/* Settings remains a normal header button on narrow Split View windows;
+   its separate bottom-toolbar treatment is only for unfolded portrait. */
+body.tide-split-left:not(.tide-desktop) .topbar > .header-settings-button {
+  pointer-events:auto !important;
+}
+
+/* Align the entire header with the torrent content on the LEFT Split View
+   half. Safe-area detection already gates this class, so the right window,
+   outer display and full unfolded layouts retain their original spacing.
+   Reduce the old right-side status clearance in this one configuration so
+   the Settings button shifts with the logo and transfer rates, but remains
+   comfortably inside the inner seam. */
+body.tide-split-left:not(.tide-desktop) .topbar {
+  padding-left:calc(var(--rail-slot) + 7px) !important;
+  padding-right:clamp(12px, 10vw, 48px) !important;
+}
+
+/* v1.2.1-beta.1: iPhone Duo unfolded rotation viewport correction.
+   On-device diagnostics: after rotation WebKit reported 100dvh=587px but
+   100vh/100lvh=669px. Setting html, body AND shell to 100vh removed the
+   bottom gap in unfolded portrait and landscape.
+   JS marks only standalone full-inner windows, never outer or Split View;
+   class is removed during keyboard editing for dynamic viewport handling. */
+html.tide-duo-full-inner-vh,
+html.tide-duo-full-inner-vh body {
+  height:100vh !important;
+  min-height:100vh !important;
+}
+html.tide-duo-full-inner-vh body .shell {
+  height:100vh !important;
 }
