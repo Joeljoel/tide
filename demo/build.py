@@ -7,9 +7,7 @@ Run: python3 demo/build.py --output _site
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
-import re
 import shutil
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -198,11 +196,6 @@ def build(output: Path) -> None:
     for name in ("index.html", "showcase.css", "showcase.js"):
         shutil.copy2(DEMO / name, output / name)
     shutil.copytree(DEMO / "assets", output / "assets", dirs_exist_ok=True)
-    version = json.loads((ROOT / "version.json").read_text(encoding="utf-8"))["version"]
-    showcase = (output / "index.html").read_text(encoding="utf-8")
-    showcase = re.sub(r'<span id="demoVersion">[^<]+</span>',
-                      f'<span id="demoVersion">v{version}</span>', showcase, count=1)
-    (output / "index.html").write_text(showcase, encoding="utf-8")
     (output / ".nojekyll").write_text("", encoding="utf-8")
 
     # The build output contains a public static demo, not qBittorrent config.
@@ -211,6 +204,7 @@ def build(output: Path) -> None:
     assert (output / "index.html").exists()
     assert (app / "demo-pose.css").exists()
     assert (output / "assets" / "status-overlay.webp").exists()
+    assert (output / "assets" / "camera.webp").exists()
     print(f"Built Tide demo at {output}")
 
 

@@ -65,48 +65,29 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
    determined by the selected physical pose, independent of viewer rotation. */
 .system-ui{position:absolute;z-index:8;pointer-events:none;color:white;text-shadow:0 1px 3px #000b}
 .device-frame[data-pose=desktop] .system-ui,.device-frame[data-pose=split-left] .system-ui{display:none}
-.status-camera{position:absolute;display:flex;align-items:center;justify-content:center;
-  background:#030606;border-radius:50%;box-shadow:0 0 0 1px #1e2730;width:37px;height:37px}
-.status-camera .camera-logo{width:82%;height:82%;display:block;filter:drop-shadow(0 0 2px #49f68b32)}
-.status-horizontal{position:absolute;display:flex;align-items:center;justify-content:center;gap:9px}
-.status-time{font-size:15px;letter-spacing:-.4px;font-weight:760;white-space:nowrap;font-variant-numeric:tabular-nums}
-.status-signal{position:relative;display:flex;align-items:center;flex-direction:column;
-  width:39px;height:42px;font-weight:800}
-.signal-arc{display:block;position:absolute;top:1px;left:3px;width:33px;height:28px;
-  border:3px solid #b8bec7;border-bottom:0;border-radius:50% 50% 0 0;
-  font-size:0}
-.signal-bars{position:absolute;top:9px;left:8px;font-size:13px;letter-spacing:-1px;line-height:18px}
-.signal-network{position:absolute;bottom:0;font-size:10px;font-weight:800;line-height:11px}
-.status-from-photo{display:none;position:absolute;object-fit:contain;width:54px;height:93px}
-/* Outer folded: horizontal status strip as seen in the real outer screenshot.
-   Outer screen camera is always rendered, including after rotation. */
-.device-frame[data-pose=folded-portrait] .system-ui,
-.device-frame[data-pose=folded-landscape] .system-ui{top:18px;right:13px;width:153px;height:46px}
-.device-frame[data-pose=folded-portrait] .status-camera,
-.device-frame[data-pose=folded-landscape] .status-camera{right:0;top:0}
-.device-frame[data-pose=folded-portrait] .status-horizontal,
-.device-frame[data-pose=folded-landscape] .status-horizontal{right:43px;top:0;height:40px}
-.device-frame[data-pose=folded-landscape] .system-ui{top:13px;right:15px}
-/* Unfolded landscape: camera at the upper outside edge; time and signal
-   vertically below, matching the user's landscape Duo screenshots. */
-.device-frame[data-pose=unfolded-landscape] .system-ui{top:20px;right:23px;width:56px;height:151px}
-.device-frame[data-pose=unfolded-landscape] .status-camera{top:0;right:1px;width:43px;height:43px}
-.device-frame[data-pose=unfolded-landscape] .status-horizontal{top:54px;right:0;flex-direction:column;gap:1px;width:53px}
-.device-frame[data-pose=unfolded-landscape] .status-time{font-size:16px}
-.device-frame[data-pose=unfolded-landscape] .status-signal{width:46px;height:45px}
-/* Unfolded portrait: long vertical camera pill, clock and 5G below it. */
-.device-frame[data-pose=unfolded-portrait] .system-ui{top:34px;right:21px;width:63px;height:250px}
-.device-frame[data-pose=unfolded-portrait] .status-camera{top:0;right:1px;width:53px;height:108px;border-radius:29px}
+.status-camera{position:absolute;top:0;right:1px;display:flex;align-items:center;justify-content:center;
+  width:43px;height:43px;border-radius:50%;background:#050607;overflow:hidden;
+  box-shadow:0 0 0 1px #26303a80}
+.status-camera img{display:block;width:100%;height:100%;object-fit:contain}
+.status-horizontal{display:none}
+.status-from-photo{position:absolute;display:block;top:55px;right:0;width:54px;height:93px;object-fit:contain}
+/* Folded outer: the camera remains on the physical outside edge, with
+   status icons stacked into the outside strip seen in the source photos. */
+.device-frame[data-pose=folded-portrait] .system-ui{top:17px;right:17px;width:55px;height:155px}
+.device-frame[data-pose=folded-landscape] .system-ui{top:auto;bottom:17px;right:17px;width:55px;height:155px}
+.device-frame[data-pose=folded-landscape] .status-camera{top:auto;bottom:0}
+.device-frame[data-pose=folded-landscape] .status-from-photo{top:auto;bottom:54px}
+/* Full inner landscape: rightmost camera at top, time/connectivity below. */
+.device-frame[data-pose=unfolded-landscape] .system-ui{top:20px;right:20px;width:55px;height:158px}
+/* Full inner portrait: the observed elongated camera island and right rail. */
+.device-frame[data-pose=unfolded-portrait] .system-ui{top:30px;right:19px;width:58px;height:250px}
+.device-frame[data-pose=unfolded-portrait] .status-camera{width:52px;height:103px;border-radius:27px;right:1px}
 .device-frame[data-pose=unfolded-portrait] .status-camera img{width:45px;height:45px}
-.device-frame[data-pose=unfolded-portrait] .status-horizontal{top:127px;right:0;width:56px;flex-direction:column;gap:7px}
-.device-frame[data-pose=unfolded-portrait] .status-time{font-size:17px}
-.device-frame[data-pose=unfolded-portrait] .status-signal{width:48px;height:46px}
-/* Right Split View: use the user's actual arrow/time/Wi-Fi overlay, at the
-   measured scaled screenshot size. Left Split has the source's own status. */
-.device-frame[data-pose=split-right] .system-ui{top:20px;right:23px;width:54px;height:93px}
-.device-frame[data-pose=split-right] .status-camera,
-.device-frame[data-pose=split-right] .status-horizontal{display:none}
-.device-frame[data-pose=split-right] .status-from-photo{display:block;top:0;right:0}
+.device-frame[data-pose=unfolded-portrait] .status-from-photo{top:115px;right:0}
+/* Right-hand Split View has the physical camera on the far right above
+   the user-supplied time/connectivity crop. The other half's snapshot
+   already contains its own Home Screen status. */
+.device-frame[data-pose=split-right] .system-ui{top:20px;right:20px;width:55px;height:158px}
 @media(max-width:880px){.topbar{gap:10px}.github-link{display:none}}
 @media(max-width:670px){.topbar{padding:10px 12px;gap:8px}.brand strong{font-size:23px}
   .duo-choices{padding-left:0;border-left:none;width:100%;order:5}
