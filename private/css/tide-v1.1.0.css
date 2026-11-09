@@ -2158,7 +2158,7 @@ html[data-tide-theme="light"] .progress-track{background:rgba(67,93,110,.17)!imp
 html[data-tide-theme="light"] .selection-indicator{border-color:rgba(55,85,99,.40)!important;background:rgba(226,238,244,.70)!important;}
 html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88,.54)!important;}
 
-/* v1.1.0-beta.9 — Keep header buttons OUTSIDE the iPhone Duo's system status island.
+/* v1.1.0 — Keep header buttons OUTSIDE the iPhone Duo's system status island.
    On unfolded portrait the iOS time / 5G island is drawn above the webview;
    safe-area-inset-right does not express its width. This includes compact
    unfolded webview widths (475–599px) that lack the tide-duo-portrait class.
@@ -2209,7 +2209,7 @@ html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88
   }
 }
 
-/* v1.1.0-beta.9: render the same Settings button above the header's
+/* v1.1.0: render the same Settings button above the header's
    blurred/clipped hit-test layer in unfolded Duo portrait. The JS portals
    it into the shell using the header's current viewport rectangle.
    Keep the portal beneath the modal backdrop (z38) and dialog (z40). */
@@ -2226,7 +2226,7 @@ body:not(.tide-desktop) .header-settings-button.tide-settings-portal {
 #modalMount:empty {pointer-events:none !important;}
 .overlay[hidden] {display:none !important;}
 
-/* v1.1.0-beta.9: unfolded-portrait header: keep rates and Settings beside Tide.
+/* v1.1.0: unfolded-portrait header: keep rates and Settings beside Tide.
    Explicitly undo the earlier absolutely-positioned controls. This also removes
    the need to portal the button into a separate stacking context in JavaScript.
    Folded, landscape, and pointer-based desktop layouts are unchanged. */
@@ -2313,7 +2313,7 @@ html[data-tide-theme="light"] .search-wrap.bottom-search input::placeholder {
   opacity:1 !important;
 }
 
-/* v1.1.0-beta.9: Settings belongs in the working bottom action rail,
+/* v1.1.0: Settings belongs in the working bottom action rail,
    immediately between Add and Refresh on unfolded portrait. Avoid a
    standalone body-level gear and preserve the original header button in
    folded, landscape, and desktop views. */
