@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0--beta.6-293a46?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0--beta.7-293a46?style=flat-square">
 </p>
 
 <p align="center">
@@ -66,4 +66,10 @@ Use **Settings → About → Check updates** to check the latest Settings beta a
 
 ## Versioning
 
-Tide follows [Semantic Versioning](https://semver.org/): feature releases increment the minor version (`1.1.0`), fixes after a stable release increment the patch (`1.1.1`), and installable preview builds use numbered prereleases (`1.1.0-beta.6`, `1.1.0-beta.6`). The Settings beta remains a draft PR, not a stable release.
+Tide follows [Semantic Versioning](https://semver.org/): feature releases increment the minor version (`1.1.0`), fixes after a stable release increment the patch (`1.1.1`), and installable preview builds use numbered prereleases (`1.1.0-beta.7`, `1.1.0-beta.7`). The Settings beta remains a draft PR, not a stable release.
+
+## Unfolded portrait touch diagnostic (beta.7 test branch only)
+
+This temporary diagnostic build is **not** part of the Settings PR. In unfolded portrait it displays a small lower-left event counter showing whether touches and pointer events reach the page, whether they fall inside the gear icon's CSS rectangle, and which DOM element occupies the gear's centre. It shows no torrent names and sends no data.
+
+Tap the header gear and check whether the gear counts change. **Open Settings test** invokes the existing button without touching the header. **Blur: OFF** disables backdrop blur on the header/gear for comparison. The diagnostics are hidden in landscape and on folded displays. This instrumentation should be removed before merging.
