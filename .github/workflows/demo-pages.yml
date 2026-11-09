@@ -52,7 +52,7 @@ jobs:
         with:
           repository: Joeljoel/tide
           # Pinned snapshot for visual review; this does not merge the PR.
-          ref: 9fe40c34dffab2df7283098e48938b22d590fd8c
+          ref: b23900a330aba92f9030bcc76a722c41d1210e17
           path: _pr7_source
           persist-credentials: false
       - name: Build isolated PR #7 preview
