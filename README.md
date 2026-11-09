@@ -18,7 +18,7 @@
 
 Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
 
-**[Try the interactive demo](https://joeljoel.github.io/tide/)** — explore Tide with fake torrents, simulated actions, Settings, and switchable desktop/iPhone Duo layouts. No qBittorrent server required.
+**[Try the interactive demo](https://joeljoel.github.io/tide/)**
 
 
 ## Screenshots
@@ -41,7 +41,6 @@ Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
 - **Torrent information:** Status, speed, progress, downloaded/remaining/total size, ETA, and availability.
 - **Torrent controls:** Add magnet links or `.torrent` files; search, filter, sort, pause, resume, and remove torrents.
 - **Bulk actions:** Select multiple torrents to pause, resume, or remove, with confirmation before deletion.
-- **File browser:** Browse nested folders and files with individual sizes and progress.
 
 ## Installation
 
@@ -53,6 +52,8 @@ Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
 4. Apply the settings, open your qBittorrent WebUI address, and sign in with your existing credentials.
 
 ### iPhone PWA
+
+> **Note:** Tide also works in a browser, but iPhone Duo optimisations require installing and launching it as a PWA.
 
 1. Open your qBittorrent WebUI address in **Safari** and sign in.
 2. Open **Share → Add to Home Screen**.
