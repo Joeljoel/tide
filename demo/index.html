@@ -4,66 +4,79 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b1118">
-  <meta name="description" content="Interactive Tide demo with mock torrents and iPhone Duo display previews.">
+  <meta name="description" content="Tide interactive preview">
   <title>Tide — Demo</title>
   <link rel="icon" type="image/png" href="app/icon.png">
   <link rel="stylesheet" href="showcase.css">
   <script src="showcase.js" defer></script>
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="https://github.com/Joeljoel/tide" aria-label="Tide on GitHub">
-        <img src="app/icon.png" width="35" height="35" alt="">
-        <strong>tide<span>.</span></strong>
-      </a>
-      <span class="demo-tag">DEMO</span>
-      <nav class="pose-tabs" aria-label="Device preview">
-        <button type="button" data-pose="desktop" aria-pressed="true">Desktop</button>
-        <button type="button" data-pose="folded-portrait" aria-pressed="false">Outer portrait</button>
-        <button type="button" data-pose="folded-landscape" aria-pressed="false">Outer landscape</button>
-        <button type="button" data-pose="unfolded-portrait" aria-pressed="false">Inner portrait</button>
-        <button type="button" data-pose="unfolded-landscape" aria-pressed="false">Inner landscape</button>
-        <button type="button" data-pose="split-left" aria-pressed="false">Split left</button>
-        <button type="button" data-pose="split-right" aria-pressed="false">Split right</button>
-      </nav>
-      <a class="github-link" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+  <header class="topbar">
+    <a class="brand" href="https://github.com/Joeljoel/tide" aria-label="Tide on GitHub">
+      <img src="app/icon.png" width="32" height="32" alt="">
+      <strong>tide<span>.</span></strong>
+    </a>
+    <nav class="device-choices" aria-label="Display">
+      <button id="desktopBtn" type="button" aria-pressed="true">Desktop</button>
+      <button id="duoBtn" type="button" aria-pressed="false">Duo</button>
+    </nav>
+    <div class="duo-choices" id="duoChoices" hidden>
+      <button id="foldBtn" type="button">Fold</button>
+      <button id="rotateBtn" type="button">Rotate <span aria-hidden="true">↻</span></button>
+      <button id="splitBtn" type="button" hidden>Split</button>
+      <button id="shiftBtn" type="button" hidden>Move Tide right</button>
     </div>
+    <a class="github-link" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">GitHub ↗</a>
   </header>
 
   <main>
     <div class="preview-meta">
-      <span id="selectedLabel">Desktop</span>
-      <span id="selectedDimensions">1280 × 800</span>
-      <button type="button" id="resetDemo" title="Restore the demo torrents">↻ Reset</button>
+      <span id="poseName">Desktop</span>
+      <span id="poseDimensions">1280 × 800</span>
+      <button id="resetDemo" type="button" title="Reset sample torrents">↺ Reset</button>
     </div>
-
     <div class="stage" id="stage">
       <div class="frame-holder" id="frameHolder">
-        <div class="device-frame" id="deviceFrame">
+        <div class="device-frame" id="deviceFrame" data-pose="desktop">
           <div class="device-screen" id="deviceScreen">
             <div class="duo-panel tide-panel" id="tidePanel">
-              <iframe id="tidePreview" title="Interactive Tide demo" src="app/index.html?demo=1&amp;pose=desktop" loading="eager" referrerpolicy="no-referrer"></iframe>
+              <iframe id="tidePreview" title="Interactive Tide demo" src="app/index.html?demo=1&amp;pose=desktop"
+                loading="eager" referrerpolicy="no-referrer"></iframe>
             </div>
-            <div class="hinge" id="hinge" aria-hidden="true"></div>
-            <div class="duo-panel home-panel" id="homePanel" aria-label="Example iPhone Home Screen" role="img"></div>
-
-            <!-- Drawn to match the right-side time, arrow and connectivity
-                 placement in the supplied Duo screenshots. The home image
-                 already contains its own status UI. -->
-            <div class="system-status" id="systemStatus" aria-hidden="true">
-              <img src="assets/status-overlay.webp" width="82" height="141" alt="">
+            <div class="duo-panel home-panel" id="homePanel" role="img" aria-label="Example iPhone Home Screen">
+              <div class="home-background"><div class="home-mountain"></div></div>
+              <div class="home-weather"><div class="home-city">Weather <span>➤</span></div><div class="home-degree">19°</div><div class="home-forecast">☾<br>Mostly Clear<br><small>L:13° H:23°</small></div></div>
+              <div class="home-icon i-chroma"><span>📷</span><small>Chroma</small></div>
+              <div class="home-icon i-halide"><span>◎</span><small>Halide</small></div>
+              <div class="home-icon i-photos"><span>🌼</span><small>Photos</small></div>
+              <div class="home-icon i-calendar"><span><b>Mon</b>9</span><small>Calendar</small></div>
+              <div class="home-icon i-maps"><span>🗺️</span><small>Maps</small></div>
+              <div class="home-icon i-contacts"><span>👤</span><small>Contacts</small></div>
+              <div class="home-icon i-notes"><span>🗒️</span><small>Notes</small></div>
+              <div class="home-icon i-reminders"><span>☑️</span><small>Reminders</small></div>
+              <div class="home-fitness"><div class="activity-rings">◉</div><div><em>360/600<small>CAL</small></em><em>25/45<small>MIN</small></em><em>9/12<small>HRS</small></em></div></div>
+              <div class="home-macros"><div>KCAL <b>1,840 / 2,200</b></div><i></i><div>PROTEIN <b>110 / 160</b></div><i></i><div>CARBS <b>168 / 260</b></div><i></i></div>
+              <div class="home-icon i-health"><span>🩺</span><small>Health</small></div>
+              <div class="home-icon i-utilities"><span>🧰</span><small>Utilities</small></div>
+              <div class="home-icon i-files"><span>📁</span><small>Files</small></div>
+              <div class="home-icon i-settings"><span>⚙️</span><small>Settings</small></div>
+              <div class="home-dock"><div>♫</div><div>✉️</div><div>🧭</div><div>💬</div></div>
+              <div class="home-page-dots">● &nbsp; ● &nbsp; ●</div>
+              <div class="home-status"><span>➤</span><strong>6:45</strong><span class="home-wifi">◉</span></div>
+            </div>
+            <div class="system-ui" id="systemUi" aria-hidden="true">
+              <div class="status-camera"><svg class="camera-logo" viewBox="0 0 48 48" width="32" height="32" aria-hidden="true">
+                <g fill="none" stroke="#56f48c" stroke-width="4" stroke-linecap="round">
+                  <rect x="6" y="16" width="26" height="17" rx="8.5" transform="rotate(-27 19 24.5)"/>
+                  <rect x="16" y="15" width="26" height="17" rx="8.5" transform="rotate(27 29 23.5)"/>
+                </g></svg></div>
+              <div class="status-horizontal"><span class="status-time">6:45</span><span class="status-signal"><span class="signal-arc">◔</span><span class="signal-bars">▂▄▆</span><span class="signal-network">5G</span></span></div>
+              <img class="status-from-photo" src="assets/status-overlay.webp" alt="">
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <footer class="page-footer">
-      <span>Fake torrents and settings · No qBittorrent connection</span>
-      <span id="scaleNote"></span>
-      <span id="demoVersion">v1.2.1</span>
-    </footer>
   </main>
 </body>
 </html>

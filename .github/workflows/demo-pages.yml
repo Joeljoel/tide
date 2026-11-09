@@ -45,7 +45,6 @@ jobs:
           grep -Fq 'tide-demo-set-pose' _site/app/js/tide-v*.js
           grep -Fq 'body.dataset.tideDemoPose=__previewPose' _site/app/js/tide-v*.js
           grep -Fq 'tide-split-left' _site/app/js/tide-v*.js
-          test -s _site/assets/home-duo.webp
           test -s _site/assets/status-overlay.webp
           grep -Fq 'Tide Demo Collection' _site/app/js/tide-v*.js
           grep -Fq "demoFile.disabled=true" _site/app/js/tide-v*.js

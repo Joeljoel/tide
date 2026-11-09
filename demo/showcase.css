@@ -1,101 +1,200 @@
-:root{
-  color-scheme:dark;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
-  --bg:#0b1118;--line:#ffffff22;--text:#eff5f7;--muted:#9facba;--mint:#b0e7c4;
-  background:var(--bg);color:var(--text);
-}
+:root{color-scheme:dark;--surface:#0a1119;--muted:#93a5b2;--mint:#b0e7c4;
+  font:14px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  color:#ecf4f7;background:var(--surface)}
 *{box-sizing:border-box}
-html{scrollbar-color:#384751 #0b1118}
-body{margin:0;min-height:100vh;background:radial-gradient(ellipse 72% 32% at 50% -4%,#23384245,transparent),var(--bg)}
+html{scrollbar-color:#344452 #0a1119}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse 60% 32% at 50% 0%,#1b303d55,transparent),#0a1119}
 button,a{font:inherit;-webkit-tap-highlight-color:transparent}
 button{cursor:pointer}
-.site-header{border-bottom:1px solid var(--line);background:#101b25;position:relative;z-index:3}
-.header-inner{max-width:1670px;margin:auto;min-height:72px;padding:9px clamp(15px,3vw,36px);
-  display:flex;align-items:center;gap:19px}
-.brand{flex:none;display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text)}
-.brand img{width:35px;height:35px;object-fit:contain}
-.brand strong{font-size:26px;font-weight:780;letter-spacing:-1.7px}
-.brand strong span{color:var(--mint)}
-.demo-tag{font-size:10px;font-weight:760;letter-spacing:.14em;border-radius:8px;padding:6px 9px;
-  color:#b9e4ce;background:#b0e7c41a;border:1px solid #b0e7c435}
-.pose-tabs{display:flex;align-items:center;gap:5px;flex:1;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;
-  scrollbar-width:none;padding:4px 0;scroll-snap-type:x proximity}
-.pose-tabs::-webkit-scrollbar{display:none}
-.pose-tabs button{border:1px solid transparent;background:transparent;color:#aab9c4;border-radius:11px;padding:10px 11px;
-  white-space:nowrap;font-size:12px;font-weight:670;scroll-snap-align:start}
-.pose-tabs button:hover{color:#eaf5f7;background:#ffffff0b}
-.pose-tabs button[aria-pressed="true"]{color:#d7fce8;background:#b0e7c41c;border-color:#b0e7c466}
-.github-link{white-space:nowrap;text-decoration:none;color:#d1e5ee;font-weight:670;font-size:12px}
+.topbar{display:flex;gap:16px;align-items:center;min-height:69px;padding:11px clamp(12px,2.7vw,35px);
+  border-bottom:1px solid #334451;position:relative;z-index:3;background:#0e1a23;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;white-space:nowrap;text-decoration:none;color:#fff}
+.brand img{width:32px;height:32px}
+.brand strong{font-size:25px;letter-spacing:-1.5px;line-height:1;font-weight:780}
+.brand span{color:var(--mint)}
+.device-choices{display:flex;gap:3px;padding:3px;border:1px solid #344858;background:#162530;border-radius:13px}
+.device-choices button,.duo-choices button{border:1px solid transparent;background:transparent;
+  border-radius:9px;color:#afbfca;min-height:36px;padding:7px 14px;font-size:12px;font-weight:720;white-space:nowrap}
+.device-choices button[aria-pressed=true],.duo-choices button[aria-pressed=true]{
+  color:#d8fce7;background:#2b4a3f;border-color:#729a86}
+.duo-choices{display:flex;align-items:center;gap:6px;flex-wrap:wrap;border-left:1px solid #344858;padding-left:14px}
+.duo-choices button{background:#1d2f3d;border-color:#354d5c}
+.duo-choices button:hover,.device-choices button:hover{border-color:#658275;color:#fff}
+.duo-choices button[disabled]{opacity:.4;cursor:default}
+.duo-choices[hidden],.duo-choices button[hidden]{display:none!important}
+.github-link{margin-left:auto;font-size:12px;text-decoration:none;color:#c2d7df;white-space:nowrap;font-weight:700}
 .github-link:hover{text-decoration:underline}
-main{width:100%;max-width:1700px;padding:14px clamp(12px,3vw,34px) 22px;margin:0 auto}
-.preview-meta{display:flex;align-items:center;gap:10px;min-height:35px;padding:0 3px 10px;font-size:12px}
-#selectedLabel{font-weight:730}
-#selectedDimensions{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
-#resetDemo{margin-left:auto;border:1px solid #3a4c5d;background:#1b2b37;color:#e3eef4;padding:6px 11px;
-  border-radius:10px;font-size:12px;font-weight:650}
-#resetDemo:hover{background:#2b4050}
-.stage{width:100%;min-height:450px;display:flex;align-items:flex-start;justify-content:center;
-  padding:clamp(9px,2vw,24px);border-radius:20px;border:1px solid #ffffff1c;
-  background:radial-gradient(ellipse at 50% 20%,#23343e77,transparent 68%),#101820;
-  overflow:hidden}
-.frame-holder{flex:none;position:relative;transition:width .22s,height .22s}
-.device-frame{position:absolute;left:0;top:0;transform-origin:top left;
-  background:#05090c;border-style:solid;border-color:#05090c;
-  border-radius:var(--tl,48px) var(--tr,48px) var(--br,48px) var(--bl,48px);
-  box-shadow:0 20px 55px #000a,0 0 0 1px #75828e77;
-  overflow:hidden}
-.device-screen{position:relative;width:100%;height:100%;
-  border-radius:calc(var(--tl,48px) - 7px) calc(var(--tr,48px) - 7px)
-                calc(var(--br,48px) - 7px) calc(var(--bl,48px) - 7px);
-  overflow:hidden;background:#0b1118}
-.duo-panel{position:absolute;top:0;bottom:0;left:0;width:100%;overflow:hidden}
-.tide-panel{z-index:1;background:#0b1118}
-iframe{width:100%;height:100%;display:block;border:0;background:#0b1118}
-.home-panel,.hinge{display:none}
-.device-frame.is-split{border:0!important;border-radius:0!important;box-shadow:none;background:transparent;overflow:visible}
-.is-split .device-screen{border-radius:0;overflow:visible;background:transparent}
-.is-split .duo-panel{height:669px;width:469px;top:0;bottom:auto;
-  border-radius:44px 44px 44px 44px;border:0;outline:1px solid #63708082;box-shadow:0 12px 45px #0009;
-  overflow:hidden}
-.is-split .hinge{display:block;position:absolute;top:0;left:469px;width:13px;height:669px;
-  background:linear-gradient(90deg,#0006 0%,#050609 18%,#000 50%,#050609 82%,#0007 100%);
-  z-index:4;pointer-events:none}
-.is-split[data-pose="split-left"] .tide-panel{left:0;right:auto}
-.is-split[data-pose="split-left"] .home-panel{left:482px;right:auto}
-.is-split[data-pose="split-right"] .tide-panel{left:482px;right:auto}
-.is-split[data-pose="split-right"] .home-panel{left:0;right:auto}
-.is-split .home-panel{display:block;background-image:url("assets/home-duo.webp");
-  background-repeat:no-repeat;background-size:200% 100%;background-color:#242c40}
-.is-split[data-pose="split-left"] .home-panel{background-position:right center}
-.is-split[data-pose="split-right"] .home-panel{background-position:left center}
-.system-status{position:absolute;z-index:14;top:19px;right:9px;width:82px;height:141px;
-  pointer-events:none}
-.system-status img{display:block;width:100%;height:100%;object-fit:contain}
-.device-frame[data-pose="desktop"] .system-status,
-.device-frame[data-pose="split-left"] .system-status{display:none}
-.device-frame[data-pose="split-right"] .system-status{right:13px;top:18px}
-.device-frame[data-pose="folded-portrait"] .system-status{top:15px;right:12px}
-.device-frame[data-pose="folded-landscape"] .system-status{top:10px;right:12px;transform:scale(.82);transform-origin:top right}
-.device-frame[data-pose="unfolded-portrait"] .system-status{top:20px;right:17px}
-.device-frame[data-pose="unfolded-landscape"] .system-status{top:19px;right:17px}
-.page-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;
-  font-size:11px;color:var(--muted);padding:12px 4px 0}
-.page-footer #demoVersion{margin-left:auto;color:#d4e5ed}
-.page-footer #scaleNote{color:#8fa2b0}
-@media(max-width:1100px){
-  .header-inner{gap:12px}
-  .github-link{display:none}
-}
-@media(max-width:720px){
-  .header-inner{flex-wrap:wrap;min-height:0;gap:5px 12px;padding:9px 12px 8px}
-  .brand img{width:31px;height:31px}
-  .brand strong{font-size:23px}
-  .demo-tag{padding:5px 7px}
-  .pose-tabs{flex:0 0 100%;order:4}
-  .pose-tabs button{padding:8px 9px;font-size:11px}
-  main{padding:10px 8px 18px}
-  .stage{border-radius:13px;padding:9px;min-height:320px}
-  .page-footer{font-size:10px;flex-wrap:wrap}
-  #scaleNote{display:none}
+main{width:100%;max-width:1710px;margin:auto;padding:12px clamp(8px,2.4vw,28px) 20px}
+.preview-meta{display:flex;align-items:center;gap:12px;min-height:33px;padding:0 3px 10px}
+#poseName{font-size:12px;font-weight:750}
+#poseDimensions{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+#resetDemo{margin-left:auto;border:1px solid #354c5b;border-radius:9px;background:#20323f;color:#e2eff5;padding:6px 12px;font-size:12px;font-weight:650}
+#resetDemo:hover{background:#2a4656}
+.stage{display:flex;justify-content:center;align-items:flex-start;width:100%;padding:clamp(10px,2vw,25px);
+  min-height:370px;border:1px solid #34404e;border-radius:19px;
+  background:radial-gradient(ellipse 75% 70% at 50% 35%,#23313c99,transparent 80%),#101720;overflow:hidden}
+.frame-holder{flex:none;position:relative;transition:width .2s,height .2s}
+.device-frame{position:absolute;top:0;left:0;transform-origin:top left;
+  border:6px solid #05070b;background:#05070b;
+  border-radius:var(--tl,40px) var(--tr,40px) var(--br,40px) var(--bl,40px);
+  box-shadow:0 16px 56px #000b,0 0 0 1px #70818e70;overflow:hidden}
+.device-screen{width:100%;height:100%;position:relative;background:#0a1119;
+  border-radius:calc(var(--tl,40px) - 5px) calc(var(--tr,40px) - 5px)
+    calc(var(--br,40px) - 5px) calc(var(--bl,40px) - 5px);overflow:hidden}
+.duo-panel{position:absolute;inset:0;overflow:hidden}
+.tide-panel{z-index:1;background:#0a1119}
+iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
+.home-panel{display:none}
+.device-frame.is-split{border:0!important;border-radius:0!important;background:transparent;
+  box-shadow:none;overflow:visible}
+.is-split .device-screen{border-radius:0;background:transparent;overflow:visible}
+/* Physical 951×669 unfolded surface: two 469px panels and a 13px
+   open gap. No invented hinge bar or solid rectangle between the screens. */
+.is-split .duo-panel{top:0;bottom:auto;width:469px;height:669px;overflow:hidden;
+  border-radius:49px;background-color:#0c111b;
+  box-shadow:0 0 0 1px #6f7a877a,0 18px 52px #0008}
+.is-split .tide-panel{z-index:2}
+.is-split[data-pose=split-left] .tide-panel{left:0;right:auto}
+.is-split[data-pose=split-left] .home-panel{left:482px;right:auto}
+.is-split[data-pose=split-right] .home-panel{left:0;right:auto}
+.is-split[data-pose=split-right] .tide-panel{left:482px;right:auto}
+.is-split .home-panel{display:block;isolation:isolate;--home-x:0px}
+.is-split[data-pose=split-right] .home-panel{--home-x:96px}
+
+/* The OS chrome is outside the Tide iframe. Position and orientation are
+   determined by the selected physical pose, independent of viewer rotation. */
+.system-ui{position:absolute;z-index:8;pointer-events:none;color:white;text-shadow:0 1px 3px #000b}
+.device-frame[data-pose=desktop] .system-ui,.device-frame[data-pose=split-left] .system-ui{display:none}
+.status-camera{position:absolute;display:flex;align-items:center;justify-content:center;
+  background:#030606;border-radius:50%;box-shadow:0 0 0 1px #1e2730;width:37px;height:37px}
+.status-camera .camera-logo{width:82%;height:82%;display:block;filter:drop-shadow(0 0 2px #49f68b32)}
+.status-horizontal{position:absolute;display:flex;align-items:center;justify-content:center;gap:9px}
+.status-time{font-size:15px;letter-spacing:-.4px;font-weight:760;white-space:nowrap;font-variant-numeric:tabular-nums}
+.status-signal{position:relative;display:flex;align-items:center;flex-direction:column;
+  width:39px;height:42px;font-weight:800}
+.signal-arc{display:block;position:absolute;top:1px;left:3px;width:33px;height:28px;
+  border:3px solid #b8bec7;border-bottom:0;border-radius:50% 50% 0 0;
+  font-size:0}
+.signal-bars{position:absolute;top:9px;left:8px;font-size:13px;letter-spacing:-1px;line-height:18px}
+.signal-network{position:absolute;bottom:0;font-size:10px;font-weight:800;line-height:11px}
+.status-from-photo{display:none;position:absolute;object-fit:contain;width:54px;height:93px}
+/* Outer folded: horizontal status strip as seen in the real outer screenshot.
+   Outer screen camera is always rendered, including after rotation. */
+.device-frame[data-pose=folded-portrait] .system-ui,
+.device-frame[data-pose=folded-landscape] .system-ui{top:18px;right:13px;width:153px;height:46px}
+.device-frame[data-pose=folded-portrait] .status-camera,
+.device-frame[data-pose=folded-landscape] .status-camera{right:0;top:0}
+.device-frame[data-pose=folded-portrait] .status-horizontal,
+.device-frame[data-pose=folded-landscape] .status-horizontal{right:43px;top:0;height:40px}
+.device-frame[data-pose=folded-landscape] .system-ui{top:13px;right:15px}
+/* Unfolded landscape: camera at the upper outside edge; time and signal
+   vertically below, matching the user's landscape Duo screenshots. */
+.device-frame[data-pose=unfolded-landscape] .system-ui{top:20px;right:23px;width:56px;height:151px}
+.device-frame[data-pose=unfolded-landscape] .status-camera{top:0;right:1px;width:43px;height:43px}
+.device-frame[data-pose=unfolded-landscape] .status-horizontal{top:54px;right:0;flex-direction:column;gap:1px;width:53px}
+.device-frame[data-pose=unfolded-landscape] .status-time{font-size:16px}
+.device-frame[data-pose=unfolded-landscape] .status-signal{width:46px;height:45px}
+/* Unfolded portrait: long vertical camera pill, clock and 5G below it. */
+.device-frame[data-pose=unfolded-portrait] .system-ui{top:34px;right:21px;width:63px;height:250px}
+.device-frame[data-pose=unfolded-portrait] .status-camera{top:0;right:1px;width:53px;height:108px;border-radius:29px}
+.device-frame[data-pose=unfolded-portrait] .status-camera img{width:45px;height:45px}
+.device-frame[data-pose=unfolded-portrait] .status-horizontal{top:127px;right:0;width:56px;flex-direction:column;gap:7px}
+.device-frame[data-pose=unfolded-portrait] .status-time{font-size:17px}
+.device-frame[data-pose=unfolded-portrait] .status-signal{width:48px;height:46px}
+/* Right Split View: use the user's actual arrow/time/Wi-Fi overlay, at the
+   measured scaled screenshot size. Left Split has the source's own status. */
+.device-frame[data-pose=split-right] .system-ui{top:20px;right:23px;width:54px;height:93px}
+.device-frame[data-pose=split-right] .status-camera,
+.device-frame[data-pose=split-right] .status-horizontal{display:none}
+.device-frame[data-pose=split-right] .status-from-photo{display:block;top:0;right:0}
+@media(max-width:880px){.topbar{gap:10px}.github-link{display:none}}
+@media(max-width:670px){.topbar{padding:10px 12px;gap:8px}.brand strong{font-size:23px}
+  .duo-choices{padding-left:0;border-left:none;width:100%;order:5}
+  .duo-choices button{font-size:11px;padding-inline:10px}
+  main{padding:10px 7px 16px}
+  .stage{padding:9px;border-radius:13px}
 }
 @media(prefers-reduced-motion:reduce){.frame-holder{transition:none}}
+
+/* Home Screen: CSS-resolution-independent recreation of the supplied iPhone
+   screenshots. Fonts, icons, widgets and labels remain crisp at every scale.
+   The right-home configuration keeps the dock on the far right; reversing
+   the split moves the dock to the left, as in the reference images. */
+.home-panel{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:white;font-size:13px}
+.home-background{position:absolute;inset:0;z-index:-1;background:
+  radial-gradient(circle at 19% 9%,#e7effc88 0 1px,transparent 1.5px),
+  radial-gradient(circle at 58% 6%,#e7effc88 0 1px,transparent 1.5px),
+  radial-gradient(circle at 72% 14%,#e7effc88 0 1px,transparent 1.5px),
+  radial-gradient(circle at 39% 3%,#e7effc88 0 1px,transparent 1.5px),
+  linear-gradient(165deg,#1a3553 0%,#635d79 34%,#bd909b 53%,#4d4853 75%,#1a1c2b 100%);
+  background-size:100% 100%;opacity:1}
+.home-mountain{position:absolute;left:-20%;right:-20%;bottom:0;height:54%;
+  background:linear-gradient(165deg,#282b37,#6f6170 70%,#181a24);
+  clip-path:polygon(0 28%,18% 39%,39% 24%,55% 36%,65% 15%,83% 27%,100% 15%,100% 100%,0 100%)}
+.home-panel>div:not(.home-background){position:absolute}
+.home-weather{top:52px;left:calc(var(--home-x) + 23px);width:154px;height:154px;border-radius:31px;
+  padding:15px 16px;background:linear-gradient(125deg,#3b4564cc,#515771cc);
+  border:1px solid #b6bacb2b;backdrop-filter:blur(6px)}
+.home-city{font-weight:690;font-size:14px}
+.home-city span{font-size:11px}
+.home-degree{font-size:50px;line-height:1.2;font-weight:300;letter-spacing:-2px}
+.home-forecast{position:absolute;bottom:14px;left:16px;font-weight:550;font-size:12px;line-height:1.15}
+.home-forecast small{font-size:11px;color:#e5f5f8;font-weight:440}
+.home-icon{width:63px;text-align:center;display:flex;align-items:center;flex-direction:column;gap:5px}
+.home-icon>span{width:59px;height:59px;display:flex;align-items:center;justify-content:center;
+  font-size:34px;line-height:1;border-radius:17px;background:#eef1f3;color:#222c3e;
+  box-shadow:inset 0 1px 1px #ffffffc8,0 2px 6px #0003}
+.home-icon>small{font-size:11px;white-space:nowrap;text-shadow:0 1px 2px #0009;line-height:1.1}
+.home-icon.i-chroma{top:53px;left:calc(var(--home-x) + 198px)}
+.i-chroma>span{background:linear-gradient(145deg,#202429,#666c74);font-size:30px}
+.home-icon.i-halide{top:53px;left:calc(var(--home-x) + 274px)}
+.i-halide>span{background:linear-gradient(145deg,#dfd0c3,#a6a3a2);font-size:43px}
+.home-icon.i-photos{top:150px;left:calc(var(--home-x) + 198px)}
+.i-photos>span{font-size:35px}
+.home-icon.i-calendar{top:150px;left:calc(var(--home-x) + 274px)}
+.i-calendar>span{display:flex;flex-direction:column;font-size:39px;font-weight:350}
+.i-calendar b{display:block;color:#ec434a;font-size:12px;line-height:12px;margin-top:5px}
+.home-icon.i-maps{top:247px;left:calc(var(--home-x) + 22px)}
+.i-maps>span{font-size:34px;background:linear-gradient(125deg,#61c77b,#e8fafb,#81cfe7)}
+.home-icon.i-contacts{top:247px;left:calc(var(--home-x) + 97px)}
+.i-contacts>span{font-size:33px;background:linear-gradient(160deg,#e9dfc7,#a9bac3)}
+.home-icon.i-notes{top:344px;left:calc(var(--home-x) + 22px)}
+.home-icon.i-reminders{top:344px;left:calc(var(--home-x) + 97px)}
+.home-fitness{top:246px;left:calc(var(--home-x) + 197px);width:157px;height:155px;
+  background:linear-gradient(145deg,#242424,#060606);border-radius:29px;display:flex;
+  align-items:flex-start;flex-direction:column;padding:14px 16px;gap:3px;box-shadow:0 0 0 1px #b7b7b729}
+.activity-rings{font-size:48px;line-height:52px;font-weight:900;
+  background:conic-gradient(#e83461 0 65%,#262727 65% 100%);
+  color:transparent;-webkit-background-clip:text;background-clip:text}
+.home-fitness em{display:block;font-style:normal;font-weight:760;font-size:19px;line-height:20px;color:#ff3262}
+.home-fitness em:nth-child(2){color:#b5ef43}
+.home-fitness em:nth-child(3){color:#35d9e5}
+.home-fitness em small{font-size:12px;font-weight:670;margin-left:2px}
+.home-macros{top:442px;left:calc(var(--home-x) + 23px);width:155px;height:158px;border-radius:29px;
+  background:linear-gradient(145deg,#202324,#070909);padding:15px 14px;color:#b8b9bb}
+.home-macros div{display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:10px;margin-bottom:2px}
+.home-macros b{color:#f4f4f5;font-size:10px}
+.home-macros i{display:block;height:8px;border-radius:9px;margin-bottom:14px;
+  background:linear-gradient(90deg,#5778e4 65%,#2c3550 65%)}
+.home-macros i:nth-of-type(2){background:linear-gradient(90deg,#ff8871 68%,#49322b 68%)}
+.home-macros i:nth-of-type(3){background:linear-gradient(90deg,#f2b94f 48%,#423820 48%)}
+.home-icon.i-health{top:445px;left:calc(var(--home-x) + 198px)}
+.home-icon.i-utilities{top:445px;left:calc(var(--home-x) + 274px)}
+.home-icon.i-files{top:542px;left:calc(var(--home-x) + 198px)}
+.home-icon.i-settings{top:542px;left:calc(var(--home-x) + 274px)}
+.home-dock{top:244px;right:14px;width:64px;height:258px;border-radius:35px;
+  background:#ffffff20;border:1px solid #fff4;backdrop-filter:blur(10px);
+  display:flex;align-items:center;justify-content:space-around;flex-direction:column}
+.home-dock>div{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;
+  justify-content:center;font-size:28px;background:#eef0f4;color:#282c35}
+.home-dock>div:nth-child(2){background:#188eef;color:white}
+.home-dock>div:nth-child(4){background:#39c96a;color:white}
+.is-split[data-pose=split-right] .home-dock{left:13px;right:auto}
+.home-page-dots{left:50%;bottom:21px;transform:translateX(-50%);color:#dce2eb;font-size:10px;letter-spacing:5px}
+.home-status{top:24px;right:24px;width:56px;display:flex;flex-direction:column;gap:7px;align-items:center;
+  font-size:20px;text-shadow:0 1px 4px #000a}
+.home-status strong{font-size:18px;font-weight:750}
+.home-status>span:first-child{align-self:flex-end;font-size:18px}
+.home-wifi{border:3px solid #a6aebb;border-bottom:0;border-radius:50%;width:46px;height:40px;
+  display:flex;align-items:center;justify-content:center}
+.is-split[data-pose=split-right] .home-status{display:none}
