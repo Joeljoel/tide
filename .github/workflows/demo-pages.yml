@@ -51,6 +51,23 @@ jobs:
           grep -Fq "demoFile.disabled=true" _site/app/js/tide-v*.js
           test -f _site/app/demo-pose.css
           test -f _site/.nojekyll
+      # Render the demo in Chromium and exercise its state controls.
+      # This runs on PRs only; stable Pages deployments remain lightweight.
+      - name: Install preview browser
+        if: github.event_name == 'pull_request'
+        run: |
+          python3 -m pip install playwright
+          python3 -m playwright install --with-deps chromium
+      - name: Validate interactive device poses
+        if: github.event_name == 'pull_request'
+        run: python3 demo/test_showcase.py _site demo-preview-screenshots
+      - name: Upload visual review screenshots
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tide-demo-visual-check
+          path: demo-preview-screenshots/
+          if-no-files-found: ignore
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
