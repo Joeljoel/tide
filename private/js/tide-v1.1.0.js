@@ -1,6 +1,20 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '1.0.0';
+  window.__TIDE_BUILD__ = '1.1.0';
+  const themePreference = (()=>{try{return localStorage.getItem('tide_appearance')||'dark';}catch{return 'dark';}})();
+  const systemAppearance=window.matchMedia?.('(prefers-color-scheme: light)');
+  function setAppearance(value){
+    const preference=['system','dark','light'].includes(value)?value:'system';
+    const light=preference==='light'||(preference==='system'&&!!systemAppearance?.matches);
+    document.documentElement.dataset.tideTheme=light?'light':'dark';
+    document.documentElement.style.colorScheme=light?'light':'dark';
+    const themeMeta=document.querySelector('meta[name="theme-color"]');
+    if(themeMeta)themeMeta.content=light?'#e8eff3':'#111722';
+    try{localStorage.setItem('tide_appearance',preference);}catch{}
+    return preference;
+  }
+  let appearance=setAppearance(themePreference);
+  systemAppearance?.addEventListener?.('change',()=>{if(appearance==='system')setAppearance('system');});
   // Input capabilities determine the desktop mode; width alone cannot distinguish
   // an unfolded Duo from a laptop. Folded and unfolded landscape retain the rail.
   // Unfolded portrait gets a floating bottom control group.
@@ -75,7 +89,7 @@
   const savePref = (key, value) => { try { localStorage.setItem('tide_' + key, value); } catch {} };
   const state = {
     torrents: [], filter: readPref('filter', 'all'), sort: readPref('sort','eta'), descending: readPref('descending', 'false') === 'true',
-    search: '', searchOpen: false, selected: null, selection: new Set(), detailOpen: false, files: [], collapsedFolders: new Set(), version: 5, modal: '', busy: false, error: null, lastUpdate: null
+    settingsTab:'tide', search: '', searchOpen: false, selected: null, selection: new Set(), detailOpen: false, files: [], collapsedFolders: new Set(), version: 5, modal: '', busy: false, error: null, lastUpdate: null
   };
   // Search uses the normal torrent workspace. Its floating controls sit above
   // the results and keep their position when the software keyboard appears.
@@ -197,6 +211,7 @@
     {hash:'demo-freebsd',name:'FreeBSD Release Installer ISO (amd64).iso',size:3.1*1024**3,progress:.23,dlspeed:1.5*1024**2,upspeed:0,eta:3408,availability:1.21,state:'downloading',num_seeds:4,num_leechs:1,ratio:0,save_path:'/downloads/os-images'}
   ];
   const icons = {
+    settings:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.3a3.7 3.7 0 1 0 0 7.4 3.7 3.7 0 0 0 0-7.4Z"/><path d="m10.1 2.9-.4 1.8a7.8 7.8 0 0 0-1.5.9l-1.7-.6-2.1 3.6 1.3 1.2a8 8 0 0 0 0 1.8l-1.3 1.2 2.1 3.6 1.7-.6c.5.4 1 .7 1.5.9l.4 1.8h4l.4-1.8c.5-.2 1-.5 1.5-.9l1.7.6 2.1-3.6-1.3-1.2a8 8 0 0 0 0-1.8l1.3-1.2-2.1-3.6-1.7.6c-.5-.4-1-.7-1.5-.9l-.4-1.8h-4Z" transform="translate(0 1.1)"/></svg>',
     dots:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>',
     close:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
     play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.4 4.7c0-.89.95-1.44 1.72-.99l11.2 7.33c.69.45.69 1.47 0 1.92l-11.2 7.33c-.77.45-1.72-.1-1.72-.99Z" fill="currentColor" stroke="none"/></svg>',
@@ -298,13 +313,13 @@
     const actionLabel=(action==='resume'?'Resume':'Pause')+(count>1?` ${count} torrents`:' torrent');
     if(count===1 && state.detailOpen){
       mode='detail';
-      markup=`<div class="rail-cluster rail-top">${btn('close-detail','back','Back to torrent list')}</div><div class="rail-cluster rail-bottom">${btn('delete-confirm','trash','Remove torrent',{style:'rail-destructive'})}${btn(action,action==='resume'?'play':'pause',actionLabel)}</div>`;
+      markup=`<div class="rail-cluster rail-top">${btn('close-detail','back','Back to torrent list')}</div><div class="rail-cluster rail-bottom">${btn('delete-confirm','trash','Remove torrent',{style:'rail-destructive'})}${btn(action,action==='resume'?'play':'pause',actionLabel)}${btn('settings','settings','Settings',{style:'rail-settings'})}</div>`;
     }else if(count){
       mode='selected';
-      markup=`<div class="rail-cluster rail-top">${btn('deselect','close',`Deselect ${count} torrent${count===1?'':'s'}`)}</div><div class="rail-cluster rail-bottom">${btn('detail','info',count===1?'View torrent details':'Select one torrent to view details',{disabled:count!==1})}${btn('delete-confirm','trash',count>1?`Remove ${count} torrents`:'Remove torrent',{style:'rail-destructive'})}${btn(action,action==='resume'?'play':'pause',actionLabel)}</div>`;
+      markup=`<div class="rail-cluster rail-top">${btn('deselect','close',`Deselect ${count} torrent${count===1?'':'s'}`)}</div><div class="rail-cluster rail-bottom">${btn('detail','info',count===1?'View torrent details':'Select one torrent to view details',{disabled:count!==1})}${btn('delete-confirm','trash',count>1?`Remove ${count} torrents`:'Remove torrent',{style:'rail-destructive'})}${btn(action,action==='resume'?'play':'pause',actionLabel)}${btn('settings','settings','Settings',{style:'rail-settings'})}</div>`;
     }else{
       mode=state.searchOpen?'search':'global';
-      markup=state.searchOpen?`<div class="rail-cluster rail-bottom">${btn('clear-search','close','Close search')}</div>`:`<div class="rail-cluster rail-bottom">${btn('add','plus','Add torrent')}${btn('refresh','refresh','Refresh torrents')}${btn('search','search','Search torrents')}</div>`;
+      markup=state.searchOpen?`<div class="rail-cluster rail-bottom">${btn('clear-search','close','Close search')}</div>`:`<div class="rail-cluster rail-bottom">${btn('add','plus','Add torrent')}${btn('settings','settings','Settings',{style:'rail-settings'})}${btn('refresh','refresh','Refresh torrents')}${btn('search','search','Search torrents')}</div>`;
     }
     const signature=[mode,items.map(t=>t.hash).join('|'),action].join(':');
     if(rail.dataset.signature!==signature){mount.innerHTML=markup;rail.dataset.signature=signature;}
@@ -485,18 +500,34 @@
   }
   // About Tide: qBittorrent provides session totals through transfer/info; 
   // sync/maindata?rid=0 additionally exposes alltime_dl and alltime_ul.
+  const settingsAboutOpen=()=>state.modal==='settings'&&state.settingsTab==='about';
   const infoValue = v => Number.isFinite(Number(v)) && v!==null && v!==undefined && v!=='' && +v>=0 ? bytes(Number(v)) : '—';
-  const versionParts = v => String(v).replace(/^v/i,'').split('.').map(Number);
+  // SemVer 2.0.0, including prerelease ordering and ignored build metadata.
+  const semverPattern=/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+  const parseVersion=value=>{
+    const m=semverPattern.exec(String(value??''));
+    return m?{core:m.slice(1,4).map(Number),pre:m[4]?m[4].split('.'):[]}:null;
+  };
   function compareVersions(a,b){
-    const x=versionParts(a),y=versionParts(b);
-    for(let i=0;i<Math.max(x.length,y.length);i++){
-      if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)?1:-1;
+    const x=parseVersion(a),y=parseVersion(b);
+    if(!x||!y)throw new Error('Invalid semantic version');
+    for(let i=0;i<3;i++)if(x.core[i]!==y.core[i])return x.core[i]>y.core[i]?1:-1;
+    if(!x.pre.length&&!y.pre.length)return 0;
+    if(!x.pre.length)return 1;
+    if(!y.pre.length)return -1;
+    for(let i=0;i<Math.min(x.pre.length,y.pre.length);i++){
+      const left=x.pre[i],right=y.pre[i];
+      if(left===right)continue;
+      const ln=/^\d+$/.test(left),rn=/^\d+$/.test(right);
+      if(ln&&rn)return Number(left)>Number(right)?1:-1;
+      if(ln!==rn)return ln?-1:1;
+      return left>right?1:-1;
     }
-    return 0;
+    return Math.sign(x.pre.length-y.pre.length);
   }
   function setInfoText(id,text){const el=document.getElementById(id);if(el)el.textContent=text;}
   async function loadAboutTransferTotals(){
-    if(state.modal!=='info')return;
+    if(!settingsAboutOpen())return;
     if(demo){
       setInfoText('infoSessionDown',bytes(18.2*1024**3));setInfoText('infoSessionUp',bytes(2.8*1024**3));
       setInfoText('infoLifetimeDown',bytes(11.7*1024**4));setInfoText('infoLifetimeUp',bytes(8.4*1024**4));
@@ -505,7 +536,7 @@
     let transfer;
     try{
       transfer=await api('GET','transfer/info');
-      if(state.modal!=='info')return;
+      if(!settingsAboutOpen())return;
       setInfoText('infoSessionDown',infoValue(transfer?.dl_info_data));
       setInfoText('infoSessionUp',infoValue(transfer?.up_info_data));
       // Some client builds may already include lifetime totals in transfer/info.
@@ -513,46 +544,56 @@
       setInfoText('infoLifetimeUp',infoValue(transfer?.alltime_ul));
       setInfoText('infoTransferNote','Totals reported by qBittorrent');
     }catch(e){
-      if(state.modal==='info')setInfoText('infoTransferNote','qBittorrent statistics unavailable: '+(e.message||'Connection error'));
+      if(settingsAboutOpen())setInfoText('infoTransferNote','qBittorrent statistics unavailable: '+(e.message||'Connection error'));
       return;
     }
     if(transfer?.alltime_dl!==undefined && transfer?.alltime_ul!==undefined)return;
     try{
       const main=await api('GET','sync/maindata?rid=0');
-      if(state.modal!=='info')return;
+      if(!settingsAboutOpen())return;
       const totals=main?.server_state||{};
       setInfoText('infoLifetimeDown',infoValue(totals.alltime_dl));
       setInfoText('infoLifetimeUp',infoValue(totals.alltime_ul));
       if(totals.alltime_dl===undefined || totals.alltime_ul===undefined)
         setInfoText('infoTransferNote','Lifetime totals are unavailable on this qBittorrent version.');
     }catch(e){
-      if(state.modal==='info')setInfoText('infoTransferNote','Session totals shown; lifetime totals could not be retrieved.');
+      if(settingsAboutOpen())setInfoText('infoTransferNote','Session totals shown; lifetime totals could not be retrieved.');
     }
   }
   async function checkAboutUpdates(){
-    if(state.modal!=='info')return;
-    const current=window.__TIDE_BUILD__||'1.0.0';
+    if(!settingsAboutOpen())return;
+    const current=window.__TIDE_BUILD__||'1.1.0';
+    const parsed=parseVersion(current);
+    if(!parsed){setInfoText('infoUpdateStatus','Unrecognised installed version');return;}
+    const beta=parsed.pre.length>0;
     setInfoText('infoUpdateStatus','Checking GitHub…');
     const link=document.getElementById('infoUpdateLink');if(link)link.hidden=true;
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),7000);
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),7000);
     try{
-      const response=await fetch('https://raw.githubusercontent.com/Joeljoel/tide/main/version.json?nocache='+Date.now(),
-        {credentials:'omit',cache:'no-store',signal:controller.signal,headers:{'Accept':'application/json'}});
-      if(!response.ok)throw new Error('HTTP '+response.status);
-      const data=await response.json();
-      if(!/^\d+\.\d+(?:\.\d+)?$/.test(String(data.version||'')))throw new Error('Invalid version data');
-      if(state.modal!=='info')return;
-      const comparison=compareVersions(data.version,current);
-      if(comparison>0){
-        setInfoText('infoUpdateStatus','Update available: v'+data.version);
-        if(link){link.href='https://github.com/Joeljoel/tide';link.hidden=false;}
-      }else if(comparison===0)setInfoText('infoUpdateStatus','Up to date');
-      else setInfoText('infoUpdateStatus','Newer than the published build');
-    }catch(e){if(state.modal==='info')setInfoText('infoUpdateStatus','Could not check GitHub · Try again');}
+      const sources=[{ref:'main',url:'https://github.com/Joeljoel/tide'}];
+      // Prerelease installs check the current Settings PR as well as main.
+      if(beta)sources.push({ref:'feature/settings-menu',url:'https://github.com/Joeljoel/tide/pull/1'});
+      const results=await Promise.allSettled(sources.map(async source=>{
+        const response=await fetch('https://raw.githubusercontent.com/Joeljoel/tide/'+source.ref+'/version.json?nocache='+Date.now(),
+          {credentials:'omit',cache:'no-store',signal:controller.signal,headers:{'Accept':'application/json'}});
+        if(!response.ok)throw new Error('HTTP '+response.status);
+        const data=await response.json();
+        if(!parseVersion(data.version))throw new Error('Invalid version data');
+        return {...source,version:data.version};
+      }));
+      if(!settingsAboutOpen())return;
+      const valid=results.filter(r=>r.status==='fulfilled').map(r=>r.value);
+      if(!valid.length)throw new Error('No available version data');
+      const latest=valid.reduce((best,next)=>compareVersions(next.version,best.version)>0?next:best);
+      const cmp=compareVersions(latest.version,current);
+      if(cmp>0){
+        setInfoText('infoUpdateStatus','Update available: v'+latest.version);
+        if(link){link.href=latest.url;link.hidden=false;}
+      }else if(cmp===0)setInfoText('infoUpdateStatus',beta?'Up to date · beta channel':'Up to date');
+      else setInfoText('infoUpdateStatus',beta?'Newer than published beta':'Newer than published build');
+    }catch(error){if(settingsAboutOpen())setInfoText('infoUpdateStatus','Could not check GitHub · Try again');}
     finally{clearTimeout(timer);}
   }
-
   async function signOut(){
     if(state.busy)return;
     if(demo){dismiss();notify('Sign Out is available when connected to qBittorrent.');return;}
@@ -572,12 +613,25 @@
       if(button?.isConnected){button.disabled=false;button.textContent='Sign Out';}
     }finally{state.busy=false;}
   }
-  const overlay=$('#overlay'),mount=$('#modalMount');
-  function openModal(kind,hash=null){state.modal=kind;overlay.hidden=false;document.body.style.overflow='hidden';document.body.classList.toggle('delete-dialog-open',['delete','sort','add'].includes(kind));
-    const torrent=state.torrents.find(t=>t.hash===hash);const top=(title,desc='')=>`${['sort','add'].includes(kind)?'':'<div class="sheet-grab" aria-label="Swipe down to dismiss"><div class="sheet-handle"></div></div>'}<div class="dialog-top"><h2>${title}</h2><button class="dialog-close" data-action="dismiss" aria-label="Close">${icons.close}</button></div>${desc?`<p class="dialog-sub">${desc}</p>`:''}`;
-    if(kind==='info')mount.innerHTML=`<section class="dialog floating-dialog tide-info-dialog" role="dialog" aria-modal="true" aria-label="About Tide">
-      ${top('About Tide')}
-      <div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.0.0')}</strong></div>
+
+  const qbDemoPreferences={
+    dl_limit:0,up_limit:1024,alt_dl_limit:5120,alt_up_limit:512,
+    save_path:'/downloads',start_paused_enabled:false,queueing_enabled:true,auto_tmm_enabled:false
+  };
+  let qbPreferences=null;
+  let qbAltMode=false;
+  let qbSettingsBusy=false;
+  let qbSettingsRequest=0;
+  const settingBoolean=(key,label,description)=>{
+    if(!Object.prototype.hasOwnProperty.call(qbPreferences||{},key))return '';
+    return `<label class="settings-toggle-row"><span><strong>${label}</strong><small>${description}</small></span><input type="checkbox" data-pref="${key}" ${qbPreferences[key]?'checked':''}><span class="settings-switch" aria-hidden="true"></span></label>`;
+  };
+  const settingLimit=(key,label)=>{
+    if(!Object.prototype.hasOwnProperty.call(qbPreferences||{},key))return '';
+    return `<label class="settings-field"><span>${label} <small>KiB/s · 0 = unlimited</small></span><input type="number" inputmode="numeric" data-pref="${key}" min="0" max="100000000" step="1" value="${esc(qbPreferences[key]??0)}"></label>`;
+  };
+  function settingsAboutHTML(){
+    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.1.0')}</strong></div>
       <div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>
       <div class="info-section-label">This session</div>
       <div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>
@@ -585,8 +639,135 @@
       <div class="info-metrics"><div><span>Downloaded</span><strong id="infoLifetimeDown">—</strong></div><div><span>Uploaded</span><strong id="infoLifetimeUp">—</strong></div></div>
       <p id="infoTransferNote" class="info-note">Loading transfer statistics…</p>
       <div class="info-bottom-actions"><button type="button" data-action="check-updates" class="info-check">Check updates</button><a href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer">GitHub</a></div>
-      <button type="button" class="info-signout" data-action="sign-out">Sign Out</button>
+      <button type="button" class="info-signout" data-action="sign-out">Sign Out</button>`;
+  }
+  function settingsQBHTML(){
+    if(!qbPreferences)return `<div class="settings-loading">Loading qBittorrent preferences…</div>`;
+    return `<form id="qbSettingsForm" class="settings-form">
+      <p class="settings-caption">Changes are applied to qBittorrent when saved.</p>
+      <h3 class="settings-group-heading">Speed limits</h3>
+      <div class="settings-pair">${settingLimit('dl_limit','Download')}${settingLimit('up_limit','Upload')}</div>
+      <h3 class="settings-group-heading">Alternative limits</h3>
+      <label class="settings-toggle-row"><span><strong>Use alternative limits</strong><small>Switch between normal and alternative speeds</small></span><input type="checkbox" id="qbAltLimits" ${qbAltMode?'checked':''}><span class="settings-switch" aria-hidden="true"></span></label>
+      <div class="settings-pair">${settingLimit('alt_dl_limit','Download')}${settingLimit('alt_up_limit','Upload')}</div>
+      <h3 class="settings-group-heading">Downloads</h3>
+      ${Object.prototype.hasOwnProperty.call(qbPreferences,'save_path')?`<label class="settings-field settings-path"><span>Default save location</span><input type="text" data-pref="save_path" spellcheck="false" autocomplete="off" value="${esc(qbPreferences.save_path||'')}" placeholder="/downloads"></label>`:''}
+      ${settingBoolean('start_paused_enabled','Start new torrents paused','New torrents wait until you resume them')}
+      ${settingBoolean('queueing_enabled','Torrent queueing','Limit simultaneous active torrents')}
+      ${settingBoolean('auto_tmm_enabled','Automatic torrent management','Organise new torrents with automatic management')}
+    </form>`;
+  }
+  function renderSettingsTab(tab){
+    if(state.modal!=='settings')return;
+    state.settingsTab=['tide','qbittorrent','about'].includes(tab)?tab:'tide';
+    mount.querySelectorAll('[data-settings-tab]').forEach(button=>{
+      const active=button.dataset.settingsTab===state.settingsTab;
+      button.classList.toggle('active',active);
+      button.setAttribute('aria-selected',String(active));
+      button.tabIndex=active?0:-1;
+    });
+    const target=mount.querySelector('#settingsPanel');if(!target)return;
+    const footer=mount.querySelector('#qbSettingsFooter');
+    if(footer)footer.hidden=state.settingsTab!=='qbittorrent'||!qbPreferences;
+    if(target.dataset.activeTab!==state.settingsTab){
+      target.scrollTop=0;
+      target.dataset.activeTab=state.settingsTab;
+    }
+    if(state.settingsTab==='about'){
+      target.innerHTML=settingsAboutHTML();
+      void loadAboutTransferTotals();void checkAboutUpdates();
+    }else if(state.settingsTab==='qbittorrent'){
+      target.innerHTML=settingsQBHTML();
+      if(!qbPreferences)void loadQBSettings();
+    }else{
+      target.innerHTML=`<div class="settings-group-heading">Appearance</div>
+        <p class="settings-caption">Choose how Tide looks on this device.</p>
+        <div class="settings-appearance" role="radiogroup" aria-label="Appearance">
+        ${[['system','System','Match your device'],['dark','Dark','Dark interface'],['light','Light','Light interface']].map(([value,label,desc])=>`<button type="button" role="radio" aria-checked="${appearance===value}" class="settings-appearance-option ${appearance===value?'active':''}" data-appearance="${value}"><span>${label}<small>${desc}</small></span><span aria-hidden="true">${appearance===value?'✓':''}</span></button>`).join('')}
+        </div>`;
+    }
+  }
+  async function loadQBSettings(){
+    if(state.modal!=='settings'||state.settingsTab!=='qbittorrent')return;
+    const request=++qbSettingsRequest;
+    if(demo){qbPreferences={...qbDemoPreferences};qbAltMode=false;renderSettingsTab('qbittorrent');return;}
+    try{
+      const [prefs,mode]=await Promise.all([api('GET','app/preferences'),api('GET','transfer/speedLimitsMode')]);
+      if(request!==qbSettingsRequest||state.modal!=='settings'||state.settingsTab!=='qbittorrent')return;
+      if(!prefs||typeof prefs!=='object'||Array.isArray(prefs))throw new Error('Unexpected preferences response');
+      qbPreferences=prefs;
+      qbAltMode=Number(mode)===1;
+      renderSettingsTab('qbittorrent');
+    }catch(error){
+      if(request!==qbSettingsRequest||state.modal!=='settings'||state.settingsTab!=='qbittorrent')return;
+      mount.querySelector('#settingsPanel').innerHTML=`<div class="settings-error">Unable to load qBittorrent settings.<p>${esc(error.message||'Connection error')}</p><button type="button" data-action="reload-qb-settings">Retry</button></div>`;
+    }
+  }
+  async function saveQBSettings(event){
+    event.preventDefault();
+    if(qbSettingsBusy||!qbPreferences||state.modal!=='settings')return;
+    const form=event.target;
+    const changed={};
+    for(const input of form.querySelectorAll('[data-pref]')){
+      const key=input.dataset.pref;
+      if(!Object.prototype.hasOwnProperty.call(qbPreferences,key))continue;
+      let value;
+      if(input.type==='checkbox')value=input.checked;
+      else if(input.type==='number'){
+        if(!/^\d+$/.test(input.value.trim())||Number(input.value)>100000000){
+          input.setCustomValidity('Enter a whole number between 0 and 100,000,000');
+          input.reportValidity();input.addEventListener('input',()=>input.setCustomValidity(''),{once:true});return;
+        }
+        value=Number(input.value);
+      }else{
+        value=input.value.trim();
+        if(!value){input.setCustomValidity('Enter a save location');input.reportValidity();input.addEventListener('input',()=>input.setCustomValidity(''),{once:true});return;}
+      }
+      if(value!==qbPreferences[key])changed[key]=value;
+    }
+    const alternate=form.querySelector('#qbAltLimits')?.checked;
+    const modeChanged=Boolean(alternate)!==qbAltMode;
+    const status=mount.querySelector('#qbSettingsStatus');
+    if(!Object.keys(changed).length&&!modeChanged){status.textContent='No changes';return;}
+    const button=mount.querySelector('#qbSettingsFooter .settings-save');
+    qbSettingsBusy=true;button.disabled=true;status.textContent='Saving…';
+    try{
+      if(!demo){
+        if(Object.keys(changed).length)await api('POST','app/setPreferences',{json:JSON.stringify(changed)});
+        if(modeChanged)await api('POST','transfer/toggleSpeedLimitsMode');
+        const [newPrefs,newMode]=await Promise.all([api('GET','app/preferences'),api('GET','transfer/speedLimitsMode')]);
+        qbPreferences=newPrefs;qbAltMode=Number(newMode)===1;
+      }else{Object.assign(qbPreferences,changed);qbAltMode=Boolean(alternate);}
+      if(state.modal==='settings'&&state.settingsTab==='qbittorrent'){
+        renderSettingsTab('qbittorrent');
+        const feedback=mount.querySelector('#qbSettingsStatus');if(feedback)feedback.textContent=demo?'Saved in preview':'Saved';
+      }
+    }catch(error){
+      if(status.isConnected)status.textContent='Could not save: '+(error.message||'Connection error');
+    }finally{qbSettingsBusy=false;if(button.isConnected)button.disabled=false;}
+  }
+
+  const overlay=$('#overlay'),mount=$('#modalMount');
+  function openModal(kind,hash=null){state.modal=kind;overlay.hidden=false;document.body.style.overflow='hidden';document.body.classList.toggle('delete-dialog-open',['delete','sort','add'].includes(kind));
+    const torrent=state.torrents.find(t=>t.hash===hash);const top=(title,desc='')=>`${['sort','add'].includes(kind)?'':'<div class="sheet-grab" aria-label="Swipe down to dismiss"><div class="sheet-handle"></div></div>'}<div class="dialog-top"><h2>${title}</h2><button class="dialog-close" data-action="dismiss" aria-label="Close">${icons.close}</button></div>${desc?`<p class="dialog-sub">${desc}</p>`:''}`;
+    if(kind==='settings'){
+      mount.innerHTML=`<section class="dialog floating-dialog tide-settings-dialog" role="dialog" aria-modal="true" aria-label="Settings">
+        <div class="settings-toolbar">
+          <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+            <button type="button" role="tab" data-settings-tab="tide">Tide</button>
+            <button type="button" role="tab" data-settings-tab="qbittorrent">qBittorrent</button>
+            <button type="button" role="tab" data-settings-tab="about">About</button>
+          </div>
+          <button type="button" class="dialog-close settings-close" data-action="dismiss" aria-label="Close settings" title="Close settings">${icons.close}</button>
+        </div>
+        <div class="settings-panel" id="settingsPanel" role="tabpanel"></div>
+        <div class="settings-footer" id="qbSettingsFooter" hidden>
+          <span id="qbSettingsStatus" role="status" aria-live="polite"></span>
+          <button class="settings-save" type="submit" form="qbSettingsForm">Save changes</button>
+        </div>
       </section>`;
+      renderSettingsTab(state.settingsTab);
+    }
     if(kind==='sort')mount.innerHTML=`<section class="dialog floating-dialog sort-alert" role="dialog" aria-modal="true" aria-label="Sort torrents">${top('Sort torrents')}<div class="sort-options">${[['eta','ETA'],['availability','Availability'],['dlspeed','Download speed'],['progress','Progress'],['size','Size'],['name','Name'],['state','Status']].map(([k,label])=>`<button class="sort-option ${state.sort===k?'active':''}" data-sort="${k}">${label}<span>${state.sort===k?'✓':' '}</span></button>`).join('')}</div><div class="sort-order"><span>Sort direction</span><button class="toggle-order" data-action="reverse">${state.descending?'Descending ↓':'Ascending ↑'}</button></div></section>`;
     if(kind==='add')mount.innerHTML=`<section class="dialog floating-dialog add-alert" role="dialog" aria-modal="true" aria-label="Add torrent">${top('Add a torrent','Paste a magnet link or upload a .torrent file.')}
       <form id="addForm"><label class="dialog-label" for="magnetInput">Magnet link or torrent URL</label><textarea id="magnetInput" spellcheck="false" autocomplete="off" placeholder="magnet:?xt=urn:btih:..." aria-label="Magnet or torrent URL" rows="2"></textarea><label class="dialog-label" for="torrentFile">Or select a .torrent file</label><label class="file-picker" for="torrentFile"><span class="file-picker-choose">Choose file</span><span class="file-selected" id="selectedFile">No file selected</span></label><input id="torrentFile" type="file" accept=".torrent,application/x-bittorrent"><button type="submit" class="add-alert-primary">Add torrent</button><button type="button" class="delete-alert-dismiss" data-action="dismiss">Cancel</button></form></section>`;
@@ -625,10 +806,10 @@
         }
       }
       if(['sort','add'].includes(kind))dialog.querySelector('.dialog-close')?.focus({preventScroll:true});
-      if(kind==='info'){void loadAboutTransferTotals();void checkAboutUpdates();}
+
     }
   }
-  function dismiss(){state.modal='';overlay.hidden=true;mount.innerHTML='';document.body.style.overflow='';document.body.classList.remove('delete-dialog-open');sheetGesture=null;}
+  function dismiss(){++qbSettingsRequest;state.modal='';overlay.hidden=true;mount.innerHTML='';document.body.style.overflow='';document.body.classList.remove('delete-dialog-open');sheetGesture=null;}
   let toastTimer;
   function notify(message){const e=$('#toast');e.textContent=message;e.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove('show'),3200);}
   async function mutate(action,hash,deleteFiles=false){
@@ -665,14 +846,45 @@
     try{if(demo){mock.unshift({hash:'demo-'+Date.now(),name:blob?blob.name:value.slice(0,52),size:0,progress:0,dlspeed:0,upspeed:0,eta:8640000,availability:0,state:'metaDL'});}else{const body=new FormData();if(value)body.append('urls',value);if(blob)body.append('torrents',blob,blob.name);const result=await api('POST','torrents/add',body,true);if(!/^ok\.?$/i.test(result.trim()))throw new Error(result||'qBittorrent refused this torrent.');}dismiss();notify('Torrent added');state.filter='all';savePref('filter','all');await refresh();}
     catch(err){notify(err.message||'Could not add torrent');}finally{state.busy=false;}
   }
+  // iOS standalone WebKit can swallow synthetic clicks next to the status island.
+  // Respond to finger release, then cancel the duplicate synthetic click.
+  const settingsHeaderButton=document.querySelector('.header-settings-button');
+  const openHeaderSettings=()=>{if(state.modal==='settings')return;state.settingsTab='tide';openModal('settings');};
+  let settingsTouch=null;
+  settingsHeaderButton?.addEventListener('touchstart',event=>{
+    const t=event.touches.length===1?event.touches[0]:null;
+    settingsTouch=t?{x:t.clientX,y:t.clientY}:null;
+  },{passive:true});
+  settingsHeaderButton?.addEventListener('touchcancel',()=>{settingsTouch=null;},{passive:true});
+  settingsHeaderButton?.addEventListener('touchend',event=>{
+    const start=settingsTouch;
+    settingsTouch=null;
+    if(!start||event.changedTouches.length!==1)return;
+    const t=event.changedTouches[0];
+    if(Math.hypot(t.clientX-start.x,t.clientY-start.y)>14)return;
+    if(event.cancelable)event.preventDefault();
+    event.stopPropagation();
+    openHeaderSettings();
+  },{passive:false});
+  settingsHeaderButton?.addEventListener('click',event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    openHeaderSettings();
+  });
+
+  // Unfolded portrait uses a native action-rail Settings control. The header
+  // button remains in place for folded, landscape and desktop layouts.
   document.addEventListener('click', e=>{
     const fold=e.target.closest('[data-folder-toggle]');if(fold){const key=fold.dataset.folderToggle;if(state.collapsedFolders.has(key))state.collapsedFolders.delete(key);else state.collapsedFolders.add(key);renderDetail();return;}
+    const tab=e.target.closest('[data-settings-tab]');if(tab){renderSettingsTab(tab.dataset.settingsTab);return;}
+    const theme=e.target.closest('[data-appearance]');if(theme){appearance=setAppearance(theme.dataset.appearance);renderSettingsTab('tide');return;}
     const filter=e.target.closest('[data-filter]');if(filter){state.filter=filter.dataset.filter;savePref('filter',state.filter);render();return;}
     const sort=e.target.closest('[data-sort]');if(sort){state.sort=sort.dataset.sort;savePref('sort',state.sort);dismiss();render();return;}
     const b=e.target.closest('[data-action]');if(b){const a=b.dataset.action,hash=b.dataset.hash;
-      if(a==='sort')openModal('sort');if(a==='add')openModal('add');if(a==='info')openModal('info');if(a==='check-updates')void checkAboutUpdates();if(a==='sign-out')void signOut();
+      if(a==='sort')openModal('sort');if(a==='add')openModal('add');if(a==='info'){state.settingsTab='about';openModal('settings');}if(a==='settings'){state.settingsTab='tide';openModal('settings');}if(a==='check-updates')void checkAboutUpdates();if(a==='sign-out')void signOut();
       if(a==='search')void openMobileSearch(b);
       if(a==='clear-search')void closeMobileSearch();
+      if(a==='reload-qb-settings'){qbPreferences=null;renderSettingsTab('qbittorrent');}
       if(a==='deselect')clearSelection();
       if(a==='select-visible'){
         document.querySelectorAll('.torrent-card[data-hash]').forEach(card=>state.selection.add(card.dataset.hash));
@@ -700,7 +912,7 @@
     }
   });
   $('#searchInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.target.blur();}});
-  mount.addEventListener('submit',e=>{if(e.target.id==='addForm')addTorrent(e);});
+  mount.addEventListener('submit',e=>{if(e.target.id==='addForm')addTorrent(e);if(e.target.id==='qbSettingsForm')void saveQBSettings(e);});
   mount.addEventListener('change',e=>{if(e.target.id==='torrentFile'){const target=$('#selectedFile');if(target)target.textContent=e.target.files?.[0]?.name||'No file selected';}});
   overlay.addEventListener('click',dismiss);
   // Drag any non-editable sheet surface down to close. Native scrolling is kept when
@@ -716,6 +928,8 @@
   const canStartSheetGesture = target => {
     const dialog=target.closest('.dialog');
     if(!dialog || target.closest('textarea,input,select,a,label,[contenteditable=true]'))return null;
+    // Settings content owns its scroll surface; swipes there must scroll, not dismiss the sheet.
+    if(dialog.classList.contains('tide-settings-dialog') && target.closest('.settings-panel'))return null;
     if(dialog.scrollTop>1)return null;
     return dialog;
   };

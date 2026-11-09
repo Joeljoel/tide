@@ -12,14 +12,14 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icon.png">
   <link rel="apple-touch-icon" href="icon-512.png">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="css/tide-v1.0.css">
+  <link rel="stylesheet" href="css/tide-v1.1.0.css">
   <title>Tide</title>
 </head>
 <body>
   <div id="tideLargeViewportProbe" aria-hidden="true"></div>
   <div id="app" class="shell">
     <header class="topbar" aria-label="Tide and transfer speeds">
-      <button type="button" class="brand-wrap brand-action" data-action="info" aria-label="About Tide and transfer statistics" title="About Tide">
+      <button type="button" class="brand-wrap brand-action" data-action="info" aria-label="About Tide" title="About Tide">
         <img class="brandmark" src="icon.png" alt="" width="35" height="35">
         <div class="brand">tide<span class="brand-dot">.</span></div>
       </button>
@@ -35,6 +35,9 @@
         <button class="desktop-tool" type="button" data-action="refresh" aria-label="Refresh torrents" title="Refresh torrents"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.3 10.3a7.65 7.65 0 1 0-1.55 6.45"/><path d="M19.3 4.9v5.4h-5.4"/></svg><span>Refresh</span></button>
         <button class="desktop-tool desktop-add" type="button" data-action="add" aria-label="Add torrent" title="Add torrent"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add torrent</span></button>
       </div>
+      <button type="button" class="header-settings-button" data-action="settings" aria-label="Settings" title="Settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.3a3.7 3.7 0 1 0 0 7.4 3.7 3.7 0 0 0 0-7.4Z"/><path d="m10.1 2.9-.4 1.8a7.8 7.8 0 0 0-1.5.9l-1.7-.6-2.1 3.6 1.3 1.2a8 8 0 0 0 0 1.8l-1.3 1.2 2.1 3.6 1.7-.6c.5.4 1 .7 1.5.9l.4 1.8h4l.4-1.8c.5-.2 1-.5 1.5-.9l1.7.6 2.1-3.6-1.3-1.2a8 8 0 0 0 0-1.8l1.3-1.2-2.1-3.6-1.7.6c-.5-.4-1-.7-1.5-.9l-.4-1.8h-4Z" transform="translate(0 1.1)"/></svg>
+      </button>
       <span class="demo-tag" id="demoTag" hidden>Preview</span>
     </header>
 
@@ -82,6 +85,6 @@
     <div class="toast" role="status" aria-live="polite" id="toast"></div>
     <pre id="viewportDiagnostics" class="viewport-diagnostics" hidden></pre>
   </div>
-  <script src="js/tide-v1.0.js" defer></script>
+  <script src="js/tide-v1.1.0.js" defer></script>
 </body>
 </html>

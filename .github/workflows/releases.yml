@@ -23,22 +23,57 @@ jobs:
         run: |
           set -euo pipefail
           version=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ! "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+)(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
             echo "Invalid semantic version: $version" >&2
             exit 1
+          fi
+          if [[ "$version" == *-* ]]; then
+            prerelease="${version#*-}"
+            prerelease="${prerelease%%+*}"
+            IFS='.' read -ra ids <<< "$prerelease"
+            for id in "${ids[@]}"; do
+              if [[ "$id" =~ ^0[0-9]+$ ]]; then
+                echo "Invalid SemVer prerelease identifier: $id" >&2
+                exit 1
+              fi
+            done
           fi
           tag="v$version"
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "$tag already published"
             exit 0
           fi
-          title="Tide ${version%.0}"
-          notes=$(printf '%s\n\n%s\n' \
-            "Tide $version is a touch-first alternative qBittorrent WebUI, designed for the iPhone Duo and desktop." \
-            "Features include responsive torrent cards, progress and availability statistics, bulk controls, nested file browsing, and PWA support. See the README for installation instructions.")
+          title="Tide $version"
+          release_flags=()
+          if [[ "$version" == *-* ]]; then
+            release_flags+=(--prerelease)
+          else
+            release_flags+=(--latest)
+          fi
+          if [[ "$version" == "1.1.0" ]]; then
+            notes=$(cat <<'EOF'
+          ## What's new in Tide 1.1.0
+          
+          - New Settings window with **Tide**, **qBittorrent**, and **About** tabs.
+          - Light, dark, and system appearance modes.
+          - qBittorrent preference controls with an explicit Save changes action.
+          - SemVer-aware About → Check updates.
+          - On unfolded iPhone Duo portrait, Settings sits between Add and Refresh in the bottom action row; other layouts retain the header button.
+          - Improved light-mode contrast and clearance from iPhone Duo system indicators.
+          
+          ## Installation
+          
+          Download the Source code ZIP below, extract it, and configure qBittorrent's alternative Web UI to the folder containing `private/` and `public/`. Existing installs can replace their Tide files and reopen the PWA. See the README for full instructions.
+          EOF
+            )
+          else
+            notes=$(printf '%s\n\n%s\n' \
+              "Tide $version is a touch-first alternative qBittorrent WebUI, designed for the iPhone Duo and desktop." \
+              "See the README for features and installation instructions.")
+          fi
           gh release create "$tag" \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "$title" \
             --notes "$notes" \
-            --latest
+            "${release_flags[@]}"

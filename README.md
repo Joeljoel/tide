@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-293a46?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-293a46?style=flat-square">
 </p>
 
 <p align="center">
@@ -44,7 +44,7 @@ Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
 
 ### qBittorrent
 
-1. Download the [repository ZIP](https://github.com/Joeljoel/tide/archive/refs/heads/main.zip) and extract it on the computer running qBittorrent.
+1. Download the [latest stable release](https://github.com/Joeljoel/tide/releases/latest) (Source code ZIP) and extract it on the computer running qBittorrent.
 2. In qBittorrent, open **Tools → Options → Web UI** and enable **Use alternative Web UI**.
 3. Set **Files location** to the extracted directory containing both `private/` and `public/`.
 4. Apply the settings, open your qBittorrent WebUI address, and sign in with your existing credentials.
@@ -62,4 +62,20 @@ For remote access, keep authentication enabled and use HTTPS or a VPN.
 
 Replace the Tide files in your configured alternative WebUI directory with the latest repository files, then reload the app. If the PWA shows a cached version, close and reopen it.
 
-Use **Tide logo → Check updates** to compare the installed version with the version published in this repository. Updates are installed manually.
+Use **Settings → About → Check updates** to check for newer stable versions on `main`. Updates are installed manually.
+
+## Versioning
+
+Tide follows [Semantic Versioning](https://semver.org/): major releases contain breaking changes, minor releases add features (for example `1.1.0`), and patch releases contain compatible fixes (`1.1.1`). Pre-release test builds use version suffixes such as `1.2.0-beta.1`, `1.2.0-beta.2`, and `1.2.0-rc.1` before the stable release.
+
+## What's new in v1.1.0
+
+- A Settings window with **Tide**, **qBittorrent**, and **About** tabs.
+- Light, dark and system appearance options, plus qBittorrent preference controls with explicit Save changes.
+- Version checking that understands SemVer, including pre-releases and stable versions.
+- Unfolded Duo portrait Settings access in the bottom action row between Add and Refresh, with the original header Settings button in other layouts.
+- Light-mode contrast improvements and clearance around iPhone Duo system indicators.
+
+## Unfolded portrait Settings access
+
+In unfolded portrait the Settings gear sits inside the bottom floating action row, directly **between Add and Refresh**. It uses the existing Settings action in the same touchable button rail as the other working controls. In selection/detail views Settings stays available within the contextual action row. The original header Settings gear is shown in folded, landscape and desktop views, and is hidden in unfolded portrait. No standalone floating Settings button or diagnostic overlay is used.

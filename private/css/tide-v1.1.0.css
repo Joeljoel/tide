@@ -1977,3 +1977,363 @@ body.tide-search-open:not(.tide-desktop) #searchKeyboardSpacer {
 body.tide-search-open:not(.tide-desktop) .list-panel {
   scroll-padding-bottom:var(--tide-search-keyboard-space, 0px);
 }
+
+
+/* Header settings control stays inside the Duo's unobstructed content area. */
+.topbar .header-rates {margin-left:clamp(8px,3vw,24px);margin-right:auto;align-items:flex-start;}
+.header-settings-button {
+  display:grid;place-items:center;flex:none;width:42px;height:42px;padding:0;
+  border:1px solid rgba(232,244,251,.19);border-radius:50%;color:#e5eef2;
+  background:linear-gradient(145deg,rgba(196,217,228,.19),rgba(122,145,170,.12));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 8px 22px rgba(0,0,0,.16);
+  -webkit-backdrop-filter:blur(22px) saturate(1.3);backdrop-filter:blur(22px) saturate(1.3);
+  -webkit-tap-highlight-color:transparent;
+}
+.header-settings-button svg{width:21px;height:21px;stroke-width:1.75;}
+.header-settings-button:active{transform:scale(.94);background:rgba(204,230,236,.24);}
+body.tide-desktop .header-rates {margin-left:16px!important;margin-right:0!important;}
+body.tide-desktop .header-settings-button {order:5;margin-left:4px;}
+/* Keep the Settings action with the transfer rates, clear of the Duo status controls. */
+body.tide-duo-portrait .header-rates,
+body.tide-duo-portrait .topbar .header-rates {
+  margin-right:10px!important;
+  margin-left:clamp(10px,2vw,24px)!important;
+}
+/* Position Settings immediately left of the Duo status controls, with a tappable hit area. */
+body.tide-duo-portrait .topbar {position:relative!important;padding-right:clamp(98px,14vw,130px)!important;}
+body.tide-duo-portrait .header-settings-button {
+  position:absolute!important;
+  top:50%!important;
+  right:clamp(145px,20vw,230px)!important;
+  left:auto!important;
+  margin:0!important;
+  z-index:12;
+  pointer-events:auto!important;
+  touch-action:manipulation;
+  transform:translateY(-50%);
+}
+body.tide-duo-portrait .header-settings-button:active {transform:translateY(-50%) scale(.94);}
+@media(max-width:390px){.header-settings-button{width:38px;height:38px;}.topbar .header-rates{margin-left:8px;}}
+@media(max-width:350px){.topbar .brand{font-size:19px!important;}.topbar .header-rate{font-size:10px;}}
+
+/* The Settings top edge stays fixed while its content pane changes height. */
+.dialog.floating-dialog.tide-settings-dialog {
+  --settings-top: max(24px, calc(env(safe-area-inset-top, 0px) + 16px));
+  position:fixed!important;
+  top:var(--settings-top)!important;bottom:auto!important;
+  left:50%!important;right:auto!important;
+  width:min(460px,calc(100vw - 28px))!important;
+  max-height:calc(100dvh - var(--settings-top) - 20px)!important;
+  padding:0!important;
+  transform:translate3d(-50%,var(--sheet-drag,0px),0)!important;
+  display:flex!important;flex-direction:column;min-height:0;
+  overflow:hidden!important;overscroll-behavior:contain;border-radius:29px!important;
+}
+/* The folded screen has a dedicated action lane on the right. */
+@media (max-width:599px) {
+  .dialog.floating-dialog.tide-settings-dialog {
+    left:14px!important;
+    right:calc(var(--rail-edge,17px) + var(--rail-button-size,43px) + 12px)!important;
+    width:auto!important;
+    transform:translate3d(0,var(--sheet-drag,0px),0)!important;
+  }
+}
+/* Settings scrolls within its content pane; the toolbar remains outside the scrollport. */
+.tide-settings-dialog .settings-toolbar{
+  position:relative;z-index:12;flex:0 0 auto;display:flex;align-items:center;gap:9px;
+  margin:0;padding:15px 19px 12px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:#303b47;
+}
+.tide-settings-dialog .settings-panel{
+  flex:1 1 auto;min-height:0;min-width:0;
+  overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  padding:16px 19px 19px;
+}
+.tide-settings-dialog .settings-tabs{
+  display:grid;grid-template-columns:1fr 1.3fr 1fr;flex:1;min-width:0;
+  gap:4px;padding:4px;border:1px solid rgba(255,255,255,.09);
+  border-radius:16px;background:#24303b;
+}
+.tide-settings-dialog .settings-close{
+  flex:0 0 32px;width:32px;height:32px;margin:0;
+  display:grid;place-items:center;
+}
+.settings-tabs button{border:0;border-radius:12px;background:transparent;color:#adbcc7;font-size:13px;font-weight:650;min-height:42px;padding:8px 3px;white-space:nowrap;}
+.settings-tabs button.active{background:rgba(189,228,210,.20);color:#c2f3d3;box-shadow:inset 0 1px 0 rgba(255,255,255,.15);}
+.settings-panel{padding-top:16px;}
+.settings-group-heading{font-size:12px;font-weight:730;letter-spacing:.045em;text-transform:uppercase;color:#abbfc7;margin:18px 1px 11px;}
+.settings-panel>.settings-group-heading:first-child,.settings-form>.settings-group-heading:nth-child(2){margin-top:0;}
+.settings-caption{font-size:12px;line-height:1.5;color:#a9b8c6;margin:0 2px 15px;}
+.settings-appearance{display:grid;gap:1px;overflow:hidden;border:1px solid rgba(230,242,246,.14);border-radius:17px;background:rgba(226,239,249,.045);}
+.settings-appearance-option{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:13px 15px;min-height:54px;text-align:left;background:transparent;border:0;border-radius:0!important;color:#f0f6f8;font-weight:640;font-size:14px;}
+.settings-appearance-option+.settings-appearance-option{border-top:1px solid rgba(255,255,255,.095);}
+.settings-appearance-option small{display:block;color:#a9b7c3;font-size:12px;font-weight:440;margin-top:3px;}
+.settings-appearance-option.active{background:rgba(182,233,202,.13);color:#c4f0d5;}
+.settings-appearance-option>span:last-child{font-size:19px;}
+.settings-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.settings-field{display:flex;flex-direction:column;gap:8px;color:#edf6f9;font-size:13px;font-weight:650;margin-bottom:14px;min-width:0;}
+.settings-field span small{display:block;margin-top:4px;color:#aabac7;font-size:11px;font-weight:440;}
+.settings-field input{display:block;width:100%;min-width:0;height:44px;border:1px solid rgba(230,245,255,.18);background:rgba(26,35,46,.50);color:#f2f7f8;font-size:16px;border-radius:13px;padding:0 12px;outline:0;}
+.settings-field input:focus{border-color:#a9e5c2;box-shadow:0 0 0 2px rgba(176,231,196,.10);}
+.settings-path input{font-size:14px;}
+.settings-toggle-row{display:flex;align-items:center;gap:12px;justify-content:space-between;min-height:58px;padding:9px 2px;border-bottom:1px solid rgba(225,242,255,.105);cursor:pointer;position:relative;}
+.settings-toggle-row strong{display:block;font-size:13px;color:#edf5f8;font-weight:630;}
+.settings-toggle-row small{display:block;font-size:11px;color:#acbac6;margin-top:3px;line-height:1.45;}
+.settings-toggle-row input{position:absolute;opacity:0;right:0;width:46px;height:30px;cursor:pointer;}
+.settings-switch{flex:none;display:block;width:48px;height:29px;border-radius:50px;background:#566372;border:1px solid rgba(240,255,255,.16);position:relative;transition:background .2s ease;}
+.settings-switch:before{content:"";position:absolute;left:3px;top:3px;width:21px;height:21px;border-radius:50%;background:#f7fafb;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s ease;}
+.settings-toggle-row input:checked+.settings-switch{background:#6ebf91;}
+.settings-toggle-row input:checked+.settings-switch:before{transform:translateX(19px);}
+.settings-toggle-row:focus-within .settings-switch{outline:2px solid var(--mint);outline-offset:2px;}
+/* Full-width footer is outside the scrollable Settings pane. */
+.tide-settings-dialog .settings-footer {
+  display:flex;flex:0 0 auto;align-items:center;justify-content:space-between;
+  gap:12px;width:100%;min-height:74px;padding:13px 19px 16px;
+  background:#303b47;border-top:1px solid rgba(229,243,249,.11);
+}
+.tide-settings-dialog .settings-footer[hidden] {display:none!important;}
+.tide-settings-dialog .settings-footer [role=status] {
+  flex:1;min-width:0;font-size:12px;color:#b0d8bf;line-height:1.45;
+}
+.settings-save{border:1px solid rgba(198,248,216,.22);border-radius:999px;background:rgba(151,220,177,.22);color:#d5f5df;padding:12px 21px;font-size:13px;font-weight:710;min-height:43px;}
+.settings-save:disabled{opacity:.5;}
+.settings-loading,.settings-error{padding:25px 6px;color:#b6c7d3;font-size:14px;line-height:1.5;}
+.settings-error button{background:rgba(200,222,231,.16);border:1px solid rgba(255,255,255,.14);padding:10px 18px;color:inherit;border-radius:20px;}
+.tide-settings-dialog .info-current{margin-top:2px;}
+@media(max-width:425px){
+  .dialog.floating-dialog.tide-settings-dialog{padding:0!important;max-height:calc(100dvh - var(--settings-top) - 20px)!important;}
+  .tide-settings-dialog .settings-toolbar{padding:13px 15px 11px;gap:7px;}
+  .tide-settings-dialog .settings-panel{padding:14px 15px 18px;}
+  .tide-settings-dialog .settings-footer{padding:11px 15px 14px;min-height:66px;}
+  .tide-settings-dialog .settings-tabs button{font-size:12px;}
+}
+@media(prefers-reduced-motion:reduce){.settings-switch,.settings-switch:before,.header-settings-button{transition:none!important;}}
+
+/* Light appearance uses the same layout with adjusted surface and content contrast. */
+html[data-tide-theme="light"]{
+  --bg:#edf2f5;--text:#162734;--sub:#5f6e7a;--dim:#687885;
+  --glass:rgba(230,238,243,.80);--glass-strong:rgba(246,250,252,.92);
+  --glass-line:rgba(56,80,93,.19);--glass-highlight:rgba(255,255,255,.94);
+  --mint:#245c44;--blue:#3e608f;--amber:#815516;--red:#9d403c;
+  background:#edf2f5;
+}
+html[data-tide-theme="light"] body{background:#edf2f5!important;color:#162734;}
+html[data-tide-theme="light"] body::before{background:radial-gradient(ellipse at 8% -8%,rgba(146,187,185,.36),transparent 60%),linear-gradient(165deg,#e4edf0,#f3f7f9 63%,#e7eff5);}
+html[data-tide-theme="light"] .topbar,html[data-tide-theme="light"] body.tide-desktop .topbar{background:rgba(242,247,250,.91)!important;border-bottom-color:rgba(65,83,100,.15)!important;}
+html[data-tide-theme="light"] :is(.brand,.header-rate,.header-rate-value,.list-meta,.filter-chip,.inline-sort,.torrent-card,.torrent-title,.torrent-name,.progress-percentage,.detail-name,.detail-stat-value,.file-name,.sort-option,.dialog,.dialog h2){color:#172833!important;}
+html[data-tide-theme="light"] :is(.torrent-card,.detail-panel,.detail-stat,.dialog.floating-dialog,.filter-chip,.inline-sort,.file-item,.desktop-search,.desktop-tool,.search-wrap.bottom-search,.rail-button){background:linear-gradient(150deg,rgba(255,255,255,.97),rgba(227,237,242,.91))!important;border-color:rgba(70,100,114,.20)!important;box-shadow:0 8px 27px rgba(55,76,91,.09),inset 0 1px 0 rgba(255,255,255,.9)!important;}
+html[data-tide-theme="light"] :is(.header-rate-value small,.detail-stat-label,.stat-label,.list-meta,.info-note,.info-section-label,.file-secondary,.metric-label,.torrent-status,.torrent-meta){color:#607381!important;}
+html[data-tide-theme="light"] :is(.dialog-close,.header-settings-button,.desktop-tool,.rail-button,.inline-sort,.filter-chip){color:#274156!important;}
+html[data-tide-theme="light"] .filter-chip.active{background:rgba(130,190,155,.34)!important;color:#1c4c35!important;}
+html[data-tide-theme="light"] :is(.settings-tabs,.settings-appearance,.settings-field input,.info-update-row,.info-metrics>div){background:#e8eff3!important;border-color:rgba(55,84,97,.16)!important;}
+html[data-tide-theme="light"] :is(.settings-appearance-option,.settings-field,.settings-toggle-row strong,.settings-field input,.info-current strong,.info-metrics strong){color:#18303f!important;}
+html[data-tide-theme="light"] :is(.settings-appearance-option small,.settings-caption,.settings-group-heading,.settings-tabs button,.settings-toggle-row small,.settings-field small,.info-current,.info-metrics span){color:#637985!important;}
+html[data-tide-theme="light"] :is(.settings-appearance-option.active,.settings-tabs button.active){background:rgba(143,205,169,.34)!important;color:#24533b!important;}
+html[data-tide-theme="light"] :is(.settings-toggle-row,.settings-appearance-option+.settings-appearance-option){border-bottom-color:rgba(66,91,108,.16)!important;border-top-color:rgba(66,91,108,.16)!important;}
+html[data-tide-theme="light"] .tide-settings-dialog .settings-footer {
+  background:#eef4f7!important;
+  border-top:1px solid rgba(55,84,97,.16)!important;
+}
+html[data-tide-theme="light"] .settings-save{color:#175137;background:rgba(145,205,164,.38);}
+html[data-tide-theme="light"] .dialog .info-signout{color:#9d3c3c;background:rgba(188,73,73,.08);}
+html[data-tide-theme="light"] .info-current strong{color:#1b3242;}
+html[data-tide-theme="light"] .info-update-row{color:#285544;}
+html[data-tide-theme="light"] .tide-settings-dialog .info-check {
+  background:#dcece5!important;
+  color:#1b523d!important;
+  border:1px solid #b8d3c5!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+html[data-tide-theme="light"] .tide-settings-dialog .info-check:active {background:#cde1d6!important;}
+html[data-tide-theme="light"] .settings-tabs button.active{color:#1d5237!important;}
+html[data-tide-theme="light"] .tide-settings-dialog .settings-toolbar{background:#eef4f7!important;}
+html[data-tide-theme="light"] .tide-settings-dialog .settings-tabs{background:#e1ebf1!important;}
+html[data-tide-theme="light"] .settings-footer [role=status]{color:#245d43!important;}
+html[data-tide-theme="light"] .size-value{color:#405667!important;}
+html[data-tide-theme="light"] .size-value .size-total,
+html[data-tide-theme="light"] .size-value .size-sep{color:#627482!important;}
+html[data-tide-theme="light"] .progress-track{background:rgba(67,93,110,.17)!important;}
+html[data-tide-theme="light"] .selection-indicator{border-color:rgba(55,85,99,.40)!important;background:rgba(226,238,244,.70)!important;}
+html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88,.54)!important;}
+
+/* v1.1.0 — Keep header buttons OUTSIDE the iPhone Duo's system status island.
+   On unfolded portrait the iOS time / 5G island is drawn above the webview;
+   safe-area-inset-right does not express its width. This includes compact
+   unfolded webview widths (475–599px) that lack the tide-duo-portrait class.
+   The right-hand edge of the 44px Settings hit target stays ~200px or more
+   from the viewport edge, and both rates stay directly to its left.
+   Folded (<475px), landscape and pointer/keyboard desktop are unaffected. */
+@media (min-width:475px) and (orientation:portrait) {
+  body:not(.tide-desktop) .topbar {
+    --duo-header-status-clearance:clamp(200px,28vw,235px);
+  }
+  body:not(.tide-desktop) .topbar .header-rates {
+    position:absolute !important;
+    top:50% !important;
+    right:calc(var(--duo-header-status-clearance) + 56px) !important;
+    left:auto !important;
+    margin:0 !important;
+    transform:translateY(-50%) !important;
+    flex-direction:column !important;
+    align-items:flex-end !important;
+    gap:4px !important;
+    white-space:nowrap;
+  }
+  body:not(.tide-desktop) .topbar .header-settings-button {
+    position:absolute !important;
+    top:50% !important;
+    right:var(--duo-header-status-clearance) !important;
+    left:auto !important;
+    width:44px;
+    height:44px;
+    margin:0 !important;
+    transform:translateY(-50%) !important;
+    z-index:35 !important;
+    pointer-events:auto !important;
+    touch-action:manipulation;
+  }
+  body:not(.tide-desktop) .topbar .header-settings-button:active {
+    transform:translateY(-50%) scale(.94) !important;
+  }
+}
+
+/* Beta 3: raise header controls above floating UI, below modal backdrop (38). */
+@media (min-width:475px) and (orientation:portrait) {
+  body:not(.tide-desktop) .topbar {z-index:37 !important;}
+  body:not(.tide-desktop) .topbar .header-rates {pointer-events:none !important;}
+  body:not(.tide-desktop) .topbar .header-settings-button {
+    -webkit-appearance:none;appearance:none;cursor:pointer;
+    min-width:44px;min-height:44px;pointer-events:auto !important;
+  }
+}
+
+/* v1.1.0: render the same Settings button above the header's
+   blurred/clipped hit-test layer in unfolded Duo portrait. The JS portals
+   it into the shell using the header's current viewport rectangle.
+   Keep the portal beneath the modal backdrop (z38) and dialog (z40). */
+body:not(.tide-desktop) .header-settings-button.tide-settings-portal {
+  position:fixed !important;
+  right:clamp(200px,28vw,235px) !important;
+  left:auto !important;
+  bottom:auto !important;
+  z-index:37 !important;
+  pointer-events:auto !important;
+  touch-action:manipulation;
+  cursor:pointer;
+}
+#modalMount:empty {pointer-events:none !important;}
+.overlay[hidden] {display:none !important;}
+
+/* v1.1.0: unfolded-portrait header: keep rates and Settings beside Tide.
+   Explicitly undo the earlier absolutely-positioned controls. This also removes
+   the need to portal the button into a separate stacking context in JavaScript.
+   Folded, landscape, and pointer-based desktop layouts are unchanged. */
+@media (min-width:475px) and (orientation:portrait) {
+  body:not(.tide-desktop) .topbar {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:10px !important;
+    padding-right:clamp(105px,16vw,140px) !important;
+    z-index:27 !important;
+  }
+  body:not(.tide-desktop) .topbar .brand-wrap {flex:0 0 auto !important;}
+  body:not(.tide-desktop) .topbar .header-rates {
+    position:static !important;
+    inset:auto !important;
+    transform:none !important;
+    flex:0 0 auto !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap:4px !important;
+    margin:0 0 0 5px !important;
+    pointer-events:none !important;
+  }
+  body:not(.tide-desktop) .topbar .header-settings-button {
+    position:static !important;
+    inset:auto !important;
+    top:auto !important;
+    right:auto !important;
+    bottom:auto !important;
+    left:auto !important;
+    transform:none !important;
+    flex:0 0 44px !important;
+    width:44px !important;
+    height:44px !important;
+    min-width:44px;
+    min-height:44px;
+    margin:0 0 0 3px !important;
+    z-index:auto !important;
+    pointer-events:auto !important;
+    touch-action:manipulation;
+    cursor:pointer;
+  }
+  body:not(.tide-desktop) .topbar .header-settings-button:active {
+    transform:scale(.94) !important;
+  }
+}
+
+/* Keep contextual upper actions clear of an extended live-activity/
+   hotspot indicator. Only the upper selected/detail cluster is moved;
+   the bottom action cluster stays bottom-anchored and separate. */
+@media (orientation:portrait) and (min-height:600px) {
+  body:not(.tide-desktop):not(.tide-duo-portrait) .action-rail[data-mode="selected"],
+  body:not(.tide-desktop):not(.tide-duo-portrait) .action-rail[data-mode="detail"] {
+    top:clamp(260px,35dvh,305px) !important;
+  }
+}
+
+/* Light appearance must override the dark-mode material colors for the
+   scrolling filter edges, sort direction action, and active search input. */
+html[data-tide-theme="light"] .filter-viewport::before {
+  background:linear-gradient(90deg,rgba(232,242,245,.98),rgba(232,242,245,0)) !important;
+}
+html[data-tide-theme="light"] .filter-viewport::after {
+  background:linear-gradient(90deg,rgba(232,242,245,0),rgba(232,242,245,.98)) !important;
+}
+html[data-tide-theme="light"] .dialog.floating-dialog.sort-alert .sort-order .toggle-order {
+  color:#203b50 !important;
+  -webkit-text-fill-color:#203b50 !important;
+  background:rgba(222,233,239,.95) !important;
+  border:1px solid rgba(75,110,126,.32) !important;
+  text-shadow:none !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.9) !important;
+}
+html[data-tide-theme="light"] .search-wrap.bottom-search input,
+html[data-tide-theme="light"] .search-wrap.bottom-search input:focus {
+  color:#193347 !important;
+  -webkit-text-fill-color:#193347 !important;
+  caret-color:#245c44 !important;
+}
+html[data-tide-theme="light"] .search-wrap.bottom-search input::placeholder {
+  color:#697e8e !important;
+  -webkit-text-fill-color:#697e8e !important;
+  opacity:1 !important;
+}
+
+/* v1.1.0: Settings belongs in the working bottom action rail,
+   immediately between Add and Refresh on unfolded portrait. Avoid a
+   standalone body-level gear and preserve the original header button in
+   folded, landscape, and desktop views. */
+.action-rail .rail-button.rail-settings {
+  display:none !important;
+}
+@media (min-width:475px) and (orientation:portrait) {
+  body:not(.tide-desktop) .topbar > .header-settings-button {
+    display:none !important;
+    pointer-events:none !important;
+  }
+  body:not(.tide-desktop) .action-rail .rail-button.rail-settings {
+    display:grid !important;
+    place-items:center !important;
+    pointer-events:auto !important;
+    touch-action:manipulation;
+  }
+  body:not(.tide-desktop) .action-rail .rail-button.rail-settings svg {
+    width:23px !important;
+    height:23px !important;
+    stroke-width:1.8 !important;
+  }
+}
