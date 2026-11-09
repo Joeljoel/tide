@@ -1999,8 +1999,20 @@ body.tide-duo-portrait .topbar .header-rates {
   margin-right:10px!important;
   margin-left:clamp(10px,2vw,24px)!important;
 }
-body.tide-duo-portrait .header-settings-button {margin-left:0!important;margin-right:auto!important;}
-body.tide-duo-portrait .topbar {padding-right:clamp(98px,14vw,130px)!important;}
+/* Position Settings immediately left of the Duo status controls, with a tappable hit area. */
+body.tide-duo-portrait .topbar {position:relative!important;padding-right:clamp(98px,14vw,130px)!important;}
+body.tide-duo-portrait .header-settings-button {
+  position:absolute!important;
+  top:50%!important;
+  right:clamp(145px,20vw,230px)!important;
+  left:auto!important;
+  margin:0!important;
+  z-index:12;
+  pointer-events:auto!important;
+  touch-action:manipulation;
+  transform:translateY(-50%);
+}
+body.tide-duo-portrait .header-settings-button:active {transform:translateY(-50%) scale(.94);}
 @media(max-width:390px){.header-settings-button{width:38px;height:38px;}.topbar .header-rates{margin-left:8px;}}
 @media(max-width:350px){.topbar .brand{font-size:19px!important;}.topbar .header-rate{font-size:10px;}}
 
@@ -2055,7 +2067,7 @@ body.tide-duo-portrait .topbar {padding-right:clamp(98px,14vw,130px)!important;}
 .settings-panel>.settings-group-heading:first-child,.settings-form>.settings-group-heading:nth-child(2){margin-top:0;}
 .settings-caption{font-size:12px;line-height:1.5;color:#a9b8c6;margin:0 2px 15px;}
 .settings-appearance{display:grid;gap:1px;overflow:hidden;border:1px solid rgba(230,242,246,.14);border-radius:17px;background:rgba(226,239,249,.045);}
-.settings-appearance-option{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:13px 15px;min-height:54px;text-align:left;background:transparent;border:0;color:#f0f6f8;font-weight:640;font-size:14px;}
+.settings-appearance-option{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:13px 15px;min-height:54px;text-align:left;background:transparent;border:0;border-radius:0!important;color:#f0f6f8;font-weight:640;font-size:14px;}
 .settings-appearance-option+.settings-appearance-option{border-top:1px solid rgba(255,255,255,.095);}
 .settings-appearance-option small{display:block;color:#a9b7c3;font-size:12px;font-weight:440;margin-top:3px;}
 .settings-appearance-option.active{background:rgba(182,233,202,.13);color:#c4f0d5;}
@@ -2075,8 +2087,16 @@ body.tide-duo-portrait .topbar {padding-right:clamp(98px,14vw,130px)!important;}
 .settings-toggle-row input:checked+.settings-switch{background:#6ebf91;}
 .settings-toggle-row input:checked+.settings-switch:before{transform:translateX(19px);}
 .settings-toggle-row:focus-within .settings-switch{outline:2px solid var(--mint);outline-offset:2px;}
-.settings-savebar{position:sticky;bottom:-19px;display:flex;justify-content:space-between;align-items:center;gap:10px;background:linear-gradient(180deg,rgba(34,44,55,.82),rgba(34,44,55,.98));margin:16px -2px -2px;padding:14px 4px 5px;}
-.settings-savebar [role=status]{font-size:12px;color:#b0d8bf;line-height:1.45;}
+/* Full-width footer is outside the scrollable Settings pane. */
+.tide-settings-dialog .settings-footer {
+  display:flex;flex:0 0 auto;align-items:center;justify-content:space-between;
+  gap:12px;width:100%;min-height:74px;padding:13px 19px 16px;
+  background:#303b47;border-top:1px solid rgba(229,243,249,.11);
+}
+.tide-settings-dialog .settings-footer[hidden] {display:none!important;}
+.tide-settings-dialog .settings-footer [role=status] {
+  flex:1;min-width:0;font-size:12px;color:#b0d8bf;line-height:1.45;
+}
 .settings-save{border:1px solid rgba(198,248,216,.22);border-radius:999px;background:rgba(151,220,177,.22);color:#d5f5df;padding:12px 21px;font-size:13px;font-weight:710;min-height:43px;}
 .settings-save:disabled{opacity:.5;}
 .settings-loading,.settings-error{padding:25px 6px;color:#b6c7d3;font-size:14px;line-height:1.5;}
@@ -2086,6 +2106,7 @@ body.tide-duo-portrait .topbar {padding-right:clamp(98px,14vw,130px)!important;}
   .dialog.floating-dialog.tide-settings-dialog{padding:0!important;max-height:calc(100dvh - var(--settings-top) - 20px)!important;}
   .tide-settings-dialog .settings-toolbar{padding:13px 15px 11px;gap:7px;}
   .tide-settings-dialog .settings-panel{padding:14px 15px 18px;}
+  .tide-settings-dialog .settings-footer{padding:11px 15px 14px;min-height:66px;}
   .tide-settings-dialog .settings-tabs button{font-size:12px;}
 }
 @media(prefers-reduced-motion:reduce){.settings-switch,.settings-switch:before,.header-settings-button{transition:none!important;}}
@@ -2106,12 +2127,15 @@ html[data-tide-theme="light"] :is(.torrent-card,.detail-panel,.detail-stat,.dial
 html[data-tide-theme="light"] :is(.header-rate-value small,.detail-stat-label,.stat-label,.list-meta,.info-note,.info-section-label,.file-secondary,.metric-label,.torrent-status,.torrent-meta){color:#607381!important;}
 html[data-tide-theme="light"] :is(.dialog-close,.header-settings-button,.desktop-tool,.rail-button,.inline-sort,.filter-chip){color:#274156!important;}
 html[data-tide-theme="light"] .filter-chip.active{background:rgba(130,190,155,.34)!important;color:#1c4c35!important;}
-html[data-tide-theme="light"] :is(.settings-tabs,.settings-appearance,.settings-field input,.settings-savebar,.info-update-row,.info-metrics>div){background:#e8eff3!important;border-color:rgba(55,84,97,.16)!important;}
+html[data-tide-theme="light"] :is(.settings-tabs,.settings-appearance,.settings-field input,.info-update-row,.info-metrics>div){background:#e8eff3!important;border-color:rgba(55,84,97,.16)!important;}
 html[data-tide-theme="light"] :is(.settings-appearance-option,.settings-field,.settings-toggle-row strong,.settings-field input,.info-current strong,.info-metrics strong){color:#18303f!important;}
 html[data-tide-theme="light"] :is(.settings-appearance-option small,.settings-caption,.settings-group-heading,.settings-tabs button,.settings-toggle-row small,.settings-field small,.info-current,.info-metrics span){color:#637985!important;}
 html[data-tide-theme="light"] :is(.settings-appearance-option.active,.settings-tabs button.active){background:rgba(143,205,169,.34)!important;color:#24533b!important;}
 html[data-tide-theme="light"] :is(.settings-toggle-row,.settings-appearance-option+.settings-appearance-option){border-bottom-color:rgba(66,91,108,.16)!important;border-top-color:rgba(66,91,108,.16)!important;}
-html[data-tide-theme="light"] :is(.settings-savebar){background:linear-gradient(180deg,rgba(235,243,247,.89),rgba(237,245,248,1))!important;}
+html[data-tide-theme="light"] .tide-settings-dialog .settings-footer {
+  background:#eef4f7!important;
+  border-top:1px solid rgba(55,84,97,.16)!important;
+}
 html[data-tide-theme="light"] .settings-save{color:#175137;background:rgba(145,205,164,.38);}
 html[data-tide-theme="light"] .dialog .info-signout{color:#9d3c3c;background:rgba(188,73,73,.08);}
 html[data-tide-theme="light"] .info-current strong{color:#1b3242;}
@@ -2126,7 +2150,7 @@ html[data-tide-theme="light"] .tide-settings-dialog .info-check:active {backgrou
 html[data-tide-theme="light"] .settings-tabs button.active{color:#1d5237!important;}
 html[data-tide-theme="light"] .tide-settings-dialog .settings-toolbar{background:#eef4f7!important;}
 html[data-tide-theme="light"] .tide-settings-dialog .settings-tabs{background:#e1ebf1!important;}
-html[data-tide-theme="light"] .settings-savebar [role=status]{color:#245d43!important;}
+html[data-tide-theme="light"] .settings-footer [role=status]{color:#245d43!important;}
 html[data-tide-theme="light"] .size-value{color:#405667!important;}
 html[data-tide-theme="light"] .size-value .size-total,
 html[data-tide-theme="light"] .size-value .size-sep{color:#627482!important;}
