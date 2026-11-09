@@ -37,7 +37,7 @@ Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
 
 ## Features
 
-- **Adaptive layout:** Compact cards and edge controls when the Duo is folded, expanded list and details when unfolded, and multi-column layouts on desktop.
+- **Fully Optimised for Duo:** When installed as a PWA, controls appear in the sidebar. Folded, Unfolded and Split View layouts are all supported, with controls adjusting to suit each layout.
 - **Torrent information:** Status, speed, progress, downloaded/remaining/total size, ETA, and availability.
 - **Torrent controls:** Add magnet links or `.torrent` files; search, filter, sort, pause, resume, and remove torrents.
 - **Bulk actions:** Select multiple torrents to pause, resume, or remove, with confirmation before deletion.
