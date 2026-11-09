@@ -204,7 +204,6 @@ def build(output: Path) -> None:
     assert (output / "index.html").exists()
     assert (app / "demo-pose.css").exists()
     assert (output / "assets" / "status-overlay.webp").exists()
-    assert (output / "assets" / "camera.webp").exists()
     assert (output / "assets" / "home-reference.avif").stat().st_size > 30000
     print(f"Built Tide demo at {output}")
 

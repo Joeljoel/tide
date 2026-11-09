@@ -89,8 +89,14 @@ def run(site: Path, snapshots: Path) -> None:
             expect(page.locator("#shiftBtn")).to_be_visible()
             page.locator("#shiftBtn").click()
             capture("split-right")
-            assert "home-reference.avif" in page.locator("#homePanel").evaluate(
-                "el => getComputedStyle(el).backgroundImage"
+            # Home image files are intentionally withheld until user approval.
+            # The review build must render its obvious placeholder instead.
+            assert "Home Screen" in page.locator("#homePanel").evaluate(
+                "el => getComputedStyle(el, '::after').content"
+            )
+            assert page.locator(".status-camera img").count() == 0
+            assert page.locator("#deviceFrame").evaluate(
+                "el => !!el.querySelector('.status-camera')"
             )
 
             # The public showcase should never expose the removed footer.

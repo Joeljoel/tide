@@ -58,23 +58,40 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 .is-split[data-pose=split-left] .home-panel{left:482px;right:auto}
 .is-split[data-pose=split-right] .home-panel{left:0;right:auto}
 .is-split[data-pose=split-right] .tide-panel{left:482px;right:auto}
-.is-split .home-panel{
-  display:block;
-  background-image:url("assets/home-reference.avif");
-  background-size:200% 100%;
-  background-repeat:no-repeat;
+/* The original-resolution Home Screen panels are awaiting visual approval.
+   This placeholder is deliberate: no new Home Screen assets enter GitHub
+   until the user approves the crops shared separately. */
+.is-split .home-panel {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(ellipse at 55% 25%, #414c6d 0%, #26283c 45%, #171e2b 90%);
+  color:#c8d0db;
+  text-shadow:0 1px 2px #0006;
 }
-.is-split[data-pose=split-left] .home-panel{background-position:right center}
-.is-split[data-pose=split-right] .home-panel{background-position:left center}
+.is-split .home-panel::after {
+  content:"Home Screen";
+  font-size:20px;
+  font-weight:650;
+  letter-spacing:-.04em;
+}
+
 
 /* The OS chrome is outside the Tide iframe. Position and orientation are
    determined by the selected physical pose, independent of viewer rotation. */
 .system-ui{position:absolute;z-index:8;pointer-events:none;color:white;text-shadow:0 1px 3px #000b}
 .device-frame[data-pose=desktop] .system-ui,.device-frame[data-pose=split-left] .system-ui{display:none}
-.status-camera{position:absolute;top:0;right:1px;display:flex;align-items:center;justify-content:center;
-  width:43px;height:43px;border-radius:50%;background:#050607;overflow:hidden;
-  box-shadow:0 0 0 1px #26303a80}
-.status-camera img{display:block;width:100%;height:100%;object-fit:contain}
+/* Camera punch-hole, separate from connectivity. An earlier image crop
+   accidentally included a Wi-Fi icon, so the demo uses a simple lens shape
+   until the exact camera reference is approved. */
+.status-camera{position:absolute;top:0;right:1px;display:grid;place-items:center;
+  width:43px;height:43px;border-radius:50%;background:#030506;
+  box-shadow:inset 0 0 0 2px #111d23,0 0 0 1px #26303a80}
+.status-camera::after{content:"";display:block;width:17px;height:17px;
+  border-radius:50%;background:radial-gradient(circle at 42% 38%,
+  #194653 0 10%,#0a202b 28%,#03080c 57%,#14212a 70%,#020406 100%);
+  box-shadow:0 0 0 2px #071016}
 .status-horizontal{display:none}
 .status-from-photo{position:absolute;display:block;top:55px;right:0;width:54px;height:93px;object-fit:contain}
 /* Folded outer: the camera remains on the physical outside edge, with
@@ -88,8 +105,10 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 /* Full inner portrait: the observed elongated camera island and right rail. */
 .device-frame[data-pose=unfolded-portrait] .system-ui{top:30px;right:19px;width:58px;height:250px}
 .device-frame[data-pose=unfolded-portrait] .status-camera{width:52px;height:103px;border-radius:27px;right:1px}
-.device-frame[data-pose=unfolded-portrait] .status-camera img{width:45px;height:45px}
-.device-frame[data-pose=unfolded-portrait] .status-from-photo{top:115px;right:0}
+.device-frame[data-pose=unfolded-portrait] .status-from-photo{
+  /* Physical landscape-style status artwork, turned with the Duo. */
+  top:124px;right:-8px;transform:rotate(90deg);transform-origin:center center;
+}
 /* Right-hand Split View has the physical camera on the far right above
    the user-supplied time/connectivity crop. The other half's snapshot
    already contains its own Home Screen status. */
@@ -110,7 +129,7 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 
 /* Short, restrained transitions for the simulator only. The iframe itself
    is never reloaded when changing poses, so mock torrent state persists. */
-@keyframes demo-fold{0%{opacity:.65;transform:scaleX(.94) scaleY(.98)}100%{opacity:1;transform:none}}
+@keyframes demo-fold{0%{opacity:.65;transform:scaleX(.90) scaleY(.97)}100%{opacity:1;transform:none}}
 @keyframes demo-rotate{0%{opacity:.7;transform:rotate(-3deg) scale(.97)}100%{opacity:1;transform:none}}
 @keyframes demo-split{0%{opacity:.7;transform:scale(.97)}100%{opacity:1;transform:none}}
 @keyframes demo-shift{0%{opacity:.8;transform:translateX(5px)}100%{opacity:1;transform:none}}
