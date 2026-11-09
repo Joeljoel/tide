@@ -76,14 +76,38 @@ def run(site: Path, snapshots: Path) -> None:
                     assert abs(edge / scale - 48) < 1
                 else:
                     expect(camera).to_be_hidden()
-                if pose == "unfolded-portrait":
-                    status = page.locator(".status-horizontal")
+                status = page.locator(".status-indicators")
+                connectivity_top = {
+                    "folded-portrait": 109,
+                    "unfolded-landscape": 66,
+                    "unfolded-portrait": 27,
+                    "split-right": 66,
+                }
+                if pose in connectivity_top:
                     expect(status).to_be_visible()
-                    expect(page.locator(".status-from-photo")).to_be_hidden()
-                    time = status.locator("span").first.bounding_box()
-                    connectivity = status.locator(".status-connectivity").bounding_box()
-                    assert abs(time["y"] + time["height"] / 2 - connectivity["y"] - connectivity["height"] / 2) < 1
-                    assert connectivity["x"] > time["x"] + time["width"]
+                    location = status.locator(".status-location")
+                    if pose == "folded-portrait":
+                        expect(location).to_be_hidden()
+                    else:
+                        expect(location).to_be_visible()
+                    gauge = status.locator(".status-connectivity")
+                    expect(gauge).to_be_visible()
+                    assert gauge.evaluate("el => el.complete && el.naturalWidth > 0")
+                    screen_el = page.locator("#deviceScreen")
+                    screen = screen_el.bounding_box()
+                    scale = screen["width"] / screen_el.evaluate("el => el.offsetWidth")
+                    box = gauge.bounding_box()
+                    assert abs((box["y"] - screen["y"]) / scale - connectivity_top[pose]) < 1
+                    right_inset = screen["x"] + screen["width"] - box["x"] - box["width"]
+                    assert abs(right_inset / scale - 27) < 1
+                    assert abs(box["width"] / scale - 42) < 1
+                    clock = status.locator(".status-time").bounding_box()
+                    if pose == "unfolded-portrait":
+                        assert clock["x"] + clock["width"] < box["x"]
+                    else:
+                        assert clock["y"] + clock["height"] < box["y"]
+                else:
+                    expect(status).to_be_hidden()
                 if pose.startswith("split-"):
                     panes = page.locator(".duo-panel")
                     left, right = sorted((pane.bounding_box() for pane in panes.all()), key=lambda box: box["x"])
