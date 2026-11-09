@@ -58,6 +58,15 @@ def make_preview_script(source: str) -> str:
 
     source = replace_one(
         source,
+        "  function detectFoldedDuoCamera(){\n",
+        """  function detectFoldedDuoCamera(){
+    return __previewPose==='folded-landscape'?'bottom-right':'';
+""",
+        "folded Duo camera override",
+    )
+
+    source = replace_one(
+        source,
         """  const syncDeviceGeometry = () => {
     const standalone=window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone===true;
     const fine=window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;""",

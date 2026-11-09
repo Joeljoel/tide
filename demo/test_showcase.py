@@ -74,6 +74,12 @@ def run(site: Path, snapshots: Path) -> None:
                     assert abs((screen["x"] + screen["width"] - cx) / scale - 48) < 1
                     edge = cy - screen["y"] if pose == "folded-portrait" else screen["y"] + screen["height"] - cy
                     assert abs(edge / scale - 48) < 1
+                    if pose == "folded-landscape":
+                        expect(demo.locator("body")).to_have_class(
+                            re.compile(r"\btide-folded-camera-bottom-right\b")
+                        )
+                        search = demo.locator('#actionRail [data-action="search"]').bounding_box()
+                        assert search["y"] + search["height"] < camera_box["y"]
                 else:
                     expect(camera).to_be_hidden()
                 status = page.locator(".status-indicators")

@@ -6,11 +6,6 @@ html[data-tide-demo-pose] {
   --rail-bottom:23px;
 }
 
-/* Keep the folded landscape rail above the camera. */
-html[data-tide-demo-pose="folded-landscape"] {
-  --rail-bottom:74px;
-}
-
 /* Folded outer screen and full-inner landscape: controls on the physical
    right edge of the selected mock device in global, detail and search modes. */
 body:is(
