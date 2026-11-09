@@ -52,7 +52,7 @@ jobs:
         with:
           repository: Joeljoel/tide
           # Pinned snapshot for visual review; this does not merge the PR.
-          ref: a91c2c26021ff5ff1a5dc8522d0dcc4b01380c2b
+          ref: c9bfbd0a0132de0789bcc727ddd2b4fc9793c1ce
           path: _pr7_source
           persist-credentials: false
       - name: Build isolated PR #7 preview
@@ -65,7 +65,7 @@ jobs:
           node --check "$(find _site/previews/pr-7/app/js -maxdepth 1 -name 'tide-v*.js' -print -quit)"
           grep -Fq 'Tide Demo Collection' _site/previews/pr-7/app/js/tide-v*.js
           grep -Fq "connect-src 'none'" _site/previews/pr-7/app/index.html
-          test -s _site/previews/pr-7/assets/status-overlay.webp
+          test -s _site/previews/pr-7/assets/status-connectivity.svg
           grep -Fq 'id="duoBtn"' _site/previews/pr-7/index.html
           grep -Fq 'content:"Home Screen"' _site/previews/pr-7/showcase.css
           grep -Fq 'id="foldBtn"' _site/previews/pr-7/index.html
