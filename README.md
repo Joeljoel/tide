@@ -18,34 +18,6 @@
 
 Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
 
-## v1.2.1 — Unfolded rotation-height fix
-
-This patch fixes the bottom gap on the iPhone Duo's **full unfolded inner display**, in both portrait and landscape and after rotating between them.
-
-On-device diagnostics found that iOS WebKit sometimes reported a 587px `100dvh` while `100vh` and `100lvh` remained at 669px. Using `100vh` for the document root, body and shell restored the full workspace. The fix is limited to the standalone full-inner display; folded, Split View and desktop layouts keep their existing sizing, and keyboard editing retains dynamic sizing.
-
-Verified on the physical Duo before merging as stable **v1.2.1**. See [Issue #4](https://github.com/Joeljoel/tide/issues/4) and [PR #3](https://github.com/Joeljoel/tide/pull/3).
-
-## Split View control placement (v1.2.0)
-
-Tide automatically adapts its floating controls to either side of the iPhone Duo's inner Split View. When Tide is
-running in the **left half** of the unfolded inner display, the floating
-action rail moves to the left edge and the torrent list/detail view reserves
-a left gutter for those controls.
-The header logo, transfer speeds and Settings button now follow the same
-content inset, keeping the entire top row aligned above the torrent cards. Search and contextual action buttons use
-the same left edge. The **right half**, folded and full-screen layouts keep
-the existing right-side controls.
-
-The experiment uses the measurements confirmed in the Duo Window Test:
-a portrait-shaped, ~469 × 669 CSS px web window with a landscape device
-orientation, and horizontal safe areas near **0 / 0** (left half) versus
-**0 / 84** (right half). Tide rechecks the safe-area values every 400 ms
-because iOS might not emit resize events when Split View windows move.
-Unknown readings fall back to the existing right-edge layout.
-
-Released in **Tide v1.2.0**. The unfolded rotation-height correction was subsequently released in **v1.2.1**.
-
 ## Screenshots
 
 ### iPhone Duo
@@ -94,23 +66,4 @@ Use **Settings → About → Check updates** to check for newer stable versions 
 
 ## Versioning
 
-Tide follows [Semantic Versioning](https://semver.org/): major releases contain breaking changes, minor releases add features (for example `1.1.0`), and patch releases contain compatible fixes (`1.1.1`). Pre-release test builds use version suffixes such as `1.2.0`, `1.2.0`, and `1.2.0-rc.1` before the stable release.
-
-## What's new in v1.2.0
-
-- Automatic left/right inner Split View detection based on the device's orientation and browser safe-area insets.
-- Edge controls on the **left** when Tide is in the left half, with matching left-side space for cards, detail content, search and the header.
-- Edge controls remain on the **right** when Tide is in the right half; full-screen, folded and desktop layouts retain their existing behaviour.
-- Live rechecking of the safe-area values when moving the same app window between halves.
-
-## What's new in v1.1.0
-
-- A Settings window with **Tide**, **qBittorrent**, and **About** tabs.
-- Light, dark and system appearance options, plus qBittorrent preference controls with explicit Save changes.
-- Version checking that understands SemVer, including pre-releases and stable versions.
-- Unfolded Duo portrait Settings access in the bottom action row between Add and Refresh, with the original header Settings button in other layouts.
-- Light-mode contrast improvements and clearance around iPhone Duo system indicators.
-
-## Unfolded portrait Settings access
-
-In unfolded portrait the Settings gear sits inside the bottom floating action row, directly **between Add and Refresh**. It uses the existing Settings action in the same touchable button rail as the other working controls. In selection/detail views Settings stays available within the contextual action row. The original header Settings gear is shown in folded, landscape and desktop views, and is hidden in unfolded portrait. No standalone floating Settings button or diagnostic overlay is used.
+Tide follows [Semantic Versioning](https://semver.org/): major releases contain breaking changes, minor releases add features (for example `1.1.0`), and patch releases contain compatible fixes (`1.1.1`). Pre-release test builds use version suffixes such as `1.3.0-beta.1`, `1.3.0-beta.2`, and `1.3.0-rc.1` before the stable release.
