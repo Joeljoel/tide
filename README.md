@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.2.0-293a46?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.2.1-293a46?style=flat-square">
 </p>
 
 <p align="center">
@@ -17,6 +17,14 @@
 </p>
 
 Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
+
+## v1.2.1 — Unfolded rotation-height fix
+
+This patch fixes the bottom gap on the iPhone Duo's **full unfolded inner display**, in both portrait and landscape and after rotating between them.
+
+On-device diagnostics found that iOS WebKit sometimes reported a 587px `100dvh` while `100vh` and `100lvh` remained at 669px. Using `100vh` for the document root, body and shell restored the full workspace. The fix is limited to the standalone full-inner display; folded, Split View and desktop layouts keep their existing sizing, and keyboard editing retains dynamic sizing.
+
+Verified on the physical Duo before merging as stable **v1.2.1**. See [Issue #4](https://github.com/Joeljoel/tide/issues/4) and [PR #3](https://github.com/Joeljoel/tide/pull/3).
 
 ## Split View control placement (v1.2.0)
 
@@ -36,7 +44,7 @@ orientation, and horizontal safe areas near **0 / 0** (left half) versus
 because iOS might not emit resize events when Split View windows move.
 Unknown readings fall back to the existing right-edge layout.
 
-Released in **Tide v1.2.0**. The existing v1.1.1 landscape-rotation fix remains under investigation in a separate draft PR.
+Released in **Tide v1.2.0**. The unfolded rotation-height correction was subsequently released in **v1.2.1**.
 
 ## Screenshots
 

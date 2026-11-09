@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '1.2.0';
+  window.__TIDE_BUILD__ = '1.2.1';
   const themePreference = (()=>{try{return localStorage.getItem('tide_appearance')||'dark';}catch{return 'dark';}})();
   const systemAppearance=window.matchMedia?.('(prefers-color-scheme: light)');
   function setAppearance(value){
@@ -84,6 +84,14 @@
     }
     document.body.classList.toggle('duo-standalone',!!standalone);
     const editing=document.activeElement?.matches?.('input,textarea,[contenteditable=true]');
+    // The physical Duo's unfolded window can keep 100dvh at a smaller
+    // 587px after rotation while 100vh/100lvh still measure 669px.
+    // On-device testing confirmed 100vh restores BOTH unfolded poses.
+    // Mark only the full inner display (never folded or half Split View).
+    // Suspend the override during text editing so the software keyboard
+    // retains its existing dynamic viewport handling.
+    document.documentElement.classList.toggle('tide-duo-full-inner-vh',
+      !!(standalone && (duoPortrait || duoLandscape) && !editing));
     // Some versions of WebKit expose screen and web viewport dimensions that
     // differ by an OS-reserved strip. Do not require screen.width to equal the
     // viewport width: foldables can report physical/outer-screen dimensions.
@@ -615,7 +623,7 @@
   }
   async function checkAboutUpdates(){
     if(!settingsAboutOpen())return;
-    const current=window.__TIDE_BUILD__||'1.2.0';
+    const current=window.__TIDE_BUILD__||'1.2.1';
     const parsed=parseVersion(current);
     if(!parsed){setInfoText('infoUpdateStatus','Unrecognised installed version');return;}
     const beta=parsed.pre.length>0;
@@ -625,7 +633,7 @@
     try{
       const sources=[{ref:'main',url:'https://github.com/Joeljoel/tide'}];
       // Prerelease builds follow their active feature branch as well as main.
-      if(beta)sources.push({ref:'feature/duo-split-edge-controls-1.2.0',url:'https://github.com/Joeljoel/tide/tree/feature/duo-split-edge-controls-1.2.0'});
+      if(beta)sources.push({ref:'fix/landscape-viewport-rotation-1.1.1',url:'https://github.com/Joeljoel/tide/pull/3'});
       const results=await Promise.allSettled(sources.map(async source=>{
         const response=await fetch('https://raw.githubusercontent.com/Joeljoel/tide/'+source.ref+'/version.json?nocache='+Date.now(),
           {credentials:'omit',cache:'no-store',signal:controller.signal,headers:{'Accept':'application/json'}});
@@ -684,7 +692,7 @@
     return `<label class="settings-field"><span>${label} <small>KiB/s · 0 = unlimited</small></span><input type="number" inputmode="numeric" data-pref="${key}" min="0" max="100000000" step="1" value="${esc(qbPreferences[key]??0)}"></label>`;
   };
   function settingsAboutHTML(){
-    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.1.0')}</strong></div>
+    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.2.1')}</strong></div>
       <div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>
       <div class="info-section-label">This session</div>
       <div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>
