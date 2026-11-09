@@ -80,6 +80,19 @@ jobs:
           Download the Source code ZIP, replace your Tide files, and reopen the PWA. See the README for full setup instructions.
           EOF
             )
+          elif [[ "$version" == "1.2.1" ]]; then
+            notes=$(cat <<'EOF'
+          ## What's new in Tide 1.2.1
+          
+          - Fixed the bottom gap in both portrait and landscape on the iPhone Duo's full unfolded inner display.
+          - Restored full-height layout after repeated orientation changes using the device-verified `100vh` correction.
+          - Kept folded, Split View, desktop, and keyboard-editing behaviour unchanged.
+          
+          ## Installation
+          
+          Download the Source code ZIP, replace your existing Tide files, and reopen the PWA. See the README for setup instructions.
+          EOF
+            )
           else
             notes=$(printf '%s\n\n%s\n' \
               "Tide $version is a touch-first alternative qBittorrent WebUI, designed for the iPhone Duo and desktop." \

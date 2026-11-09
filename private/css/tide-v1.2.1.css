@@ -2404,7 +2404,7 @@ body.tide-split-left:not(.tide-desktop) .topbar {
   padding-right:clamp(12px, 10vw, 48px) !important;
 }
 
-/* v1.2.1-beta.1: iPhone Duo unfolded rotation viewport correction.
+/* v1.2.1: iPhone Duo unfolded rotation viewport correction.
    On-device diagnostics: after rotation WebKit reported 100dvh=587px but
    100vh/100lvh=669px. Setting html, body AND shell to 100vh removed the
    bottom gap in unfolded portrait and landscape.
