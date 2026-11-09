@@ -52,6 +52,7 @@ def make_preview_script(source: str) -> str:
     // this generated demo copy; production continues to use real insets.
     if (__previewPose==='split-left') return 'left';
     if (__previewPose==='split-right') return 'right';
+    return null;  // Never leak the viewer's real screen orientation or safe area.
 """,
         "Split View side override",
     )
@@ -64,8 +65,24 @@ def make_preview_script(source: str) -> str:
         """  const syncDeviceGeometry = () => {
     // Simulated display capabilities are only used in the generated demo.
     const standalone=__previewPose!=='desktop';
-    const fine=__previewPose==='desktop';""",
+    const fine=__previewPose==='desktop';
+    const portrait=['folded-portrait','unfolded-portrait','split-left','split-right'].includes(__previewPose);
+    const desktop=__previewPose==='desktop';
+    const duoPortrait=__previewPose==='unfolded-portrait';
+    const duoLandscape=__previewPose==='unfolded-landscape';
+    document.body.dataset.tideDemoPose=__previewPose;
+    document.documentElement.dataset.tideDemoPose=__previewPose;""",
         "device pose override",
+    )
+
+    source = replace_one(
+        source,
+        """    const portrait=window.innerHeight>window.innerWidth;
+    const desktop=Boolean(fine && window.innerWidth>=600);
+    const duoPortrait=Boolean(!desktop && portrait && window.innerWidth>=600);
+    const duoLandscape=Boolean(!desktop && !portrait && window.innerWidth>=850);""",
+        "",
+        "remove host-derived layout inference",
     )
 
     source = replace_one(
@@ -79,6 +96,8 @@ def make_preview_script(source: str) -> str:
     if(event.data?.type!=='tide-demo-set-pose' || !__allowedPreviewPoses.has(event.data.pose)) return;
     __previewPose=event.data.pose;
     syncDeviceGeometry();
+    requestAnimationFrame(()=>requestAnimationFrame(syncDeviceGeometry));
+    setTimeout(syncDeviceGeometry,150);
   });
   // Split View can move between halves with unchanged viewport dimensions.""",
         "live pose switching",
@@ -115,6 +134,10 @@ def build(output: Path) -> None:
     index = app_index.read_text(encoding="utf-8")
     index = replace_one(index, "<title>Tide</title>", "<title>Tide · Interactive Demo</title>", "page title")
     index = index.replace('<link rel="manifest" href="manifest.json">', "")
+    index = replace_one(index, '<title>Tide · Interactive Demo</title>',
+                        '<link rel="stylesheet" href="demo-pose.css">\n  <title>Tide · Interactive Demo</title>',
+                        "forced pose stylesheet")
+    shutil.copy2(DEMO / "pose-overrides.css", app / "demo-pose.css")
     # Defense in depth: the preview must never contact a qBittorrent API.
     csp = ('<meta http-equiv="Content-Security-Policy" '
            'content="default-src \'self\' data: blob:; connect-src \'none\'; '
@@ -126,6 +149,7 @@ def build(output: Path) -> None:
 
     for name in ("index.html", "showcase.css", "showcase.js"):
         shutil.copy2(DEMO / name, output / name)
+    shutil.copytree(DEMO / "assets", output / "assets", dirs_exist_ok=True)
     version = json.loads((ROOT / "version.json").read_text(encoding="utf-8"))["version"]
     showcase = (output / "index.html").read_text(encoding="utf-8")
     showcase = re.sub(r'<span id="demoVersion">[^<]+</span>',
@@ -137,6 +161,8 @@ def build(output: Path) -> None:
     assert (output / "app" / "icon.png").exists()
     assert (output / "app" / "css").is_dir()
     assert (output / "index.html").exists()
+    assert (app / "demo-pose.css").exists()
+    assert (output / "assets" / "home-duo.webp").exists()
     print(f"Built Tide demo at {output}")
 
 

@@ -1,0 +1,66 @@
+/* Isolated, generated-demo-only deterministic pose overrides.
+   The user-selected device pose controls edge placement, never the
+   orientation/safe area of the viewer's own browser or phone. */
+
+html[data-tide-demo-pose] {
+  --rail-bottom:23px;
+}
+
+/* Folded outer screen and full-inner landscape: controls on the physical
+   right edge of the selected mock device in global, detail and search modes. */
+body:is(
+  [data-tide-demo-pose="folded-portrait"],
+  [data-tide-demo-pose="folded-landscape"],
+  [data-tide-demo-pose="unfolded-landscape"],
+  [data-tide-demo-pose="split-right"]
+) .action-rail {
+  left:auto !important;
+  right:var(--rail-edge) !important;
+  transform:none !important;
+}
+
+/* Simulated left Split View has no real iOS safe-area readings. Apply the
+   same left rail/gutter/header rules as the verified physical Duo layout. */
+body[data-tide-demo-pose="split-left"] .action-rail {
+  left:var(--rail-edge) !important;
+  right:auto !important;
+  transform:none !important;
+}
+body[data-tide-demo-pose="split-left"] .list-panel {
+  padding-left:calc(var(--rail-slot) + 7px) !important;
+  padding-right:14px !important;
+}
+body[data-tide-demo-pose="split-left"] .detail-panel.mobile-open .detail-inner {
+  padding-left:calc(var(--rail-slot) + 7px) !important;
+  padding-right:14px !important;
+}
+body[data-tide-demo-pose="split-left"] .topbar {
+  padding-left:calc(var(--rail-slot) + 7px) !important;
+  padding-right:clamp(12px,10vw,48px) !important;
+}
+body[data-tide-demo-pose="split-left"].tide-search-open .search-wrap.bottom-search {
+  left:calc(var(--rail-edge) + var(--rail-button-size) + 12px) !important;
+  right:14px !important;
+  width:auto !important;
+}
+
+/* The right Split View half retains Tide's original right-hand clearance. */
+body[data-tide-demo-pose="split-right"] .list-panel {
+  padding-left:14px !important;
+  padding-right:calc(var(--rail-slot) + 7px) !important;
+}
+body[data-tide-demo-pose="split-right"] .detail-panel.mobile-open .detail-inner {
+  padding-left:18px !important;
+  padding-right:calc(var(--rail-slot) + 12px) !important;
+}
+
+/* Full unfolded portrait deliberately uses the horizontal bottom action
+   toolbar. Never attach the right-edge override to that pose. */
+body[data-tide-demo-pose="unfolded-portrait"] .action-rail:not([data-mode="search"]) {
+  right:auto !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+}
+
+/* Iframe samples don't inherit the host's system status region: the outer
+   showcase draws the OS indicator independently, based on the screenshots. */
