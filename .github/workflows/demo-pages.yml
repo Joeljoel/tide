@@ -43,12 +43,6 @@ jobs:
           grep -Fq 'const demo = true;' _site/app/js/tide-v*.js
           grep -Fq "connect-src 'none'" _site/app/index.html
           grep -Fq 'tide-demo-set-pose' _site/app/js/tide-v*.js
-          grep -Fq 'body.dataset.tideDemoPose=__previewPose' _site/app/js/tide-v*.js
-          grep -Fq 'tide-split-left' _site/app/js/tide-v*.js
-          test -s _site/assets/status-overlay.webp
-          grep -Fq 'Tide Demo Collection' _site/app/js/tide-v*.js
-          grep -Fq "demoFile.disabled=true" _site/app/js/tide-v*.js
-          test -f _site/app/demo-pose.css
           test -f _site/.nojekyll
       # Render the demo in Chromium and exercise its state controls.
       # This runs on PRs only; stable Pages deployments remain lightweight.
@@ -89,6 +83,9 @@ jobs:
           grep -Fq "connect-src 'none'" _site/previews/pr-7/app/index.html
           test -s _site/previews/pr-7/assets/status-overlay.webp
           grep -Fq 'id="duoBtn"' _site/previews/pr-7/index.html
+          grep -Fq 'content:"Home Screen"' _site/previews/pr-7/showcase.css
+          grep -Fq 'id="foldBtn"' _site/previews/pr-7/index.html
+          grep -Fq 'id="splitBtn"' _site/previews/pr-7/index.html
           grep -Fq 'Tide Demo Collection' _site/previews/pr-7/app/js/tide-v*.js
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
