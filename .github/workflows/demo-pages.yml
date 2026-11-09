@@ -51,7 +51,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Joeljoel/tide
-          ref: feature/accurate-duo-demo-mockups
+          # Pinned snapshot for visual review; this does not merge the PR.
+          ref: a34ea8598a168da914dcd3b9bd8f41d5a67ef0b8
           path: _pr7_source
           persist-credentials: false
       - name: Build isolated PR #7 preview
