@@ -59,16 +59,6 @@ body[data-tide-demo-pose="split-right"] .detail-panel.mobile-open .detail-inner 
   padding-right:calc(var(--rail-slot) + 12px) !important;
 }
 
-/* Split panes are 475px wide including the reclaimed divider space.
-   Keep their narrow-window Settings placement at this breakpoint. */
-body:is([data-tide-demo-pose="split-left"], [data-tide-demo-pose="split-right"]) .topbar > .header-settings-button {
-  display:grid !important;
-  pointer-events:auto !important;
-}
-body:is([data-tide-demo-pose="split-left"], [data-tide-demo-pose="split-right"]) .action-rail .rail-button.rail-settings {
-  display:none !important;
-}
-
 /* Full unfolded portrait deliberately uses the horizontal bottom action
    toolbar. Never attach the right-edge override to that pose. */
 body[data-tide-demo-pose="unfolded-portrait"] .action-rail:not([data-mode="search"]) {

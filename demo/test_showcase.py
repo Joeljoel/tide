@@ -114,7 +114,19 @@ def run(site: Path, snapshots: Path) -> None:
                     screen = page.locator("#deviceScreen").bounding_box()
                     assert abs(left["x"] - screen["x"]) < 1
                     assert abs(right["x"] + right["width"] - screen["x"] - screen["width"]) < 1
-                    assert 0 < right["x"] - left["x"] - left["width"] <= 1
+                    scale = screen["width"] / 951
+                    divider = right["x"] - left["x"] - left["width"]
+                    assert abs(divider / scale - 13) < 1
+                    handle = page.locator(".split-handle")
+                    expect(handle).to_be_visible()
+                    grip = handle.bounding_box()
+                    assert abs(grip["x"] + grip["width"] / 2 - screen["x"] - screen["width"] / 2) < 1
+                    visible_side = "right" if pose == "split-left" else "left"
+                    hidden_side = "left" if visible_side == "right" else "right"
+                    home = page.locator(f".home-{visible_side}")
+                    expect(home).to_be_visible()
+                    expect(page.locator(f".home-{hidden_side}")).to_be_hidden()
+                    assert home.evaluate("el => el.naturalWidth === 1010 && el.naturalHeight === 1440")
                     assert left["y"] == right["y"] == screen["y"]
                     assert left["height"] == right["height"] == screen["height"]
                 page.screenshot(
@@ -143,11 +155,6 @@ def run(site: Path, snapshots: Path) -> None:
             expect(page.locator("#shiftBtn")).to_be_visible()
             page.locator("#shiftBtn").click()
             capture("split-right")
-            # Home image files are intentionally withheld until user approval.
-            # The review build must render its obvious placeholder instead.
-            assert "Home Screen" in page.locator("#homePanel").evaluate(
-                "el => getComputedStyle(el, '::after').content"
-            )
             page.locator("#splitBtn").click()
             page.locator("#rotateBtn").click()
             capture("unfolded-portrait")

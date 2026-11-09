@@ -44,33 +44,22 @@ main{width:100%;max-width:1710px;margin:auto;padding:12px clamp(8px,2.4vw,28px) 
 .duo-panel{position:absolute;inset:0;overflow:hidden}
 .tide-panel{z-index:1;background:#0a1119}
 iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
-.home-panel{display:none}
-/* Two app panes share the unfolded display's bezel and corner clipping. */
-.is-split .device-screen{background:#35424e}
-.is-split .duo-panel{width:calc((100% - 1px) / 2)}
+.home-panel,.home-panel img,.split-handle{display:none}
+/* The two rounded panes share one display. The measured 28px divider
+   and 100px handle in the reference scale to 13px and 46px here. */
+.is-split .device-screen{background:#000}
+.is-split .duo-panel{width:calc((100% - 13px) / 2);border-radius:30px}
 .is-split[data-pose=split-left] .tide-panel,
 .is-split[data-pose=split-right] .home-panel{right:auto}
 .is-split[data-pose=split-left] .home-panel,
 .is-split[data-pose=split-right] .tide-panel{left:auto}
-/* The original-resolution Home Screen panels are awaiting visual approval.
-   This placeholder is deliberate: no new Home Screen assets enter GitHub
-   until the user approves the crops shared separately. */
-.is-split .home-panel {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:
-    radial-gradient(ellipse at 55% 25%, #414c6d 0%, #26283c 45%, #171e2b 90%);
-  color:#c8d0db;
-  text-shadow:0 1px 2px #0006;
-}
-.is-split .home-panel::after {
-  content:"Home Screen";
-  font-size:20px;
-  font-weight:650;
-  letter-spacing:-.04em;
-}
-
+.is-split .home-panel,
+.is-split[data-pose=split-left] .home-right,
+.is-split[data-pose=split-right] .home-left{display:block}
+.home-panel img{width:100%;height:100%;object-fit:cover}
+.is-split .split-handle{
+  display:block;position:absolute;z-index:2;top:50%;left:50%;width:3px;height:46px;
+  transform:translate(-50%,-50%);border-radius:2px;background:#efefef;pointer-events:none}
 
 /* Reference positions in device CSS pixels, before the preview scales. */
 .system-ui{position:absolute;inset:0;z-index:8;pointer-events:none;color:white}
