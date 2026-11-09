@@ -1,0 +1,87 @@
+name: "Bug report"
+description: "Report something that is broken in Tide."
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before reporting, check for an existing issue. Include enough detail to reproduce the problem.
+        Do not include passwords, access tokens, private server addresses, or other sensitive information.
+  - type: input
+    id: tide-version
+    attributes:
+      label: Tide version
+      description: "Find this under Settings → About."
+      placeholder: "e.g. 1.1.0"
+    validations:
+      required: true
+  - type: input
+    id: device-os
+    attributes:
+      label: Device and operating system
+      placeholder: "e.g. iPhone Duo on iOS, or Windows 11 desktop"
+    validations:
+      required: true
+  - type: dropdown
+    id: app-mode
+    attributes:
+      label: How are you using Tide?
+      options:
+        - "Installed PWA (Home Screen)"
+        - "Mobile browser"
+        - "Desktop browser"
+        - "Other / not sure"
+    validations:
+      required: true
+  - type: dropdown
+    id: orientation
+    attributes:
+      label: Screen configuration
+      description: "Choose the closest match, if relevant."
+      options:
+        - "Folded portrait"
+        - "Unfolded portrait"
+        - "Unfolded landscape"
+        - "Other orientation or device"
+        - "Not applicable"
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened?
+      description: "Describe the bug, including any error messages."
+      placeholder: "What did Tide do?"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: "List the actions that trigger the problem."
+      placeholder: |
+        1. Open Tide...
+        2. Select...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots, screen recordings, or logs
+      description: "Optional. Drag files here or paste relevant logs. Remove personal or sensitive details first."
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: "Any other details that might help reproduce the problem."
+    validations:
+      required: false
