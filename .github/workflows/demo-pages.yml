@@ -68,8 +68,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Joeljoel/tide
-          # Pinned snapshot for visual review; does not merge PR #7.
-          ref: a34ea8598a168da914dcd3b9bd8f41d5a67ef0b8
+          # Pinned snapshot for visual review; this does not merge the PR.
+          ref: c9bfbd0a0132de0789bcc727ddd2b4fc9793c1ce
           path: _pr7_source
           persist-credentials: false
       - name: Build isolated PR #7 preview
