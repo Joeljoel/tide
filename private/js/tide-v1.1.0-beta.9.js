@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '1.1.0-beta.8';
+  window.__TIDE_BUILD__ = '1.1.0-beta.9';
   const themePreference = (()=>{try{return localStorage.getItem('tide_appearance')||'dark';}catch{return 'dark';}})();
   const systemAppearance=window.matchMedia?.('(prefers-color-scheme: light)');
   function setAppearance(value){
@@ -211,6 +211,7 @@
     {hash:'demo-freebsd',name:'FreeBSD Release Installer ISO (amd64).iso',size:3.1*1024**3,progress:.23,dlspeed:1.5*1024**2,upspeed:0,eta:3408,availability:1.21,state:'downloading',num_seeds:4,num_leechs:1,ratio:0,save_path:'/downloads/os-images'}
   ];
   const icons = {
+    settings:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.3a3.7 3.7 0 1 0 0 7.4 3.7 3.7 0 0 0 0-7.4Z"/><path d="m10.1 2.9-.4 1.8a7.8 7.8 0 0 0-1.5.9l-1.7-.6-2.1 3.6 1.3 1.2a8 8 0 0 0 0 1.8l-1.3 1.2 2.1 3.6 1.7-.6c.5.4 1 .7 1.5.9l.4 1.8h4l.4-1.8c.5-.2 1-.5 1.5-.9l1.7.6 2.1-3.6-1.3-1.2a8 8 0 0 0 0-1.8l1.3-1.2-2.1-3.6-1.7.6c-.5-.4-1-.7-1.5-.9l-.4-1.8h-4Z" transform="translate(0 1.1)"/></svg>',
     dots:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>',
     close:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
     play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.4 4.7c0-.89.95-1.44 1.72-.99l11.2 7.33c.69.45.69 1.47 0 1.92l-11.2 7.33c-.77.45-1.72-.1-1.72-.99Z" fill="currentColor" stroke="none"/></svg>',
@@ -312,13 +313,13 @@
     const actionLabel=(action==='resume'?'Resume':'Pause')+(count>1?` ${count} torrents`:' torrent');
     if(count===1 && state.detailOpen){
       mode='detail';
-      markup=`<div class="rail-cluster rail-top">${btn('close-detail','back','Back to torrent list')}</div><div class="rail-cluster rail-bottom">${btn('delete-confirm','trash','Remove torrent',{style:'rail-destructive'})}${btn(action,action==='resume'?'play':'pause',actionLabel)}</div>`;
+      markup=`<div class="rail-cluster rail-top">${btn('close-detail','back','Back to torrent list')}</div><div class="rail-cluster rail-bottom">${btn('delete-confirm','trash','Remove torrent',{style:'rail-destructive'})}${btn(action,action==='resume'?'play':'pause',actionLabel)}${btn('settings','settings','Settings',{style:'rail-settings'})}</div>`;
     }else if(count){
       mode='selected';
-      markup=`<div class="rail-cluster rail-top">${btn('deselect','close',`Deselect ${count} torrent${count===1?'':'s'}`)}</div><div class="rail-cluster rail-bottom">${btn('detail','info',count===1?'View torrent details':'Select one torrent to view details',{disabled:count!==1})}${btn('delete-confirm','trash',count>1?`Remove ${count} torrents`:'Remove torrent',{style:'rail-destructive'})}${btn(action,action==='resume'?'play':'pause',actionLabel)}</div>`;
+      markup=`<div class="rail-cluster rail-top">${btn('deselect','close',`Deselect ${count} torrent${count===1?'':'s'}`)}</div><div class="rail-cluster rail-bottom">${btn('detail','info',count===1?'View torrent details':'Select one torrent to view details',{disabled:count!==1})}${btn('delete-confirm','trash',count>1?`Remove ${count} torrents`:'Remove torrent',{style:'rail-destructive'})}${btn(action,action==='resume'?'play':'pause',actionLabel)}${btn('settings','settings','Settings',{style:'rail-settings'})}</div>`;
     }else{
       mode=state.searchOpen?'search':'global';
-      markup=state.searchOpen?`<div class="rail-cluster rail-bottom">${btn('clear-search','close','Close search')}</div>`:`<div class="rail-cluster rail-bottom">${btn('add','plus','Add torrent')}${btn('refresh','refresh','Refresh torrents')}${btn('search','search','Search torrents')}</div>`;
+      markup=state.searchOpen?`<div class="rail-cluster rail-bottom">${btn('clear-search','close','Close search')}</div>`:`<div class="rail-cluster rail-bottom">${btn('add','plus','Add torrent')}${btn('settings','settings','Settings',{style:'rail-settings'})}${btn('refresh','refresh','Refresh torrents')}${btn('search','search','Search torrents')}</div>`;
     }
     const signature=[mode,items.map(t=>t.hash).join('|'),action].join(':');
     if(rail.dataset.signature!==signature){mount.innerHTML=markup;rail.dataset.signature=signature;}
@@ -561,7 +562,7 @@
   }
   async function checkAboutUpdates(){
     if(!settingsAboutOpen())return;
-    const current=window.__TIDE_BUILD__||'1.1.0-beta.8';
+    const current=window.__TIDE_BUILD__||'1.1.0-beta.9';
     const parsed=parseVersion(current);
     if(!parsed){setInfoText('infoUpdateStatus','Unrecognised installed version');return;}
     const beta=parsed.pre.length>0;
@@ -630,7 +631,7 @@
     return `<label class="settings-field"><span>${label} <small>KiB/s · 0 = unlimited</small></span><input type="number" inputmode="numeric" data-pref="${key}" min="0" max="100000000" step="1" value="${esc(qbPreferences[key]??0)}"></label>`;
   };
   function settingsAboutHTML(){
-    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.1.0-beta.8')}</strong></div>
+    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.1.0-beta.9')}</strong></div>
       <div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>
       <div class="info-section-label">This session</div>
       <div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>
@@ -747,7 +748,7 @@
   }
 
   const overlay=$('#overlay'),mount=$('#modalMount');
-  function openModal(kind,hash=null){state.modal=kind;overlay.hidden=false;document.body.classList.add('tide-modal-open');document.body.style.overflow='hidden';document.body.classList.toggle('delete-dialog-open',['delete','sort','add'].includes(kind));
+  function openModal(kind,hash=null){state.modal=kind;overlay.hidden=false;document.body.style.overflow='hidden';document.body.classList.toggle('delete-dialog-open',['delete','sort','add'].includes(kind));
     const torrent=state.torrents.find(t=>t.hash===hash);const top=(title,desc='')=>`${['sort','add'].includes(kind)?'':'<div class="sheet-grab" aria-label="Swipe down to dismiss"><div class="sheet-handle"></div></div>'}<div class="dialog-top"><h2>${title}</h2><button class="dialog-close" data-action="dismiss" aria-label="Close">${icons.close}</button></div>${desc?`<p class="dialog-sub">${desc}</p>`:''}`;
     if(kind==='settings'){
       mount.innerHTML=`<section class="dialog floating-dialog tide-settings-dialog" role="dialog" aria-modal="true" aria-label="Settings">
@@ -808,7 +809,7 @@
 
     }
   }
-  function dismiss(){++qbSettingsRequest;state.modal='';overlay.hidden=true;mount.innerHTML='';document.body.classList.remove('tide-modal-open');document.body.style.overflow='';document.body.classList.remove('delete-dialog-open');sheetGesture=null;}
+  function dismiss(){++qbSettingsRequest;state.modal='';overlay.hidden=true;mount.innerHTML='';document.body.style.overflow='';document.body.classList.remove('delete-dialog-open');sheetGesture=null;}
   let toastTimer;
   function notify(message){const e=$('#toast');e.textContent=message;e.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove('show'),3200);}
   async function mutate(action,hash,deleteFiles=false){
@@ -871,38 +872,8 @@
     openHeaderSettings();
   });
 
-  // The unfolded portrait header sits in a region that receives no iOS
-  // touch events. Move the original Settings control outside the clipped
-  // app shell to the lower-left viewport region verified by the diagnostic
-  // button. The same element retains its original touch/click handlers.
-  const settingsHome=settingsHeaderButton?.parentNode;
-  const settingsNext=settingsHeaderButton?.nextSibling;
-  function syncSettingsDock(){
-    if(!settingsHeaderButton||!settingsHome)return;
-    const portrait=window.innerWidth>=475
-      && window.matchMedia('(orientation:portrait)').matches
-      && !document.body.classList.contains('tide-desktop');
-    if(portrait){
-      if(settingsHeaderButton.parentNode!==document.body)
-        document.body.appendChild(settingsHeaderButton);
-      settingsHeaderButton.classList.add('tide-settings-docked');
-    }else{
-      if(settingsHeaderButton.parentNode!==settingsHome)
-        settingsHome.insertBefore(settingsHeaderButton,settingsNext);
-      settingsHeaderButton.classList.remove('tide-settings-docked');
-    }
-  }
-  window.addEventListener('resize',syncSettingsDock,{passive:true});
-  window.addEventListener('orientationchange',()=>{
-    syncSettingsDock();
-    requestAnimationFrame(syncSettingsDock);
-  },{passive:true});
-  window.visualViewport?.addEventListener('resize',syncSettingsDock,{passive:true});
-  window.addEventListener('pageshow',syncSettingsDock,{passive:true});
-  document.addEventListener('visibilitychange',()=>{
-    if(!document.hidden)syncSettingsDock();
-  });
-  syncSettingsDock();
+  // Unfolded portrait uses a native action-rail Settings control. The header
+  // button remains in place for folded, landscape and desktop layouts.
   document.addEventListener('click', e=>{
     const fold=e.target.closest('[data-folder-toggle]');if(fold){const key=fold.dataset.folderToggle;if(state.collapsedFolders.has(key))state.collapsedFolders.delete(key);else state.collapsedFolders.add(key);renderDetail();return;}
     const tab=e.target.closest('[data-settings-tab]');if(tab){renderSettingsTab(tab.dataset.settingsTab);return;}
