@@ -64,8 +64,11 @@ jobs:
           node --check "$(find _site/previews/pr-7/app/js -maxdepth 1 -name 'tide-v*.js' -print -quit)"
           grep -Fq 'Tide Demo Collection' _site/previews/pr-7/app/js/tide-v*.js
           grep -Fq "connect-src 'none'" _site/previews/pr-7/app/index.html
-          test -s _site/previews/pr-7/assets/home-duo.webp
           test -s _site/previews/pr-7/assets/status-overlay.webp
+          test -s _site/previews/pr-7/assets/camera.webp
+          grep -Fq 'id="duoBtn"' _site/previews/pr-7/index.html
+          grep -Fq 'class="home-weather"' _site/previews/pr-7/index.html
+          grep -Fq 'Tide Demo Collection' _site/previews/pr-7/app/js/tide-v*.js
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
