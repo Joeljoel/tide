@@ -23,7 +23,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages-\${{ github.ref }}
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -44,6 +44,28 @@ jobs:
           grep -Fq "connect-src 'none'" _site/app/index.html
           grep -Fq 'tide-demo-set-pose' _site/app/js/tide-v*.js
           test -f _site/.nojekyll
+      # Temporary, separate public preview of PR #7. The normal site at
+      # /tide/ remains built from main and is not replaced by PR code.
+      - name: Check out PR #7 for preview
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          repository: Joeljoel/tide
+          ref: feature/accurate-duo-demo-mockups
+          path: _pr7_source
+          persist-credentials: false
+      - name: Build isolated PR #7 preview
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 _pr7_source/demo/build.py --output "$(pwd)/_site/previews/pr-7"
+          node --check _site/previews/pr-7/showcase.js
+          node --check "$(find _site/previews/pr-7/app/js -maxdepth 1 -name 'tide-v*.js' -print -quit)"
+          grep -Fq 'Tide Demo Collection' _site/previews/pr-7/app/js/tide-v*.js
+          grep -Fq "connect-src 'none'" _site/previews/pr-7/app/index.html
+          test -s _site/previews/pr-7/assets/home-duo.webp
+          test -s _site/previews/pr-7/assets/status-overlay.webp
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
@@ -56,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: \${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Configure Pages
         uses: actions/configure-pages@v5
