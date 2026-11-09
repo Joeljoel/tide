@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.0.7-293a46?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0--beta.3-293a46?style=flat-square">
 </p>
 
 <p align="center">
@@ -44,7 +44,7 @@ Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
 
 ### qBittorrent
 
-1. Download the [repository ZIP](https://github.com/Joeljoel/tide/archive/refs/heads/main.zip) and extract it on the computer running qBittorrent.
+1. Download the [Settings beta ZIP](https://github.com/Joeljoel/tide/archive/refs/heads/feature/settings-menu.zip) and extract it on the computer running qBittorrent.
 2. In qBittorrent, open **Tools → Options → Web UI** and enable **Use alternative Web UI**.
 3. Set **Files location** to the extracted directory containing both `private/` and `public/`.
 4. Apply the settings, open your qBittorrent WebUI address, and sign in with your existing credentials.
@@ -62,4 +62,8 @@ For remote access, keep authentication enabled and use HTTPS or a VPN.
 
 Replace the Tide files in your configured alternative WebUI directory with the latest repository files, then reload the app. If the PWA shows a cached version, close and reopen it.
 
-Use **Tide logo → Check updates** to compare the installed version with the version published in this repository. Updates are installed manually.
+Use **Settings → About → Check updates** to check the latest Settings beta and the stable version on `main`. Updates are installed manually.
+
+## Versioning
+
+Tide follows [Semantic Versioning](https://semver.org/): feature releases increment the minor version (`1.1.0`), fixes after a stable release increment the patch (`1.1.1`), and installable preview builds use numbered prereleases (`1.1.0-beta.3`, `1.1.0-beta.4`). The Settings beta remains a draft PR, not a stable release.

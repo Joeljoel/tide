@@ -23,16 +23,33 @@ jobs:
         run: |
           set -euo pipefail
           version=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ! "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+)(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
             echo "Invalid semantic version: $version" >&2
             exit 1
+          fi
+          if [[ "$version" == *-* ]]; then
+            prerelease="${version#*-}"
+            prerelease="${prerelease%%+*}"
+            IFS='.' read -ra ids <<< "$prerelease"
+            for id in "${ids[@]}"; do
+              if [[ "$id" =~ ^0[0-9]+$ ]]; then
+                echo "Invalid SemVer prerelease identifier: $id" >&2
+                exit 1
+              fi
+            done
           fi
           tag="v$version"
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "$tag already published"
             exit 0
           fi
-          title="Tide ${version%.0}"
+          title="Tide $version"
+          release_flags=()
+          if [[ "$version" == *-* ]]; then
+            release_flags+=(--prerelease)
+          else
+            release_flags+=(--latest)
+          fi
           notes=$(printf '%s\n\n%s\n' \
             "Tide $version is a touch-first alternative qBittorrent WebUI, designed for the iPhone Duo and desktop." \
             "Features include responsive torrent cards, progress and availability statistics, bulk controls, nested file browsing, and PWA support. See the README for installation instructions.")
@@ -41,4 +58,4 @@ jobs:
             --target "$GITHUB_SHA" \
             --title "$title" \
             --notes "$notes" \
-            --latest
+            "${release_flags[@]}"

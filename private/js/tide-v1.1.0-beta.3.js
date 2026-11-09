@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '1.0.7';
+  window.__TIDE_BUILD__ = '1.1.0-beta.3';
   const themePreference = (()=>{try{return localStorage.getItem('tide_appearance')||'dark';}catch{return 'dark';}})();
   const systemAppearance=window.matchMedia?.('(prefers-color-scheme: light)');
   function setAppearance(value){
@@ -501,13 +501,28 @@
   // sync/maindata?rid=0 additionally exposes alltime_dl and alltime_ul.
   const settingsAboutOpen=()=>state.modal==='settings'&&state.settingsTab==='about';
   const infoValue = v => Number.isFinite(Number(v)) && v!==null && v!==undefined && v!=='' && +v>=0 ? bytes(Number(v)) : '—';
-  const versionParts = v => String(v).replace(/^v/i,'').split('.').map(Number);
+  // SemVer 2.0.0, including prerelease ordering and ignored build metadata.
+  const semverPattern=/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+  const parseVersion=value=>{
+    const m=semverPattern.exec(String(value??''));
+    return m?{core:m.slice(1,4).map(Number),pre:m[4]?m[4].split('.'):[]}:null;
+  };
   function compareVersions(a,b){
-    const x=versionParts(a),y=versionParts(b);
-    for(let i=0;i<Math.max(x.length,y.length);i++){
-      if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)?1:-1;
+    const x=parseVersion(a),y=parseVersion(b);
+    if(!x||!y)throw new Error('Invalid semantic version');
+    for(let i=0;i<3;i++)if(x.core[i]!==y.core[i])return x.core[i]>y.core[i]?1:-1;
+    if(!x.pre.length&&!y.pre.length)return 0;
+    if(!x.pre.length)return 1;
+    if(!y.pre.length)return -1;
+    for(let i=0;i<Math.min(x.pre.length,y.pre.length);i++){
+      const left=x.pre[i],right=y.pre[i];
+      if(left===right)continue;
+      const ln=/^\d+$/.test(left),rn=/^\d+$/.test(right);
+      if(ln&&rn)return Number(left)>Number(right)?1:-1;
+      if(ln!==rn)return ln?-1:1;
+      return left>right?1:-1;
     }
-    return 0;
+    return Math.sign(x.pre.length-y.pre.length);
   }
   function setInfoText(id,text){const el=document.getElementById(id);if(el)el.textContent=text;}
   async function loadAboutTransferTotals(){
@@ -546,28 +561,38 @@
   }
   async function checkAboutUpdates(){
     if(!settingsAboutOpen())return;
-    const current=window.__TIDE_BUILD__||'1.0.7';
+    const current=window.__TIDE_BUILD__||'1.1.0-beta.3';
+    const parsed=parseVersion(current);
+    if(!parsed){setInfoText('infoUpdateStatus','Unrecognised installed version');return;}
+    const beta=parsed.pre.length>0;
     setInfoText('infoUpdateStatus','Checking GitHub…');
     const link=document.getElementById('infoUpdateLink');if(link)link.hidden=true;
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),7000);
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),7000);
     try{
-      const response=await fetch('https://raw.githubusercontent.com/Joeljoel/tide/main/version.json?nocache='+Date.now(),
-        {credentials:'omit',cache:'no-store',signal:controller.signal,headers:{'Accept':'application/json'}});
-      if(!response.ok)throw new Error('HTTP '+response.status);
-      const data=await response.json();
-      if(!/^\d+\.\d+(?:\.\d+)?$/.test(String(data.version||'')))throw new Error('Invalid version data');
+      const sources=[{ref:'main',url:'https://github.com/Joeljoel/tide'}];
+      // Prerelease installs check the current Settings PR as well as main.
+      if(beta)sources.push({ref:'feature/settings-menu',url:'https://github.com/Joeljoel/tide/pull/1'});
+      const results=await Promise.allSettled(sources.map(async source=>{
+        const response=await fetch('https://raw.githubusercontent.com/Joeljoel/tide/'+source.ref+'/version.json?nocache='+Date.now(),
+          {credentials:'omit',cache:'no-store',signal:controller.signal,headers:{'Accept':'application/json'}});
+        if(!response.ok)throw new Error('HTTP '+response.status);
+        const data=await response.json();
+        if(!parseVersion(data.version))throw new Error('Invalid version data');
+        return {...source,version:data.version};
+      }));
       if(!settingsAboutOpen())return;
-      const comparison=compareVersions(data.version,current);
-      if(comparison>0){
-        setInfoText('infoUpdateStatus','Update available: v'+data.version);
-        if(link){link.href='https://github.com/Joeljoel/tide';link.hidden=false;}
-      }else if(comparison===0)setInfoText('infoUpdateStatus','Up to date');
-      else setInfoText('infoUpdateStatus','Newer than the published build');
-    }catch(e){if(settingsAboutOpen())setInfoText('infoUpdateStatus','Could not check GitHub · Try again');}
+      const valid=results.filter(r=>r.status==='fulfilled').map(r=>r.value);
+      if(!valid.length)throw new Error('No available version data');
+      const latest=valid.reduce((best,next)=>compareVersions(next.version,best.version)>0?next:best);
+      const cmp=compareVersions(latest.version,current);
+      if(cmp>0){
+        setInfoText('infoUpdateStatus','Update available: v'+latest.version);
+        if(link){link.href=latest.url;link.hidden=false;}
+      }else if(cmp===0)setInfoText('infoUpdateStatus',beta?'Up to date · beta channel':'Up to date');
+      else setInfoText('infoUpdateStatus',beta?'Newer than published beta':'Newer than published build');
+    }catch(error){if(settingsAboutOpen())setInfoText('infoUpdateStatus','Could not check GitHub · Try again');}
     finally{clearTimeout(timer);}
   }
-
   async function signOut(){
     if(state.busy)return;
     if(demo){dismiss();notify('Sign Out is available when connected to qBittorrent.');return;}
@@ -605,7 +630,7 @@
     return `<label class="settings-field"><span>${label} <small>KiB/s · 0 = unlimited</small></span><input type="number" inputmode="numeric" data-pref="${key}" min="0" max="100000000" step="1" value="${esc(qbPreferences[key]??0)}"></label>`;
   };
   function settingsAboutHTML(){
-    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.0.7')}</strong></div>
+    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.1.0-beta.3')}</strong></div>
       <div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>
       <div class="info-section-label">This session</div>
       <div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>
@@ -820,6 +845,31 @@
     try{if(demo){mock.unshift({hash:'demo-'+Date.now(),name:blob?blob.name:value.slice(0,52),size:0,progress:0,dlspeed:0,upspeed:0,eta:8640000,availability:0,state:'metaDL'});}else{const body=new FormData();if(value)body.append('urls',value);if(blob)body.append('torrents',blob,blob.name);const result=await api('POST','torrents/add',body,true);if(!/^ok\.?$/i.test(result.trim()))throw new Error(result||'qBittorrent refused this torrent.');}dismiss();notify('Torrent added');state.filter='all';savePref('filter','all');await refresh();}
     catch(err){notify(err.message||'Could not add torrent');}finally{state.busy=false;}
   }
+  // iOS standalone WebKit can swallow synthetic clicks next to the status island.
+  // Respond to finger release, then cancel the duplicate synthetic click.
+  const settingsHeaderButton=document.querySelector('.header-settings-button');
+  const openHeaderSettings=()=>{if(state.modal==='settings')return;state.settingsTab='tide';openModal('settings');};
+  let settingsTouch=null;
+  settingsHeaderButton?.addEventListener('touchstart',event=>{
+    const t=event.touches.length===1?event.touches[0]:null;
+    settingsTouch=t?{x:t.clientX,y:t.clientY}:null;
+  },{passive:true});
+  settingsHeaderButton?.addEventListener('touchcancel',()=>{settingsTouch=null;},{passive:true});
+  settingsHeaderButton?.addEventListener('touchend',event=>{
+    const start=settingsTouch;
+    settingsTouch=null;
+    if(!start||event.changedTouches.length!==1)return;
+    const t=event.changedTouches[0];
+    if(Math.hypot(t.clientX-start.x,t.clientY-start.y)>14)return;
+    if(event.cancelable)event.preventDefault();
+    event.stopPropagation();
+    openHeaderSettings();
+  },{passive:false});
+  settingsHeaderButton?.addEventListener('click',event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    openHeaderSettings();
+  });
   document.addEventListener('click', e=>{
     const fold=e.target.closest('[data-folder-toggle]');if(fold){const key=fold.dataset.folderToggle;if(state.collapsedFolders.has(key))state.collapsedFolders.delete(key);else state.collapsedFolders.add(key);renderDetail();return;}
     const tab=e.target.closest('[data-settings-tab]');if(tab){renderSettingsTab(tab.dataset.settingsTab);return;}

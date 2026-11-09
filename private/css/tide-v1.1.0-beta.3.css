@@ -2158,7 +2158,7 @@ html[data-tide-theme="light"] .progress-track{background:rgba(67,93,110,.17)!imp
 html[data-tide-theme="light"] .selection-indicator{border-color:rgba(55,85,99,.40)!important;background:rgba(226,238,244,.70)!important;}
 html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88,.54)!important;}
 
-/* v1.0.7 — Keep header buttons OUTSIDE the iPhone Duo's system status island.
+/* v1.1.0-beta.3 — Keep header buttons OUTSIDE the iPhone Duo's system status island.
    On unfolded portrait the iOS time / 5G island is drawn above the webview;
    safe-area-inset-right does not express its width. This includes compact
    unfolded webview widths (475–599px) that lack the tide-duo-portrait class.
@@ -2196,5 +2196,15 @@ html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88
   }
   body:not(.tide-desktop) .topbar .header-settings-button:active {
     transform:translateY(-50%) scale(.94) !important;
+  }
+}
+
+/* Beta 3: raise header controls above floating UI, below modal backdrop (38). */
+@media (min-width:475px) and (orientation:portrait) {
+  body:not(.tide-desktop) .topbar {z-index:37 !important;}
+  body:not(.tide-desktop) .topbar .header-rates {pointer-events:none !important;}
+  body:not(.tide-desktop) .topbar .header-settings-button {
+    -webkit-appearance:none;appearance:none;cursor:pointer;
+    min-width:44px;min-height:44px;pointer-events:auto !important;
   }
 }
