@@ -18,6 +18,9 @@
 
 Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
 
+**[Try the interactive demo](https://joeljoel.github.io/tide/)** — explore Tide with fake torrents, simulated actions, Settings, and switchable desktop/iPhone Duo layouts. No qBittorrent server required.
+
+
 ## Screenshots
 
 ### iPhone Duo
@@ -63,7 +66,3 @@ For remote access, keep authentication enabled and use HTTPS or a VPN.
 Replace the Tide files in your configured alternative WebUI directory with the latest repository files, then reload the app. If the PWA shows a cached version, close and reopen it.
 
 Use **Settings → About → Check updates** to check for newer stable versions on `main`. Updates are installed manually.
-
-## Versioning
-
-Tide follows [Semantic Versioning](https://semver.org/): major releases contain breaking changes, minor releases add features (for example `1.1.0`), and patch releases contain compatible fixes (`1.1.1`). Pre-release test builds use version suffixes such as `1.3.0-beta.1`, `1.3.0-beta.2`, and `1.3.0-rc.1` before the stable release.
