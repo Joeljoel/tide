@@ -865,6 +865,8 @@
   const canStartSheetGesture = target => {
     const dialog=target.closest('.dialog');
     if(!dialog || target.closest('textarea,input,select,a,label,[contenteditable=true]'))return null;
+    // Settings content owns its scroll surface; swipes there must scroll, not dismiss the sheet.
+    if(dialog.classList.contains('tide-settings-dialog') && target.closest('.settings-panel'))return null;
     if(dialog.scrollTop>1)return null;
     return dialog;
   };
