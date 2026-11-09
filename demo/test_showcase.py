@@ -95,9 +95,19 @@ def run(site: Path, snapshots: Path) -> None:
                 "el => getComputedStyle(el, '::after').content"
             )
             assert page.locator(".status-camera img").count() == 0
+            assert page.locator(".status-horizontal").count() == 0
             assert page.locator("#deviceFrame").evaluate(
                 "el => !!el.querySelector('.status-camera')"
             )
+            # The unfolded portrait reuses the landscape system UI crop,
+            # oriented with the simulated screen rather than the host device.
+            page.locator("#splitBtn").click()
+            page.locator("#rotateBtn").click()
+            capture("unfolded-portrait")
+            transform = page.locator(".status-from-photo").evaluate(
+                "el => getComputedStyle(el).transform"
+            )
+            assert transform.startswith("matrix(0, 1, -1, 0"), transform
 
             # The public showcase should never expose the removed footer.
             assert page.locator("#demoVersion").count() == 0
@@ -108,7 +118,7 @@ def run(site: Path, snapshots: Path) -> None:
         server.shutdown()
         server.server_close()
 
-    assert len(poses) == 9, poses
+    assert len(poses) == 10, poses
     print("Passed browser checks for:", ", ".join(poses))
 
 
