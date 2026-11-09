@@ -2158,7 +2158,7 @@ html[data-tide-theme="light"] .progress-track{background:rgba(67,93,110,.17)!imp
 html[data-tide-theme="light"] .selection-indicator{border-color:rgba(55,85,99,.40)!important;background:rgba(226,238,244,.70)!important;}
 html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88,.54)!important;}
 
-/* v1.1.0-beta.6 — Keep header buttons OUTSIDE the iPhone Duo's system status island.
+/* v1.1.0-beta.8 — Keep header buttons OUTSIDE the iPhone Duo's system status island.
    On unfolded portrait the iOS time / 5G island is drawn above the webview;
    safe-area-inset-right does not express its width. This includes compact
    unfolded webview widths (475–599px) that lack the tide-duo-portrait class.
@@ -2209,7 +2209,7 @@ html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88
   }
 }
 
-/* v1.1.0-beta.6: render the same Settings button above the header's
+/* v1.1.0-beta.8: render the same Settings button above the header's
    blurred/clipped hit-test layer in unfolded Duo portrait. The JS portals
    it into the shell using the header's current viewport rectangle.
    Keep the portal beneath the modal backdrop (z38) and dialog (z40). */
@@ -2226,7 +2226,7 @@ body:not(.tide-desktop) .header-settings-button.tide-settings-portal {
 #modalMount:empty {pointer-events:none !important;}
 .overlay[hidden] {display:none !important;}
 
-/* v1.1.0-beta.6: unfolded-portrait header: keep rates and Settings beside Tide.
+/* v1.1.0-beta.8: unfolded-portrait header: keep rates and Settings beside Tide.
    Explicitly undo the earlier absolutely-positioned controls. This also removes
    the need to portal the button into a separate stacking context in JavaScript.
    Folded, landscape, and pointer-based desktop layouts are unchanged. */
@@ -2311,4 +2311,42 @@ html[data-tide-theme="light"] .search-wrap.bottom-search input::placeholder {
   color:#697e8e !important;
   -webkit-text-fill-color:#697e8e !important;
   opacity:1 !important;
+}
+
+/* v1.1.0-beta.8 — the unfolded portrait header receives no touch events
+   on the user's device. Relocate the ORIGINAL Settings button into the
+   lower-left region where the beta.7 diagnostic button worked.
+   This element is appended directly under body, outside .shell's fixed,
+   clipped, isolated rendering context; all other poses keep the header. */
+@media (min-width:475px) and (orientation:portrait) {
+  body:not(.tide-desktop) > button.header-settings-button.tide-settings-docked {
+    position:fixed !important;
+    top:auto !important;
+    right:auto !important;
+    bottom:max(110px,calc(env(safe-area-inset-bottom,0px) + 95px)) !important;
+    left:clamp(16px,3vw,24px) !important;
+    width:48px !important;
+    height:48px !important;
+    min-width:48px !important;
+    min-height:48px !important;
+    margin:0 !important;
+    padding:0 !important;
+    display:grid !important;
+    place-items:center !important;
+    transform:none !important;
+    z-index:90 !important;
+    pointer-events:auto !important;
+    touch-action:manipulation !important;
+    cursor:pointer;
+  }
+  body:not(.tide-desktop) > button.header-settings-button.tide-settings-docked:active {
+    transform:scale(.94) !important;
+  }
+}
+/* A body-level gear would otherwise sit above the app's nested modal layer.
+   Hide it while any modal or full-screen search is displayed. */
+body.tide-modal-open > button.header-settings-button.tide-settings-docked,
+body.tide-search-open > button.header-settings-button.tide-settings-docked {
+  display:none !important;
+  pointer-events:none !important;
 }

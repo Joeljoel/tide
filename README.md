@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0--beta.6-293a46?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0--beta.8-293a46?style=flat-square">
 </p>
 
 <p align="center">
@@ -66,4 +66,8 @@ Use **Settings → About → Check updates** to check the latest Settings beta a
 
 ## Versioning
 
-Tide follows [Semantic Versioning](https://semver.org/): feature releases increment the minor version (`1.1.0`), fixes after a stable release increment the patch (`1.1.1`), and installable preview builds use numbered prereleases (`1.1.0-beta.6`, `1.1.0-beta.6`). The Settings beta remains a draft PR, not a stable release.
+Tide follows [Semantic Versioning](https://semver.org/): feature releases increment the minor version (`1.1.0`), fixes after a stable release increment the patch (`1.1.1`), and installable preview builds use numbered prereleases (`1.1.0-beta.8`, `1.1.0-beta.8`). The Settings beta remains a draft PR, not a stable release.
+
+## Unfolded portrait Settings access
+
+In unfolded portrait, the Settings button moves to a standalone lower-left floating control, above the bottom action bar. This is the region confirmed to receive touches in on-device beta.7 diagnostics. Download/upload indicators stay beside the Tide logo. The Settings button returns to the header when the display is folded or rotated to landscape. It hides during full-screen search and while modal dialogs are open.
