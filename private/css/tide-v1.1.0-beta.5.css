@@ -2158,7 +2158,7 @@ html[data-tide-theme="light"] .progress-track{background:rgba(67,93,110,.17)!imp
 html[data-tide-theme="light"] .selection-indicator{border-color:rgba(55,85,99,.40)!important;background:rgba(226,238,244,.70)!important;}
 html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88,.54)!important;}
 
-/* v1.1.0-beta.4 — Keep header buttons OUTSIDE the iPhone Duo's system status island.
+/* v1.1.0-beta.5 — Keep header buttons OUTSIDE the iPhone Duo's system status island.
    On unfolded portrait the iOS time / 5G island is drawn above the webview;
    safe-area-inset-right does not express its width. This includes compact
    unfolded webview widths (475–599px) that lack the tide-duo-portrait class.
@@ -2209,7 +2209,7 @@ html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88
   }
 }
 
-/* v1.1.0-beta.4: render the same Settings button above the header's
+/* v1.1.0-beta.5: render the same Settings button above the header's
    blurred/clipped hit-test layer in unfolded Duo portrait. The JS portals
    it into the shell using the header's current viewport rectangle.
    Keep the portal beneath the modal backdrop (z38) and dialog (z40). */
@@ -2225,3 +2225,90 @@ body:not(.tide-desktop) .header-settings-button.tide-settings-portal {
 }
 #modalMount:empty {pointer-events:none !important;}
 .overlay[hidden] {display:none !important;}
+
+/* v1.1.0-beta.5: unfolded-portrait header: keep rates and Settings beside Tide.
+   Explicitly undo the earlier absolutely-positioned controls. This also removes
+   the need to portal the button into a separate stacking context in JavaScript.
+   Folded, landscape, and pointer-based desktop layouts are unchanged. */
+@media (min-width:475px) and (orientation:portrait) {
+  body:not(.tide-desktop) .topbar {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:10px !important;
+    padding-right:clamp(105px,16vw,140px) !important;
+    z-index:27 !important;
+  }
+  body:not(.tide-desktop) .topbar .brand-wrap {flex:0 0 auto !important;}
+  body:not(.tide-desktop) .topbar .header-rates {
+    position:static !important;
+    inset:auto !important;
+    transform:none !important;
+    flex:0 0 auto !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap:4px !important;
+    margin:0 0 0 5px !important;
+    pointer-events:none !important;
+  }
+  body:not(.tide-desktop) .topbar .header-settings-button {
+    position:static !important;
+    inset:auto !important;
+    top:auto !important;
+    right:auto !important;
+    bottom:auto !important;
+    left:auto !important;
+    transform:none !important;
+    flex:0 0 44px !important;
+    width:44px !important;
+    height:44px !important;
+    min-width:44px;
+    min-height:44px;
+    margin:0 0 0 3px !important;
+    z-index:auto !important;
+    pointer-events:auto !important;
+    touch-action:manipulation;
+    cursor:pointer;
+  }
+  body:not(.tide-desktop) .topbar .header-settings-button:active {
+    transform:scale(.94) !important;
+  }
+}
+
+/* Keep contextual upper actions clear of an extended live-activity/
+   hotspot indicator. Only the upper selected/detail cluster is moved;
+   the bottom action cluster stays bottom-anchored and separate. */
+@media (orientation:portrait) and (min-height:600px) {
+  body:not(.tide-desktop):not(.tide-duo-portrait) .action-rail[data-mode="selected"],
+  body:not(.tide-desktop):not(.tide-duo-portrait) .action-rail[data-mode="detail"] {
+    top:clamp(260px,35dvh,305px) !important;
+  }
+}
+
+/* Light appearance must override the dark-mode material colors for the
+   scrolling filter edges, sort direction action, and active search input. */
+html[data-tide-theme="light"] .filter-viewport::before {
+  background:linear-gradient(90deg,rgba(232,242,245,.98),rgba(232,242,245,0)) !important;
+}
+html[data-tide-theme="light"] .filter-viewport::after {
+  background:linear-gradient(90deg,rgba(232,242,245,0),rgba(232,242,245,.98)) !important;
+}
+html[data-tide-theme="light"] .dialog.floating-dialog.sort-alert .sort-order .toggle-order {
+  color:#203b50 !important;
+  -webkit-text-fill-color:#203b50 !important;
+  background:rgba(222,233,239,.95) !important;
+  border:1px solid rgba(75,110,126,.32) !important;
+  text-shadow:none !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.9) !important;
+}
+html[data-tide-theme="light"] .search-wrap.bottom-search input,
+html[data-tide-theme="light"] .search-wrap.bottom-search input:focus {
+  color:#193347 !important;
+  -webkit-text-fill-color:#193347 !important;
+  caret-color:#245c44 !important;
+}
+html[data-tide-theme="light"] .search-wrap.bottom-search input::placeholder {
+  color:#697e8e !important;
+  -webkit-text-fill-color:#697e8e !important;
+  opacity:1 !important;
+}
