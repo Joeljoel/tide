@@ -3,82 +3,68 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#0c151e">
-  <meta name="description" content="An interactive Tide qBittorrent WebUI demo with fake torrents and simulated iPhone Duo layouts.">
-  <title>Tide — Interactive Demo</title>
+  <meta name="theme-color" content="#0b1118">
+  <meta name="description" content="Tide interactive preview">
+  <title>Tide — Demo</title>
   <link rel="icon" type="image/png" href="app/icon.png">
   <link rel="stylesheet" href="showcase.css">
   <script src="showcase.js" defer></script>
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <div class="brand">
-        <img src="app/icon.png" alt="" width="41" height="41">
-        <div><strong>tide<span>.</span></strong><small>INTERACTIVE SHOWCASE</small></div>
-      </div>
-      <div class="header-actions">
-        <span class="demo-marker"><span class="demo-dot"></span> DEMO DATA</span>
-        <a href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
-      </div>
+  <header class="topbar">
+    <a class="brand" href="https://github.com/Joeljoel/tide" aria-label="Tide on GitHub">
+      <img src="app/icon.png" width="32" height="32" alt="">
+      <strong>tide<span>.</span></strong>
+    </a>
+    <nav class="device-choices" aria-label="Display">
+      <button id="desktopBtn" type="button" aria-pressed="true">Desktop</button>
+      <button id="duoBtn" type="button" aria-pressed="false">Duo</button>
+    </nav>
+    <div class="duo-choices" id="duoChoices" hidden>
+      <button id="foldBtn" type="button">Fold</button>
+      <button id="rotateBtn" type="button">Rotate <span aria-hidden="true">↻</span></button>
+      <button id="splitBtn" type="button" hidden>Split</button>
+      <button id="shiftBtn" type="button" hidden>Move Tide right</button>
     </div>
+    <a class="github-link" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">GitHub ↗</a>
   </header>
 
   <main>
-    <section class="intro" aria-labelledby="pageTitle">
-      <p class="eyebrow">THE LIVE PREVIEW</p>
-      <h1 id="pageTitle">Try Tide, anywhere.</h1>
-      <p>Explore the real Tide interface with example torrents. Pause, resume, search, sort, inspect files and change Settings. Everything stays in this demo.</p>
-    </section>
-
-    <section class="chooser" aria-labelledby="chooserTitle">
-      <div class="chooser-heading">
-        <div>
-          <h2 id="chooserTitle">Display simulator</h2>
-          <p>Switch layouts without losing your simulated torrent changes.</p>
-        </div>
-        <div class="selection-info"><span class="indicator"></span><span id="selectedLabel">Desktop</span><span class="dimensions" id="selectedDimensions">1280 × 800</span></div>
-      </div>
-      <div class="pose-grid" role="group" aria-label="Display configuration">
-        <button class="pose active" type="button" data-pose="desktop" aria-pressed="true"><span>Desktop</span><small>1280 × 800</small></button>
-        <button class="pose" type="button" data-pose="folded-portrait" aria-pressed="false"><span>Outer · portrait</span><small>382 × 720</small></button>
-        <button class="pose" type="button" data-pose="folded-landscape" aria-pressed="false"><span>Outer · landscape</span><small>590 × 382</small></button>
-        <button class="pose" type="button" data-pose="unfolded-portrait" aria-pressed="false"><span>Inner · portrait</span><small>669 × 951</small></button>
-        <button class="pose" type="button" data-pose="unfolded-landscape" aria-pressed="false"><span>Inner · landscape</span><small>951 × 669</small></button>
-        <button class="pose" type="button" data-pose="split-left" aria-pressed="false"><span>Split View · left</span><small>469 × 669</small></button>
-        <button class="pose" type="button" data-pose="split-right" aria-pressed="false"><span>Split View · right</span><small>469 × 669</small></button>
-      </div>
-    </section>
-
-    <section class="workspace" aria-label="Interactive Tide preview">
-      <div class="workspace-top">
-        <div class="workspace-label"><span class="preview-led" aria-hidden="true"></span> LIVE PREVIEW <span class="workspace-subtitle" id="frameInfo">Desktop · 1280 × 800 CSS px</span></div>
-        <button class="reset" type="button" id="resetDemo" title="Restart the example dataset">↺ Restart demo</button>
-      </div>
-      <div class="stage" id="stage">
-        <div class="frame-holder" id="frameHolder">
-          <div class="device-frame" id="deviceFrame">
-            <div class="device-screen">
-              <iframe id="tidePreview"
-                src="app/index.html?demo=1&amp;pose=desktop"
-                title="Interactive Tide demo with example data"
-                loading="eager"
-                referrerpolicy="no-referrer"></iframe>
+    <div class="preview-meta">
+      <span id="poseName">Desktop</span>
+      <span id="poseDimensions">1280 × 800</span>
+      <button id="resetDemo" type="button" title="Reset sample torrents">↺ Reset</button>
+    </div>
+    <div class="stage" id="stage">
+      <div class="frame-holder" id="frameHolder">
+        <div class="device-frame" id="deviceFrame" data-pose="desktop">
+          <div class="device-screen" id="deviceScreen">
+            <div class="duo-panel tide-panel" id="tidePanel">
+              <iframe id="tidePreview" title="Interactive Tide demo" src="app/index.html?demo=1&amp;pose=desktop"
+                loading="eager" referrerpolicy="no-referrer"></iframe>
+            </div>
+            <div class="duo-panel home-panel" id="homePanel">
+              <img class="home-left" src="assets/home-left.webp" width="1010" height="1440" alt="iPhone Duo Home Screen">
+              <img class="home-right" src="assets/home-right.webp" width="1010" height="1440" alt="iPhone Duo Home Screen">
+            </div>
+            <div class="split-handle" aria-hidden="true"></div>
+            <div class="fold-shade" id="foldShade" aria-hidden="true" hidden></div>
+            <div class="system-ui" id="systemUi" aria-hidden="true">
+              <div class="status-camera"></div>
+              <div class="status-indicators">
+                <div class="status-clock">
+                  <svg class="status-location" viewBox="0 0 14 14" fill="currentColor">
+                    <path d="M12.5 1 1.3 6.2a.8.8 0 0 0 .3 1.5h4.7v4.7a.8.8 0 0 0 1.5.3L13 1.9a.7.7 0 0 0-.5-.9Z"/>
+                  </svg>
+                  <span class="status-time">7:52</span>
+                </div>
+                <img class="status-connectivity" src="assets/status-connectivity.svg" width="42" height="42" alt="">
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="workspace-bottom">
-        <span><span class="tiny-square"></span> Tide <span id="demoVersion">v1.2.1</span> · Fake data</span>
-        <span id="scaleNote">Scaled to fit your browser</span>
-      </div>
-    </section>
-
-    <section class="disclaimer">
-      <span class="disclaimer-icon" aria-hidden="true">i</span>
-      <p><strong>No server connection. No real downloads.</strong> This site runs an isolated copy of Tide with sample torrents and simulated settings. Actions change demo data only. Display options reproduce CSS viewport sizes and responsive layouts, not the device's actual system overlays or touch hardware.</p>
-    </section>
+    </div>
   </main>
 </body>
 </html>
