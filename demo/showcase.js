@@ -15,7 +15,8 @@
   const stage=get('stage'),holder=get('frameHolder'),frame=get('deviceFrame'),iframe=get('tidePreview');
   const desktopBtn=get('desktopBtn'),duoBtn=get('duoBtn'),duoChoices=get('duoChoices');
   const foldBtn=get('foldBtn'),rotateBtn=get('rotateBtn'),splitBtn=get('splitBtn'),shiftBtn=get('shiftBtn');
-  let device='desktop',folded=false,orientation='landscape',split=false,side='left',loaded=false;
+  let device='desktop',folded=true,orientation='portrait',split=false,side='left',loaded=false;
+  let motionTimer=0;
   let currentPose='desktop';
 
   function selectedPose(){
@@ -57,6 +58,15 @@
     get('poseDimensions').textContent=config.split?'469 + 13 + 469 × 669':config.width+' × '+config.height;
   }
 
+  function animatePose(kind){
+    window.clearTimeout(motionTimer);
+    delete frame.dataset.motion;
+    // Restart a short transition even when switching quickly between states.
+    void frame.offsetWidth;
+    frame.dataset.motion=kind;
+    motionTimer=window.setTimeout(()=>{delete frame.dataset.motion;},280);
+  }
+
   function update(){
     if(device!=='duo'||folded||orientation!=='landscape')split=false;
     currentPose=selectedPose();
@@ -78,15 +88,48 @@
     requestAnimationFrame(()=>{sendPose();requestAnimationFrame(sendPose);});
   }
 
-  desktopBtn.addEventListener('click',()=>{device='desktop';update();});
-  duoBtn.addEventListener('click',()=>{device='duo';update();});
-  foldBtn.addEventListener('click',()=>{folded=!folded;update();});
-  rotateBtn.addEventListener('click',()=>{
-    orientation=orientation==='portrait'?'landscape':'portrait';
+  desktopBtn.addEventListener('click',()=>{
+    device='desktop';
+    animatePose('switch');
     update();
   });
-  splitBtn.addEventListener('click',()=>{split=!split;update();});
-  shiftBtn.addEventListener('click',()=>{side=side==='left'?'right':'left';update();});
+  duoBtn.addEventListener('click',()=>{
+    // Every entry to Duo starts in the physical folded portrait state.
+    if(device!=='duo'){
+      device='duo';
+      folded=true;
+      orientation='portrait';
+      split=false;
+      side='left';
+      animatePose('fold');
+      update();
+    }
+  });
+  foldBtn.addEventListener('click',()=>{
+    folded=!folded;
+    // Folding always returns to outer portrait. Opening always starts in
+    // unfolded landscape, even after experimenting with orientation/split.
+    orientation=folded?'portrait':'landscape';
+    split=false;
+    animatePose('fold');
+    update();
+  });
+  rotateBtn.addEventListener('click',()=>{
+    orientation=orientation==='portrait'?'landscape':'portrait';
+    split=false;
+    animatePose('rotate');
+    update();
+  });
+  splitBtn.addEventListener('click',()=>{
+    split=!split;
+    animatePose('split');
+    update();
+  });
+  shiftBtn.addEventListener('click',()=>{
+    side=side==='left'?'right':'left';
+    animatePose('shift');
+    update();
+  });
   iframe.addEventListener('load',()=>{loaded=true;sendPose();});
   get('resetDemo').addEventListener('click',()=>{
     loaded=false;

@@ -58,8 +58,14 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 .is-split[data-pose=split-left] .home-panel{left:482px;right:auto}
 .is-split[data-pose=split-right] .home-panel{left:0;right:auto}
 .is-split[data-pose=split-right] .tide-panel{left:482px;right:auto}
-.is-split .home-panel{display:block;isolation:isolate;--home-x:0px}
-.is-split[data-pose=split-right] .home-panel{--home-x:96px}
+.is-split .home-panel{
+  display:block;
+  background-image:url("assets/home-reference.avif");
+  background-size:200% 100%;
+  background-repeat:no-repeat;
+}
+.is-split[data-pose=split-left] .home-panel{background-position:right center}
+.is-split[data-pose=split-right] .home-panel{background-position:left center}
 
 /* The OS chrome is outside the Tide iframe. Position and orientation are
    determined by the selected physical pose, independent of viewer rotation. */
@@ -101,81 +107,19 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
    screenshots. Fonts, icons, widgets and labels remain crisp at every scale.
    The right-home configuration keeps the dock on the far right; reversing
    the split moves the dock to the left, as in the reference images. */
-.home-panel{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:white;font-size:13px}
-.home-background{position:absolute;inset:0;z-index:-1;background:
-  radial-gradient(circle at 19% 9%,#e7effc88 0 1px,transparent 1.5px),
-  radial-gradient(circle at 58% 6%,#e7effc88 0 1px,transparent 1.5px),
-  radial-gradient(circle at 72% 14%,#e7effc88 0 1px,transparent 1.5px),
-  radial-gradient(circle at 39% 3%,#e7effc88 0 1px,transparent 1.5px),
-  linear-gradient(165deg,#1a3553 0%,#635d79 34%,#bd909b 53%,#4d4853 75%,#1a1c2b 100%);
-  background-size:100% 100%;opacity:1}
-.home-mountain{position:absolute;left:-20%;right:-20%;bottom:0;height:54%;
-  background:linear-gradient(165deg,#282b37,#6f6170 70%,#181a24);
-  clip-path:polygon(0 28%,18% 39%,39% 24%,55% 36%,65% 15%,83% 27%,100% 15%,100% 100%,0 100%)}
-.home-panel>div:not(.home-background){position:absolute}
-.home-weather{top:52px;left:calc(var(--home-x) + 23px);width:154px;height:154px;border-radius:31px;
-  padding:15px 16px;background:linear-gradient(125deg,#3b4564cc,#515771cc);
-  border:1px solid #b6bacb2b;backdrop-filter:blur(6px)}
-.home-city{font-weight:690;font-size:14px}
-.home-city span{font-size:11px}
-.home-degree{font-size:50px;line-height:1.2;font-weight:300;letter-spacing:-2px}
-.home-forecast{position:absolute;bottom:14px;left:16px;font-weight:550;font-size:12px;line-height:1.15}
-.home-forecast small{font-size:11px;color:#e5f5f8;font-weight:440}
-.home-icon{width:63px;text-align:center;display:flex;align-items:center;flex-direction:column;gap:5px}
-.home-icon>span{width:59px;height:59px;display:flex;align-items:center;justify-content:center;
-  font-size:34px;line-height:1;border-radius:17px;background:#eef1f3;color:#222c3e;
-  box-shadow:inset 0 1px 1px #ffffffc8,0 2px 6px #0003}
-.home-icon>small{font-size:11px;white-space:nowrap;text-shadow:0 1px 2px #0009;line-height:1.1}
-.home-icon.i-chroma{top:53px;left:calc(var(--home-x) + 198px)}
-.i-chroma>span{background:linear-gradient(145deg,#202429,#666c74);font-size:30px}
-.home-icon.i-halide{top:53px;left:calc(var(--home-x) + 274px)}
-.i-halide>span{background:linear-gradient(145deg,#dfd0c3,#a6a3a2);font-size:43px}
-.home-icon.i-photos{top:150px;left:calc(var(--home-x) + 198px)}
-.i-photos>span{font-size:35px}
-.home-icon.i-calendar{top:150px;left:calc(var(--home-x) + 274px)}
-.i-calendar>span{display:flex;flex-direction:column;font-size:39px;font-weight:350}
-.i-calendar b{display:block;color:#ec434a;font-size:12px;line-height:12px;margin-top:5px}
-.home-icon.i-maps{top:247px;left:calc(var(--home-x) + 22px)}
-.i-maps>span{font-size:34px;background:linear-gradient(125deg,#61c77b,#e8fafb,#81cfe7)}
-.home-icon.i-contacts{top:247px;left:calc(var(--home-x) + 97px)}
-.i-contacts>span{font-size:33px;background:linear-gradient(160deg,#e9dfc7,#a9bac3)}
-.home-icon.i-notes{top:344px;left:calc(var(--home-x) + 22px)}
-.home-icon.i-reminders{top:344px;left:calc(var(--home-x) + 97px)}
-.home-fitness{top:246px;left:calc(var(--home-x) + 197px);width:157px;height:155px;
-  background:linear-gradient(145deg,#242424,#060606);border-radius:29px;display:flex;
-  align-items:flex-start;flex-direction:column;padding:14px 16px;gap:3px;box-shadow:0 0 0 1px #b7b7b729}
-.activity-rings{font-size:48px;line-height:52px;font-weight:900;
-  background:conic-gradient(#e83461 0 65%,#262727 65% 100%);
-  color:transparent;-webkit-background-clip:text;background-clip:text}
-.home-fitness em{display:block;font-style:normal;font-weight:760;font-size:19px;line-height:20px;color:#ff3262}
-.home-fitness em:nth-child(2){color:#b5ef43}
-.home-fitness em:nth-child(3){color:#35d9e5}
-.home-fitness em small{font-size:12px;font-weight:670;margin-left:2px}
-.home-macros{top:442px;left:calc(var(--home-x) + 23px);width:155px;height:158px;border-radius:29px;
-  background:linear-gradient(145deg,#202324,#070909);padding:15px 14px;color:#b8b9bb}
-.home-macros div{display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:10px;margin-bottom:2px}
-.home-macros b{color:#f4f4f5;font-size:10px}
-.home-macros i{display:block;height:8px;border-radius:9px;margin-bottom:14px;
-  background:linear-gradient(90deg,#5778e4 65%,#2c3550 65%)}
-.home-macros i:nth-of-type(2){background:linear-gradient(90deg,#ff8871 68%,#49322b 68%)}
-.home-macros i:nth-of-type(3){background:linear-gradient(90deg,#f2b94f 48%,#423820 48%)}
-.home-icon.i-health{top:445px;left:calc(var(--home-x) + 198px)}
-.home-icon.i-utilities{top:445px;left:calc(var(--home-x) + 274px)}
-.home-icon.i-files{top:542px;left:calc(var(--home-x) + 198px)}
-.home-icon.i-settings{top:542px;left:calc(var(--home-x) + 274px)}
-.home-dock{top:244px;right:14px;width:64px;height:258px;border-radius:35px;
-  background:#ffffff20;border:1px solid #fff4;backdrop-filter:blur(10px);
-  display:flex;align-items:center;justify-content:space-around;flex-direction:column}
-.home-dock>div{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;
-  justify-content:center;font-size:28px;background:#eef0f4;color:#282c35}
-.home-dock>div:nth-child(2){background:#188eef;color:white}
-.home-dock>div:nth-child(4){background:#39c96a;color:white}
-.is-split[data-pose=split-right] .home-dock{left:13px;right:auto}
-.home-page-dots{left:50%;bottom:21px;transform:translateX(-50%);color:#dce2eb;font-size:10px;letter-spacing:5px}
-.home-status{top:24px;right:24px;width:56px;display:flex;flex-direction:column;gap:7px;align-items:center;
-  font-size:20px;text-shadow:0 1px 4px #000a}
-.home-status strong{font-size:18px;font-weight:750}
-.home-status>span:first-child{align-self:flex-end;font-size:18px}
-.home-wifi{border:3px solid #a6aebb;border-bottom:0;border-radius:50%;width:46px;height:40px;
-  display:flex;align-items:center;justify-content:center}
-.is-split[data-pose=split-right] .home-status{display:none}
+
+/* Short, restrained transitions for the simulator only. The iframe itself
+   is never reloaded when changing poses, so mock torrent state persists. */
+@keyframes demo-fold{0%{opacity:.65;transform:scaleX(.94) scaleY(.98)}100%{opacity:1;transform:none}}
+@keyframes demo-rotate{0%{opacity:.7;transform:rotate(-3deg) scale(.97)}100%{opacity:1;transform:none}}
+@keyframes demo-split{0%{opacity:.7;transform:scale(.97)}100%{opacity:1;transform:none}}
+@keyframes demo-shift{0%{opacity:.8;transform:translateX(5px)}100%{opacity:1;transform:none}}
+.device-frame[data-motion="fold"] .device-screen{animation:demo-fold .25s cubic-bezier(.2,.8,.2,1) both}
+.device-frame[data-motion="rotate"] .device-screen{animation:demo-rotate .23s ease-out both}
+.device-frame[data-motion="split"] .duo-panel{animation:demo-split .23s ease-out both}
+.device-frame[data-motion="shift"] .tide-panel{animation:demo-shift .18s ease-out both}
+@media(prefers-reduced-motion:reduce){
+  .frame-holder{transition:none}
+  .device-frame[data-motion] .device-screen,
+  .device-frame[data-motion] .duo-panel{animation:none}
+}

@@ -72,14 +72,16 @@ def run(site: Path, snapshots: Path) -> None:
 
             capture("desktop")
             page.locator("#duoBtn").click()
-            capture("unfolded-landscape")
-            page.locator("#foldBtn").click()
+            capture("folded-portrait")  # Duo always begins folded portrait
+            page.locator("#rotateBtn").click()
             capture("folded-landscape")
-            page.locator("#rotateBtn").click()
-            capture("folded-portrait")
             page.locator("#foldBtn").click()
-            capture("unfolded-portrait")
+            capture("unfolded-landscape")  # Unfold resets orientation
             page.locator("#rotateBtn").click()
+            capture("unfolded-portrait")
+            page.locator("#foldBtn").click()
+            capture("folded-portrait")  # Fold resets orientation
+            page.locator("#foldBtn").click()
             capture("unfolded-landscape")
             expect(page.locator("#splitBtn")).to_be_visible()
             page.locator("#splitBtn").click()
@@ -87,6 +89,9 @@ def run(site: Path, snapshots: Path) -> None:
             expect(page.locator("#shiftBtn")).to_be_visible()
             page.locator("#shiftBtn").click()
             capture("split-right")
+            assert "home-reference.avif" in page.locator("#homePanel").evaluate(
+                "el => getComputedStyle(el).backgroundImage"
+            )
 
             # The public showcase should never expose the removed footer.
             assert page.locator("#demoVersion").count() == 0
@@ -97,7 +102,7 @@ def run(site: Path, snapshots: Path) -> None:
         server.shutdown()
         server.server_close()
 
-    assert len(poses) == 8, poses
+    assert len(poses) == 9, poses
     print("Passed browser checks for:", ", ".join(poses))
 
 
