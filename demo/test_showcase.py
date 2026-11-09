@@ -63,6 +63,36 @@ def run(site: Path, snapshots: Path) -> None:
                     expect(demo.locator("body")).to_have_class(
                         re.compile(r"\btide-split-right\b"), timeout=10000
                     )
+                camera = page.locator(".status-camera")
+                if pose.startswith("folded-"):
+                    expect(camera).to_be_visible()
+                    camera_box = camera.bounding_box()
+                    screen = page.locator("#deviceScreen").bounding_box()
+                    scale = screen["width"] / (466 if pose == "folded-portrait" else 678)
+                    cx = camera_box["x"] + camera_box["width"] / 2
+                    cy = camera_box["y"] + camera_box["height"] / 2
+                    assert abs((screen["x"] + screen["width"] - cx) / scale - 48) < 1
+                    edge = cy - screen["y"] if pose == "folded-portrait" else screen["y"] + screen["height"] - cy
+                    assert abs(edge / scale - 48) < 1
+                else:
+                    expect(camera).to_be_hidden()
+                if pose == "unfolded-portrait":
+                    status = page.locator(".status-horizontal")
+                    expect(status).to_be_visible()
+                    expect(page.locator(".status-from-photo")).to_be_hidden()
+                    time = status.locator("span").first.bounding_box()
+                    connectivity = status.locator(".status-connectivity").bounding_box()
+                    assert abs(time["y"] + time["height"] / 2 - connectivity["y"] - connectivity["height"] / 2) < 1
+                    assert connectivity["x"] > time["x"] + time["width"]
+                if pose.startswith("split-"):
+                    panes = page.locator(".duo-panel")
+                    left, right = sorted((pane.bounding_box() for pane in panes.all()), key=lambda box: box["x"])
+                    screen = page.locator("#deviceScreen").bounding_box()
+                    assert abs(left["x"] - screen["x"]) < 1
+                    assert abs(right["x"] + right["width"] - screen["x"] - screen["width"]) < 1
+                    assert 0 < right["x"] - left["x"] - left["width"] <= 1
+                    assert left["y"] == right["y"] == screen["y"]
+                    assert left["height"] == right["height"] == screen["height"]
                 page.screenshot(
                     path=str(snapshots / f"{pose}.png"),
                     full_page=True,
@@ -94,26 +124,9 @@ def run(site: Path, snapshots: Path) -> None:
             assert "Home Screen" in page.locator("#homePanel").evaluate(
                 "el => getComputedStyle(el, '::after').content"
             )
-            assert page.locator(".status-camera img").count() == 0
-            assert page.locator(".status-horizontal").count() == 0
-            assert page.locator("#deviceFrame").evaluate(
-                "el => !!el.querySelector('.status-camera')"
-            )
-            # The unfolded portrait reuses the landscape system UI crop,
-            # oriented with the simulated screen rather than the host device.
             page.locator("#splitBtn").click()
             page.locator("#rotateBtn").click()
             capture("unfolded-portrait")
-            transform = page.locator(".status-from-photo").evaluate(
-                "el => getComputedStyle(el).transform"
-            )
-            terms = [float(v) for v in transform.removeprefix("matrix(").removesuffix(")").split(",")]
-            assert (
-                len(terms) == 6
-                and abs(terms[0]) < .01 and abs(terms[3]) < .01
-                and terms[1] > 0 and terms[2] < 0
-                and abs(terms[1] + terms[2]) < .01
-            ), transform
 
             # The public showcase should never expose the removed footer.
             assert page.locator("#demoVersion").count() == 0

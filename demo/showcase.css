@@ -45,19 +45,13 @@ main{width:100%;max-width:1710px;margin:auto;padding:12px clamp(8px,2.4vw,28px) 
 .tide-panel{z-index:1;background:#0a1119}
 iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 .home-panel{display:none}
-.device-frame.is-split{border:0!important;border-radius:0!important;background:transparent;
-  box-shadow:none;overflow:visible}
-.is-split .device-screen{border-radius:0;background:transparent;overflow:visible}
-/* Physical 951×669 unfolded surface: two 469px panels and a 13px
-   open gap. No invented hinge bar or solid rectangle between the screens. */
-.is-split .duo-panel{top:0;bottom:auto;width:469px;height:669px;overflow:hidden;
-  border-radius:49px;background-color:#0c111b;
-  box-shadow:0 0 0 1px #6f7a877a,0 18px 52px #0008}
-.is-split .tide-panel{z-index:2}
-.is-split[data-pose=split-left] .tide-panel{left:0;right:auto}
-.is-split[data-pose=split-left] .home-panel{left:482px;right:auto}
-.is-split[data-pose=split-right] .home-panel{left:0;right:auto}
-.is-split[data-pose=split-right] .tide-panel{left:482px;right:auto}
+/* Two app panes share the unfolded display's bezel and corner clipping. */
+.is-split .device-screen{background:#35424e}
+.is-split .duo-panel{width:calc((100% - 1px) / 2)}
+.is-split[data-pose=split-left] .tide-panel,
+.is-split[data-pose=split-right] .home-panel{right:auto}
+.is-split[data-pose=split-left] .home-panel,
+.is-split[data-pose=split-right] .tide-panel{left:auto}
 /* The original-resolution Home Screen panels are awaiting visual approval.
    This placeholder is deliberate: no new Home Screen assets enter GitHub
    until the user approves the crops shared separately. */
@@ -81,39 +75,36 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 /* The OS chrome is outside the Tide iframe. Position and orientation are
    determined by the selected physical pose, independent of viewer rotation. */
 .system-ui{position:absolute;z-index:8;pointer-events:none;color:white;text-shadow:0 1px 3px #000b}
-.device-frame[data-pose=desktop] .system-ui,.device-frame[data-pose=split-left] .system-ui{display:none}
-/* Camera punch-hole, separate from connectivity. An earlier image crop
-   accidentally included a Wi-Fi icon, so the demo uses a simple lens shape
-   until the exact camera reference is approved. */
-.status-camera{position:absolute;top:0;right:1px;display:grid;place-items:center;
-  width:43px;height:43px;border-radius:50%;background:#030506;
+.device-frame[data-pose=desktop] .system-ui{display:none}
+.status-camera{display:none}
+.device-frame[data-pose^="folded-"] .status-camera{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  display:grid;place-items:center;width:35px;height:35px;border-radius:50%;background:#030506;
   box-shadow:inset 0 0 0 2px #111d23,0 0 0 1px #26303a80}
-.status-camera::after{content:"";display:block;width:17px;height:17px;
+.status-camera::after{content:"";display:block;width:14px;height:14px;
   border-radius:50%;background:radial-gradient(circle at 42% 38%,
   #194653 0 10%,#0a202b 28%,#03080c 57%,#14212a 70%,#020406 100%);
   box-shadow:0 0 0 2px #071016}
 .status-horizontal{display:none}
-.status-from-photo{position:absolute;display:block;top:55px;right:0;width:54px;height:93px;object-fit:contain}
-/* Folded outer: the camera remains on the physical outside edge, with
-   status icons stacked into the outside strip seen in the source photos. */
-.device-frame[data-pose=folded-portrait] .system-ui{top:17px;right:17px;width:55px;height:155px}
-.device-frame[data-pose=folded-landscape] .system-ui{top:auto;bottom:17px;right:17px;width:55px;height:155px}
+.status-from-photo{position:absolute;display:block;inset:0;width:42px;height:auto}
+/* Center the camera 48px from the rounded edges, as in duo-folded.jpg. */
+.device-frame[data-pose^="folded-"] .system-ui{right:27px;width:42px;height:131px}
+.device-frame[data-pose=folded-portrait] .system-ui{top:30.5px}
+.device-frame[data-pose=folded-portrait] .status-from-photo{top:43px}
+.device-frame[data-pose=folded-landscape] .system-ui{bottom:30.5px}
 .device-frame[data-pose=folded-landscape] .status-camera{top:auto;bottom:0}
-.device-frame[data-pose=folded-landscape] .status-from-photo{top:auto;bottom:54px}
-/* Full inner landscape: rightmost camera at top, time/connectivity below. */
-.device-frame[data-pose=unfolded-landscape] .system-ui{top:20px;right:20px;width:55px;height:158px}
-/* Full inner portrait: the observed elongated camera island and right rail. */
-.device-frame[data-pose=unfolded-portrait] .system-ui{top:30px;right:19px;width:58px;height:250px}
-.device-frame[data-pose=unfolded-portrait] .status-camera{width:52px;height:103px;border-radius:27px;right:1px}
-.device-frame[data-pose=unfolded-portrait] .status-from-photo{
-  /* Landscape-style icons rotated with the display, in the reserved strip. */
-  top:116px;right:1px;transform:rotate(90deg) scale(.72);
-  transform-origin:center center;
-}
-/* Right-hand Split View has the physical camera on the far right above
-   the user-supplied time/connectivity crop. The other half's snapshot
-   already contains its own Home Screen status. */
-.device-frame[data-pose=split-right] .system-ui{top:20px;right:20px;width:55px;height:158px}
+.device-frame[data-pose=folded-landscape] .status-from-photo{top:auto;bottom:43px}
+/* The inner display has status indicators only. */
+.device-frame:is([data-pose=unfolded-landscape],.is-split) .system-ui{
+  top:16px;right:27px;width:42px;height:73px}
+.device-frame[data-pose=unfolded-portrait] .system-ui{
+  top:38px;right:24px;transform:translateY(-50%)}
+.device-frame[data-pose=unfolded-portrait] .status-from-photo{display:none}
+.device-frame[data-pose=unfolded-portrait] .status-horizontal{
+  display:flex;align-items:center;gap:8px;font-size:16px;font-weight:650;font-variant-numeric:tabular-nums}
+.status-connectivity{
+  width:32px;height:28px;
+  background:url("assets/status-overlay.webp") center bottom / 32px auto no-repeat}
 @media(max-width:880px){.topbar{gap:10px}.github-link{display:none}}
 @media(max-width:670px){.topbar{padding:10px 12px;gap:8px}.brand strong{font-size:23px}
   .duo-choices{padding-left:0;border-left:none;width:100%;order:5}
@@ -123,11 +114,6 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 }
 @media(prefers-reduced-motion:reduce){.frame-holder{transition:none}}
 
-/* Home Screen: CSS-resolution-independent recreation of the supplied iPhone
-   screenshots. Fonts, icons, widgets and labels remain crisp at every scale.
-   The right-home configuration keeps the dock on the far right; reversing
-   the split moves the dock to the left, as in the reference images. */
-
 /* Short, restrained transitions for the simulator only. The iframe itself
    is never reloaded when changing poses, so mock torrent state persists. */
 @keyframes demo-fold{0%{opacity:.65;transform:scaleX(.90) scaleY(.97)}100%{opacity:1;transform:none}}
@@ -136,7 +122,7 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 @keyframes demo-shift{0%{opacity:.8;transform:translateX(5px)}100%{opacity:1;transform:none}}
 .device-frame[data-motion="fold"] .device-screen{animation:demo-fold .25s cubic-bezier(.2,.8,.2,1) both}
 .device-frame[data-motion="rotate"] .device-screen{animation:demo-rotate .23s ease-out both}
-.device-frame[data-motion="split"] .duo-panel{animation:demo-split .23s ease-out both}
+.device-frame[data-motion="split"] .device-screen{animation:demo-split .23s ease-out both}
 .device-frame[data-motion="shift"] .tide-panel{animation:demo-shift .18s ease-out both}
 @media(prefers-reduced-motion:reduce){
   .frame-holder{transition:none}

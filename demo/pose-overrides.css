@@ -6,6 +6,11 @@ html[data-tide-demo-pose] {
   --rail-bottom:23px;
 }
 
+/* The folded landscape camera and status share the bottom of the rail lane. */
+html[data-tide-demo-pose="folded-landscape"] {
+  --rail-bottom:154px;
+}
+
 /* Folded outer screen and full-inner landscape: controls on the physical
    right edge of the selected mock device in global, detail and search modes. */
 body:is(
@@ -54,6 +59,16 @@ body[data-tide-demo-pose="split-right"] .detail-panel.mobile-open .detail-inner 
   padding-right:calc(var(--rail-slot) + 12px) !important;
 }
 
+/* Split panes are 475px wide including the reclaimed divider space.
+   Keep their narrow-window Settings placement at this breakpoint. */
+body:is([data-tide-demo-pose="split-left"], [data-tide-demo-pose="split-right"]) .topbar > .header-settings-button {
+  display:grid !important;
+  pointer-events:auto !important;
+}
+body:is([data-tide-demo-pose="split-left"], [data-tide-demo-pose="split-right"]) .action-rail .rail-button.rail-settings {
+  display:none !important;
+}
+
 /* Full unfolded portrait deliberately uses the horizontal bottom action
    toolbar. Never attach the right-edge override to that pose. */
 body[data-tide-demo-pose="unfolded-portrait"] .action-rail:not([data-mode="search"]) {
@@ -62,11 +77,5 @@ body[data-tide-demo-pose="unfolded-portrait"] .action-rail:not([data-mode="searc
   transform:translateX(-50%) !important;
 }
 
-/* Preserve a right-side OS strip in full unfolded portrait. The embedded
-   preview has no real PWA safe-area values, so this is simulated here. */
+/* Reserve room for the horizontal status row in the portrait header. */
 body[data-tide-demo-pose="unfolded-portrait"] .topbar {padding-right:100px !important}
-body[data-tide-demo-pose="unfolded-portrait"] .list-panel {padding-right:92px !important}
-body[data-tide-demo-pose="unfolded-portrait"] .detail-panel.mobile-open .detail-inner {padding-right:92px !important}
-
-/* Iframe samples don't inherit the host's system status region: the outer
-   showcase draws the OS indicator independently, based on the screenshots. */

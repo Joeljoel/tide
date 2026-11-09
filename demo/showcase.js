@@ -1,7 +1,6 @@
 (() => {
   'use strict';
-  // Physical Duo viewport dimensions measured in CSS px. The full device
-  // is rendered for Split View: 469 + 13 (open seam) + 469 = 951.
+  // Split View shares the full unfolded landscape viewport.
   const poses={
     desktop:{label:'Desktop',width:1280,height:800},
     'folded-portrait':{label:'Outer · portrait',width:466,height:678},
@@ -33,7 +32,7 @@
 
   function resizeFrame(){
     const config=poses[currentPose];
-    const border=config.split?0:device==='desktop'?6:5;
+    const border=device==='desktop'?6:5;
     const w=config.width+border*2,h=config.height+border*2;
     const maximumW=Math.max(110,stage.clientWidth-20);
     const maximumH=Math.max(350,Math.min(930,window.innerHeight*1.5));
@@ -55,7 +54,7 @@
     holder.style.height=Math.ceil(h*scale)+'px';
     stage.style.minHeight=Math.ceil(h*scale)+38+'px';
     get('poseName').textContent=config.label;
-    get('poseDimensions').textContent=config.split?'469 + 13 + 469 × 669':config.width+' × '+config.height;
+    get('poseDimensions').textContent=config.width+' × '+config.height;
   }
 
   function animatePose(kind){
