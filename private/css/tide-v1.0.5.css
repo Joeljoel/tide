@@ -2157,3 +2157,41 @@ html[data-tide-theme="light"] .size-value .size-sep{color:#627482!important;}
 html[data-tide-theme="light"] .progress-track{background:rgba(67,93,110,.17)!important;}
 html[data-tide-theme="light"] .selection-indicator{border-color:rgba(55,85,99,.40)!important;background:rgba(226,238,244,.70)!important;}
 html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88,.54)!important;}
+
+/* v1.0.5 header-only test fix for Duo unfolded portrait.
+   The system clock/connectivity island is overlaid by iOS, not represented
+   in safe-area-inset-right. The unfolded viewport can report under 600 CSS
+   pixels, where the tide-duo-portrait class is not assigned. Keep both
+   header controls together directly to the left of that island.
+   Folded widths, landscape, and desktop are left untouched. */
+@media (min-width:475px) and (orientation:portrait) {
+  body:not(.tide-desktop) .topbar {
+    --tide-duo-header-clearance:clamp(158px,18vw,190px);
+  }
+  body:not(.tide-desktop) .topbar .header-rates {
+    position:absolute!important;
+    top:50%!important;
+    right:calc(var(--tide-duo-header-clearance) + 52px)!important;
+    left:auto!important;
+    margin:0!important;
+    transform:translateY(-50%);
+    flex-direction:column!important;
+    align-items:flex-end!important;
+    gap:4px!important;
+    white-space:nowrap;
+  }
+  body:not(.tide-desktop) .topbar .header-settings-button {
+    position:absolute!important;
+    top:50%!important;
+    right:var(--tide-duo-header-clearance)!important;
+    left:auto!important;
+    margin:0!important;
+    transform:translateY(-50%);
+    z-index:28;
+    pointer-events:auto!important;
+    touch-action:manipulation;
+  }
+  body:not(.tide-desktop) .topbar .header-settings-button:active {
+    transform:translateY(-50%) scale(.94);
+  }
+}
