@@ -38,6 +38,31 @@ Unknown readings fall back to the existing right-edge layout.
 
 Released in **Tide v1.2.0**. The existing v1.1.1 landscape-rotation fix remains under investigation in a separate draft PR.
 
+## Temporary rotation viewport diagnostic
+
+This separate diagnostic branch is **not a Tide release or a proposed fix**. It is
+based on stable v1.2.0 and instruments the standalone iPhone Duo landscape
+bottom-gap regression tracked by Issue #4 and draft PR #3.
+
+A small panel appears inside Tide. Rotate **landscape → portrait → landscape**
+until the gap appears. The red line marks the bottom of Tide's actual app shell.
+Compare the following live height strategies without reinstalling:
+
+- **As installed** — the regular stable v1.2.0 CSS.
+- **Root 100vh** — changes only the html/body height.
+- **All 100vh** — changes html/body and the app shell height.
+- **Shell 100lvh** — tests the large viewport height on the shell.
+- **dvh + top inset** — tests a safe-area top correction.
+
+The panel displays screen, visual, window and CSS viewport heights, plus the
+positions of the shell and torrent list. Capture screenshots in the initial
+landscape, rotated landscape with the gap, and after changing the height
+strategy. If the red line ends above the bottom gap despite a full-size
+reported viewport, the strip may be outside the web content region.
+
+**Never merge this diagnostic code.** Return to the stable v1.2.0 release
+after testing. The main branch and the existing v1.1.1 draft PR are unchanged.
+
 ## Screenshots
 
 ### iPhone Duo
