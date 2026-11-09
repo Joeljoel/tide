@@ -89,6 +89,23 @@ jobs:
           grep -Fq 'id="foldBtn"' _site/previews/pr-7/index.html
           grep -Fq 'id="splitBtn"' _site/previews/pr-7/index.html
           grep -Fq 'Tide Demo Collection' _site/previews/pr-7/app/js/tide-v*.js
+      - name: Check out PR #9 for preview
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: dbf3674b6214fc594c9e38aab87da92c054e2a74
+          path: _pr9_source
+          persist-credentials: false
+      - name: Build isolated PR #9 preview
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          preview="_site/previews/pr-9"
+          python3 _pr9_source/demo/build.py --output "$(pwd)/$preview"
+          node --check "$preview/showcase.js"
+          grep -Fq "connect-src 'none'" "$preview/app/index.html"
+          grep -Fq 'tide-folded-camera-bottom-right' "$preview"/app/js/tide-v*.js
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
