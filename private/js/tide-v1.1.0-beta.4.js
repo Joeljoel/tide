@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '1.1.0-beta.3';
+  window.__TIDE_BUILD__ = '1.1.0-beta.4';
   const themePreference = (()=>{try{return localStorage.getItem('tide_appearance')||'dark';}catch{return 'dark';}})();
   const systemAppearance=window.matchMedia?.('(prefers-color-scheme: light)');
   function setAppearance(value){
@@ -561,7 +561,7 @@
   }
   async function checkAboutUpdates(){
     if(!settingsAboutOpen())return;
-    const current=window.__TIDE_BUILD__||'1.1.0-beta.3';
+    const current=window.__TIDE_BUILD__||'1.1.0-beta.4';
     const parsed=parseVersion(current);
     if(!parsed){setInfoText('infoUpdateStatus','Unrecognised installed version');return;}
     const beta=parsed.pre.length>0;
@@ -630,7 +630,7 @@
     return `<label class="settings-field"><span>${label} <small>KiB/s · 0 = unlimited</small></span><input type="number" inputmode="numeric" data-pref="${key}" min="0" max="100000000" step="1" value="${esc(qbPreferences[key]??0)}"></label>`;
   };
   function settingsAboutHTML(){
-    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.1.0-beta.3')}</strong></div>
+    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.1.0-beta.4')}</strong></div>
       <div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>
       <div class="info-section-label">This session</div>
       <div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>
@@ -870,6 +870,48 @@
     event.stopPropagation();
     openHeaderSettings();
   });
+  // In the Duo's unfolded portrait layout, the clipped/backdrop-filtered
+  // header can paint a button without exposing its hit target to iOS Safari.
+  // Portal the SAME button to the app's fixed control layer. Position using
+  // the existing header rectangle to keep its verified visual placement.
+  // Its event listeners remain attached during reparenting.
+  const settingsHeaderHome=settingsHeaderButton?.parentNode;
+  const settingsHeaderNext=settingsHeaderButton?.nextSibling;
+  const settingsHeaderApp=document.getElementById('app');
+  function syncSettingsHeaderPortal(){
+    if(!settingsHeaderButton||!settingsHeaderHome||!settingsHeaderApp)return;
+    const portrait=window.innerWidth>=475
+      && window.matchMedia('(orientation: portrait)').matches
+      && !document.body.classList.contains('tide-desktop');
+    if(portrait){
+      const rect=document.querySelector('.topbar').getBoundingClientRect();
+      if(settingsHeaderButton.parentNode!==settingsHeaderApp)
+        settingsHeaderApp.appendChild(settingsHeaderButton);
+      settingsHeaderButton.classList.add('tide-settings-portal');
+      settingsHeaderButton.style.setProperty('position','fixed','important');
+      settingsHeaderButton.style.setProperty('top',(rect.top+rect.height/2)+'px','important');
+      settingsHeaderButton.style.setProperty('right','clamp(200px, 28vw, 235px)','important');
+      settingsHeaderButton.style.setProperty('left','auto','important');
+      settingsHeaderButton.style.setProperty('bottom','auto','important');
+      settingsHeaderButton.style.setProperty('margin','0','important');
+      settingsHeaderButton.style.setProperty('transform','translateY(-50%)','important');
+      settingsHeaderButton.style.setProperty('z-index','37','important');
+      settingsHeaderButton.style.setProperty('pointer-events','auto','important');
+    }else{
+      if(settingsHeaderButton.parentNode!==settingsHeaderHome)
+        settingsHeaderHome.insertBefore(settingsHeaderButton,settingsHeaderNext);
+      settingsHeaderButton.classList.remove('tide-settings-portal');
+      for(const prop of ['position','top','right','left','bottom','margin','transform','z-index','pointer-events'])
+        settingsHeaderButton.style.removeProperty(prop);
+    }
+  }
+  window.addEventListener('resize',syncSettingsHeaderPortal,{passive:true});
+  window.addEventListener('orientationchange',syncSettingsHeaderPortal,{passive:true});
+  window.addEventListener('pageshow',syncSettingsHeaderPortal,{passive:true});
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden)syncSettingsHeaderPortal();
+  });
+  syncSettingsHeaderPortal();
   document.addEventListener('click', e=>{
     const fold=e.target.closest('[data-folder-toggle]');if(fold){const key=fold.dataset.folderToggle;if(state.collapsedFolders.has(key))state.collapsedFolders.delete(key);else state.collapsedFolders.add(key);renderDetail();return;}
     const tab=e.target.closest('[data-settings-tab]');if(tab){renderSettingsTab(tab.dataset.settingsTab);return;}

@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0--beta.3-293a46?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0--beta.4-293a46?style=flat-square">
 </p>
 
 <p align="center">
@@ -66,4 +66,4 @@ Use **Settings → About → Check updates** to check the latest Settings beta a
 
 ## Versioning
 
-Tide follows [Semantic Versioning](https://semver.org/): feature releases increment the minor version (`1.1.0`), fixes after a stable release increment the patch (`1.1.1`), and installable preview builds use numbered prereleases (`1.1.0-beta.3`, `1.1.0-beta.4`). The Settings beta remains a draft PR, not a stable release.
+Tide follows [Semantic Versioning](https://semver.org/): feature releases increment the minor version (`1.1.0`), fixes after a stable release increment the patch (`1.1.1`), and installable preview builds use numbered prereleases (`1.1.0-beta.4`, `1.1.0-beta.4`). The Settings beta remains a draft PR, not a stable release.

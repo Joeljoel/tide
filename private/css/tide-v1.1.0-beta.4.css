@@ -2158,7 +2158,7 @@ html[data-tide-theme="light"] .progress-track{background:rgba(67,93,110,.17)!imp
 html[data-tide-theme="light"] .selection-indicator{border-color:rgba(55,85,99,.40)!important;background:rgba(226,238,244,.70)!important;}
 html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88,.54)!important;}
 
-/* v1.1.0-beta.3 — Keep header buttons OUTSIDE the iPhone Duo's system status island.
+/* v1.1.0-beta.4 — Keep header buttons OUTSIDE the iPhone Duo's system status island.
    On unfolded portrait the iOS time / 5G island is drawn above the webview;
    safe-area-inset-right does not express its width. This includes compact
    unfolded webview widths (475–599px) that lack the tide-duo-portrait class.
@@ -2208,3 +2208,20 @@ html[data-tide-theme="light"] .torrent-card.selected{border-color:rgba(48,125,88
     min-width:44px;min-height:44px;pointer-events:auto !important;
   }
 }
+
+/* v1.1.0-beta.4: render the same Settings button above the header's
+   blurred/clipped hit-test layer in unfolded Duo portrait. The JS portals
+   it into the shell using the header's current viewport rectangle.
+   Keep the portal beneath the modal backdrop (z38) and dialog (z40). */
+body:not(.tide-desktop) .header-settings-button.tide-settings-portal {
+  position:fixed !important;
+  right:clamp(200px,28vw,235px) !important;
+  left:auto !important;
+  bottom:auto !important;
+  z-index:37 !important;
+  pointer-events:auto !important;
+  touch-action:manipulation;
+  cursor:pointer;
+}
+#modalMount:empty {pointer-events:none !important;}
+.overlay[hidden] {display:none !important;}
