@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '1.1.0';
+  window.__TIDE_BUILD__ = '1.2.0-beta.1';
   const themePreference = (()=>{try{return localStorage.getItem('tide_appearance')||'dark';}catch{return 'dark';}})();
   const systemAppearance=window.matchMedia?.('(prefers-color-scheme: light)');
   function setAppearance(value){
@@ -15,6 +15,53 @@
   }
   let appearance=setAppearance(themePreference);
   systemAppearance?.addEventListener?.('change',()=>{if(appearance==='system')setAppearance('system');});
+  // iPhone Duo Split View: the successful display lab established that
+  // both halves are portrait-shaped (~469 x 669 CSS px) while the physical
+  // device reports landscape. Left reports safe L/R = 0/0, right = 0/~84.
+  // screenX reports 0 on both, so it cannot determine window position.
+  const splitSafeProbe=document.getElementById('tideSplitSafeProbe');
+  let splitProbePhase=false;
+  let lastSplitSide=null;
+  function classifyDuoSplitSide(m){
+    const candidate=m.iphone && !m.desktop && m.width>=350 && m.width<=540
+      && m.height>m.width && m.landscapeReported;
+    if(!candidate)return null;
+    if(m.safeLeft<=10 && m.safeRight>=35)return 'right';
+    if(m.safeLeft<=10 && m.safeRight<=10)return 'left';
+    return null; // Unrecognised insets: retain Tide's default right rail.
+  }
+  function detectDuoSplitSide(){
+    const landscapeReported=/^landscape/i.test(screen.orientation?.type||'')
+      || (typeof window.orientation==='number' && Math.abs(window.orientation)===90);
+    const width=window.innerWidth,height=window.innerHeight;
+    const fine=window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
+    // Avoid style measurements outside plausible Duo Split View windows.
+    if(!splitSafeProbe || !/iPhone/i.test(navigator.userAgent) || fine
+      || width<350 || width>540 || height<=width || !landscapeReported)return null;
+    // Side changes do not necessarily emit a resize event on iOS. Toggle
+    // equivalent env() declarations before reading computed insets.
+    splitProbePhase=!splitProbePhase;
+    const insetStyle=edge=>splitProbePhase
+      ? 'env(safe-area-inset-'+edge+',0px)'
+      : 'calc(env(safe-area-inset-'+edge+',0px) + 0px)';
+    splitSafeProbe.style.paddingLeft=insetStyle('left');
+    splitSafeProbe.style.paddingRight=insetStyle('right');
+    const computed=getComputedStyle(splitSafeProbe);
+    const safeLeft=parseFloat(computed.paddingLeft);
+    const safeRight=parseFloat(computed.paddingRight);
+    if(!Number.isFinite(safeLeft)||!Number.isFinite(safeRight))return null;
+    return classifyDuoSplitSide({
+      iphone:true,desktop:false,width,height,landscapeReported,safeLeft,safeRight
+    });
+  }
+  function syncDuoSplitPlacement(){
+    const side=detectDuoSplitSide();
+    if(side===lastSplitSide)return;
+    lastSplitSide=side;
+    document.body.classList.toggle('tide-split-left',side==='left');
+    document.body.classList.toggle('tide-split-right',side==='right');
+    document.body.dataset.tideSplitSide=side||'unknown';
+  }
   // Input capabilities determine the desktop mode; width alone cannot distinguish
   // an unfolded Duo from a laptop. Folded and unfolded landscape retain the rail.
   // Unfolded portrait gets a floating bottom control group.
@@ -74,6 +121,7 @@
       diagnostics.hidden=new URLSearchParams(location.search).get('viewport')!=='1';
       if(!diagnostics.hidden) diagnostics.textContent=`Tide viewport · ${desktop?'desktop':duoPortrait?'Duo portrait':'rail'}\nscreen ${screen.width}×${screen.height} · avail ${screen.availHeight} · outer ${outerHeight}\ninner ${innerWidth}×${innerHeight} · doc ${document.documentElement.clientHeight}\nvisual ${Math.round(vv?.width||0)}×${Math.round(vv?.height||0)} + ${Math.round(vv?.offsetTop||0)}\nstandalone ${standalone} · gap ${gap} · root ${Math.round(rootHeight)} · body ${Math.round(bodyHeight)} · large ${Math.round(largeViewport)} · trial ${portraitHeaderTrial} · shell ${Math.round(document.getElementById('app')?.getBoundingClientRect().height||0)}`;
     }
+    syncDuoSplitPlacement();
   };
   window.addEventListener('resize',syncDeviceGeometry,{passive:true});
   window.addEventListener('orientationchange',syncDeviceGeometry,{passive:true});
@@ -83,6 +131,11 @@
   window.addEventListener('pageshow',syncDeviceGeometry,{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncDeviceGeometry();});
   syncDeviceGeometry();
+  // Split View can move between halves with unchanged viewport dimensions.
+  // Re-read the safe area only while the page is visible; the normal
+  // orientation/resize listeners above also update the placement.
+  setInterval(()=>{if(!document.hidden)syncDuoSplitPlacement();},400);
+  window.addEventListener('focus',syncDuoSplitPlacement,{passive:true});
   const $ = (selector, root=document) => root.querySelector(selector);
   const demo = location.protocol === 'file:' || new URLSearchParams(location.search).get('demo') === '1';
   const readPref = (key, fallback) => { try { return localStorage.getItem('tide_' + key) || fallback; } catch { return fallback; } };
@@ -562,7 +615,7 @@
   }
   async function checkAboutUpdates(){
     if(!settingsAboutOpen())return;
-    const current=window.__TIDE_BUILD__||'1.1.0';
+    const current=window.__TIDE_BUILD__||'1.2.0-beta.1';
     const parsed=parseVersion(current);
     if(!parsed){setInfoText('infoUpdateStatus','Unrecognised installed version');return;}
     const beta=parsed.pre.length>0;
@@ -571,8 +624,8 @@
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),7000);
     try{
       const sources=[{ref:'main',url:'https://github.com/Joeljoel/tide'}];
-      // Prerelease installs check the current Settings PR as well as main.
-      if(beta)sources.push({ref:'feature/settings-menu',url:'https://github.com/Joeljoel/tide/pull/1'});
+      // Prerelease builds follow their active feature branch as well as main.
+      if(beta)sources.push({ref:'feature/duo-split-edge-controls-1.2.0',url:'https://github.com/Joeljoel/tide/tree/feature/duo-split-edge-controls-1.2.0'});
       const results=await Promise.allSettled(sources.map(async source=>{
         const response=await fetch('https://raw.githubusercontent.com/Joeljoel/tide/'+source.ref+'/version.json?nocache='+Date.now(),
           {credentials:'omit',cache:'no-store',signal:controller.signal,headers:{'Accept':'application/json'}});

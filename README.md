@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-293a46?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.2.0--beta.1-293a46?style=flat-square">
 </p>
 
 <p align="center">
@@ -17,6 +17,26 @@
 </p>
 
 Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
+
+## Split View control placement (v1.2.0-beta.1)
+
+This branch previews an automatic iPhone Duo Split View layout. When Tide is
+running in the **left half** of the unfolded inner display, the floating
+action rail moves to the left edge and the torrent list/detail view reserves
+a left gutter for those controls. Search and contextual action buttons use
+the same left edge. The **right half**, folded and full-screen layouts keep
+the existing right-side controls.
+
+The experiment uses the measurements confirmed in the Duo Window Test:
+a portrait-shaped, ~469 × 669 CSS px web window with a landscape device
+orientation, and horizontal safe areas near **0 / 0** (left half) versus
+**0 / 84** (right half). Tide rechecks the safe-area values every 400 ms
+because iOS might not emit resize events when Split View windows move.
+Unknown readings fall back to the existing right-edge layout.
+
+**Test build only:** [download the Split View branch ZIP](https://github.com/Joeljoel/tide/archive/refs/heads/feature/duo-split-edge-controls-1.2.0.zip).
+The latest published stable version remains **v1.1.0**. Please test
+both halves and moving the same window from one side to the other before merging.
 
 ## Screenshots
 
