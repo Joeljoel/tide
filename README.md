@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-293a46?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.1.1-293a46?style=flat-square">
 </p>
 
 <p align="center">
@@ -67,6 +67,12 @@ Use **Settings → About → Check updates** to check for newer stable versions 
 ## Versioning
 
 Tide follows [Semantic Versioning](https://semver.org/): major releases contain breaking changes, minor releases add features (for example `1.1.0`), and patch releases contain compatible fixes (`1.1.1`). Pre-release test builds use version suffixes such as `1.2.0-beta.1`, `1.2.0-beta.2`, and `1.2.0-rc.1` before the stable release.
+
+## v1.1.1 — Landscape rotation fix
+
+- Restore the full unfolded-landscape workspace after rotating through portrait, even when iOS temporarily reports a reduced dynamic viewport height.
+- Re-measure after orientation settles and preserve the last valid landscape height for that display width.
+- Keep the existing portrait-gap workaround and all folded, desktop, Settings, and appearance layouts unchanged.
 
 ## What's new in v1.1.0
 

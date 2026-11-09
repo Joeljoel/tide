@@ -2337,3 +2337,12 @@ html[data-tide-theme="light"] .search-wrap.bottom-search input::placeholder {
     stroke-width:1.8 !important;
   }
 }
+
+/* v1.1.1 — recover the full unfolded-landscape workspace after a
+   portrait → landscape rotation in iOS standalone mode. 100dvh can retain
+   the portrait transition's reduced height. Use independently measured,
+   bounded landscape height when greater than the CSS dynamic viewport.
+   This does not change the known portrait gap or other layouts. */
+body.duo-standalone.tide-duo-landscape:not(.tide-desktop) .shell {
+  height:max(100dvh,var(--tide-landscape-shell-height,0px)) !important;
+}

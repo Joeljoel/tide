@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '1.1.0';
+  window.__TIDE_BUILD__ = '1.1.1';
   const themePreference = (()=>{try{return localStorage.getItem('tide_appearance')||'dark';}catch{return 'dark';}})();
   const systemAppearance=window.matchMedia?.('(prefers-color-scheme: light)');
   function setAppearance(value){
@@ -18,6 +18,10 @@
   // Input capabilities determine the desktop mode; width alone cannot distinguish
   // an unfolded Duo from a laptop. Folded and unfolded landscape retain the rail.
   // Unfolded portrait gets a floating bottom control group.
+  // Retain the largest valid unfolded-landscape height for the same width.
+  // On an iOS PWA, 100dvh can shrink after portrait → landscape rotation.
+  let lastLandscapeViewport=null;
+  let geometrySettleTimer=null;
   const syncDeviceGeometry = () => {
     const standalone=window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone===true;
     const fine=window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
@@ -60,6 +64,24 @@
     const portraitHeaderTrial=allowed&&fullHeight<=window.innerHeight+1?82:0;
     const shellHeight=allowed?Math.max(cssCandidate,fullHeight,largeViewport,window.innerHeight+portraitHeaderTrial):cssCandidate;
     document.documentElement.style.setProperty('--tide-shell-height',Math.round(shellHeight)+'px');
+
+    // Fix the rotation-only landscape gap without modifying the existing
+    // portrait workaround. The document may report a smaller 100dvh after
+    // returning from portrait even while outer/screen/visual metrics or
+    // its last good landscape measurement confirm more usable height.
+    let landscapeHeight=0;
+    if(standalone && duoLandscape && !editing && (!vv || Math.abs(vv.scale-1)<.01)){
+      const largeLandscape=largeViewport>=window.innerHeight-2
+        && largeViewport<=window.innerHeight+190 ? largeViewport : 0;
+      let measured=Math.max(fullHeight,largeLandscape);
+      if(lastLandscapeViewport && Math.abs(lastLandscapeViewport.width-window.innerWidth)<=24)
+        measured=Math.max(measured,lastLandscapeViewport.height);
+      // Do not let a stale portrait-sized screen metric stretch landscape.
+      landscapeHeight=Math.round(Math.min(measured,window.innerHeight+190));
+      lastLandscapeViewport={width:window.innerWidth,height:landscapeHeight};
+    }
+    document.documentElement.style.setProperty('--tide-landscape-shell-height',
+      landscapeHeight?landscapeHeight+'px':'0px');
     // Keep keyboard calculations separate from the physical-screen gap.
     const covered=vv && vv.scale===1 ? Math.max(0,window.innerHeight-(vv.height+vv.offsetTop)) : 0;
     const keyboard=editing && covered>115 ? Math.round(covered) : 0;
@@ -72,13 +94,21 @@
     const diagnostics=document.getElementById('viewportDiagnostics');
     if(diagnostics){
       diagnostics.hidden=new URLSearchParams(location.search).get('viewport')!=='1';
-      if(!diagnostics.hidden) diagnostics.textContent=`Tide viewport · ${desktop?'desktop':duoPortrait?'Duo portrait':'rail'}\nscreen ${screen.width}×${screen.height} · avail ${screen.availHeight} · outer ${outerHeight}\ninner ${innerWidth}×${innerHeight} · doc ${document.documentElement.clientHeight}\nvisual ${Math.round(vv?.width||0)}×${Math.round(vv?.height||0)} + ${Math.round(vv?.offsetTop||0)}\nstandalone ${standalone} · gap ${gap} · root ${Math.round(rootHeight)} · body ${Math.round(bodyHeight)} · large ${Math.round(largeViewport)} · trial ${portraitHeaderTrial} · shell ${Math.round(document.getElementById('app')?.getBoundingClientRect().height||0)}`;
+      if(!diagnostics.hidden) diagnostics.textContent=`Tide viewport · ${desktop?'desktop':duoPortrait?'Duo portrait':'rail'}\nscreen ${screen.width}×${screen.height} · avail ${screen.availHeight} · outer ${outerHeight}\ninner ${innerWidth}×${innerHeight} · doc ${document.documentElement.clientHeight}\nvisual ${Math.round(vv?.width||0)}×${Math.round(vv?.height||0)} + ${Math.round(vv?.offsetTop||0)}\nstandalone ${standalone} · gap ${gap} · root ${Math.round(rootHeight)} · body ${Math.round(bodyHeight)} · large ${Math.round(largeViewport)} · trial ${portraitHeaderTrial} · shell ${Math.round(document.getElementById('app')?.getBoundingClientRect().height||0)} · landscape target ${landscapeHeight}`;
     }
   };
-  window.addEventListener('resize',syncDeviceGeometry,{passive:true});
-  window.addEventListener('orientationchange',syncDeviceGeometry,{passive:true});
+  // WebKit reports orientation and viewport-size changes in separate phases.
+  // Re-measure after layout commits, and again once the rotation settles.
+  const settleDeviceGeometry=()=>{
+    syncDeviceGeometry();
+    requestAnimationFrame(()=>requestAnimationFrame(syncDeviceGeometry));
+    clearTimeout(geometrySettleTimer);
+    geometrySettleTimer=setTimeout(syncDeviceGeometry,350);
+  };
+  window.addEventListener('resize',settleDeviceGeometry,{passive:true});
+  window.addEventListener('orientationchange',settleDeviceGeometry,{passive:true});
   window.visualViewport?.addEventListener('scroll',syncDeviceGeometry,{passive:true});
-  window.visualViewport?.addEventListener('resize',syncDeviceGeometry,{passive:true});
+  window.visualViewport?.addEventListener('resize',settleDeviceGeometry,{passive:true});
   window.matchMedia?.('(hover: hover) and (pointer: fine)')?.addEventListener?.('change',syncDeviceGeometry);
   window.addEventListener('pageshow',syncDeviceGeometry,{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncDeviceGeometry();});
