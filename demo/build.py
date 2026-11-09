@@ -109,6 +109,54 @@ def make_preview_script(source: str) -> str:
         "  const demo = true; // Public generated demo copy: always use fake data.",
         "force demo mode",
     )
+
+    # Keep Add torrent functional for visitors, but never open local files
+    # or submit any real magnet to a server.
+    source = replace_one(
+        source,
+        "    if(kind==='menu'&&torrent){const paused=isPaused(torrent);",
+        """    if(kind==='add'){
+      const demoMagnet=mount.querySelector('#magnetInput');
+      if(demoMagnet){
+        demoMagnet.value='magnet:?xt=urn:btih:0123456789ABCDEF0123456789ABCDEF01234567&dn=Tide+Demo+Collection';
+        demoMagnet.readOnly=true;
+      }
+      const demoFile=mount.querySelector('#torrentFile');
+      if(demoFile)demoFile.disabled=true;
+      const demoPicker=mount.querySelector('.file-picker');
+      if(demoPicker){
+        demoPicker.setAttribute('aria-disabled','true');
+        demoPicker.style.pointerEvents='none';
+        demoPicker.style.opacity='.42';
+      }
+    }
+    if(kind==='menu'&&torrent){const paused=isPaused(torrent);""",
+        "demo add modal and disabled file chooser",
+    )
+
+    source = replace_one(
+        source,
+        "if(demo){mock.unshift({hash:'demo-'+Date.now(),name:blob?blob.name:value.slice(0,52),size:0,progress:0,dlspeed:0,upspeed:0,eta:8640000,availability:0,state:'metaDL'});}",
+        """if(demo){
+      const number=mock.filter(t=>t.hash.startsWith('demo-added-')).length+1;
+      mock.unshift({
+        hash:'demo-added-'+Date.now()+'-'+number,
+        name:'Tide Demo Collection '+number+' (sample)',
+        size:2.4*1024**3,
+        progress:.12,
+        dlspeed:4.2*1024**2,
+        upspeed:0,
+        eta:620,
+        availability:5.8,
+        state:'downloading',
+        num_seeds:18,
+        num_leechs:4,
+        ratio:0,
+        save_path:'/downloads/demo'
+      });
+    }""",
+        "functional generated demo torrent",
+    )
     if "tide-demo-set-pose" not in source or "const demo = true;" not in source:
         raise RuntimeError("Demo runtime was not fully patched")
     return source
