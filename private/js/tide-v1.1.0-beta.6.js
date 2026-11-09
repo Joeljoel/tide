@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '1.1.0-beta.5';
+  window.__TIDE_BUILD__ = '1.1.0-beta.6';
   const themePreference = (()=>{try{return localStorage.getItem('tide_appearance')||'dark';}catch{return 'dark';}})();
   const systemAppearance=window.matchMedia?.('(prefers-color-scheme: light)');
   function setAppearance(value){
@@ -561,7 +561,7 @@
   }
   async function checkAboutUpdates(){
     if(!settingsAboutOpen())return;
-    const current=window.__TIDE_BUILD__||'1.1.0-beta.5';
+    const current=window.__TIDE_BUILD__||'1.1.0-beta.6';
     const parsed=parseVersion(current);
     if(!parsed){setInfoText('infoUpdateStatus','Unrecognised installed version');return;}
     const beta=parsed.pre.length>0;
@@ -630,7 +630,7 @@
     return `<label class="settings-field"><span>${label} <small>KiB/s · 0 = unlimited</small></span><input type="number" inputmode="numeric" data-pref="${key}" min="0" max="100000000" step="1" value="${esc(qbPreferences[key]??0)}"></label>`;
   };
   function settingsAboutHTML(){
-    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.1.0-beta.5')}</strong></div>
+    return `<div class="info-current"><span>Installed version</span><strong>v${esc(window.__TIDE_BUILD__||'1.1.0-beta.6')}</strong></div>
       <div class="info-update-row"><span id="infoUpdateStatus" role="status" aria-live="polite">Checking GitHub…</span><a id="infoUpdateLink" href="https://github.com/Joeljoel/tide" target="_blank" rel="noopener noreferrer" hidden>View update</a></div>
       <div class="info-section-label">This session</div>
       <div class="info-metrics"><div><span>Downloaded</span><strong id="infoSessionDown">—</strong></div><div><span>Uploaded</span><strong id="infoSessionUp">—</strong></div></div>
@@ -870,6 +870,45 @@
     event.stopPropagation();
     openHeaderSettings();
   });
+  // Fallback for iPhone Duo unfolded portrait: iOS can paint the header
+  // control correctly while hit-testing a neighbouring composited layer.
+  // Listen at capture phase and use the button's actual screen rectangle.
+  // No extra element, overlay, position change or user-facing debug UI.
+  const settingsHitTest=(x,y)=>{
+    if(!settingsHeaderButton||state.modal||!document.body.contains(settingsHeaderButton))return false;
+    const r=settingsHeaderButton.getBoundingClientRect();
+    if(r.width<30||r.height<30)return false;
+    const header=settingsHeaderButton.closest('.topbar');
+    if(!header||getComputedStyle(header).display==='none')return false;
+    const pad=5;
+    return x>=r.left-pad&&x<=r.right+pad&&y>=r.top-pad&&y<=r.bottom+pad;
+  };
+  let settingsCapturedTouch=null;
+  window.addEventListener('touchstart',event=>{
+    settingsCapturedTouch=null;
+    if(event.touches.length!==1)return;
+    const t=event.touches[0];
+    if(settingsHitTest(t.clientX,t.clientY))
+      settingsCapturedTouch={id:t.identifier,x:t.clientX,y:t.clientY};
+  },{capture:true,passive:true});
+  window.addEventListener('touchcancel',()=>{settingsCapturedTouch=null;},{capture:true,passive:true});
+  window.addEventListener('touchend',event=>{
+    const origin=settingsCapturedTouch;
+    settingsCapturedTouch=null;
+    if(!origin)return;
+    const t=Array.from(event.changedTouches).find(t=>t.identifier===origin.id);
+    if(!t||Math.hypot(t.clientX-origin.x,t.clientY-origin.y)>15
+       ||!settingsHitTest(t.clientX,t.clientY))return;
+    if(event.cancelable)event.preventDefault(); // avoid Safari's synthetic click
+    event.stopImmediatePropagation();
+    openHeaderSettings();
+  },{capture:true,passive:false});
+  window.addEventListener('click',event=>{
+    if(event.detail===0||!settingsHitTest(event.clientX,event.clientY))return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    openHeaderSettings();
+  },true);
   // Header Settings stays beside the logo in normal document flow.
   document.addEventListener('click', e=>{
     const fold=e.target.closest('[data-folder-toggle]');if(fold){const key=fold.dataset.folderToggle;if(state.collapsedFolders.has(key))state.collapsedFolders.delete(key);else state.collapsedFolders.add(key);renderDetail();return;}
