@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.2.0--beta.2-293a46?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.2.0-293a46?style=flat-square">
 </p>
 
 <p align="center">
@@ -18,9 +18,9 @@
 
 Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
 
-## Split View control placement (v1.2.0-beta.2)
+## Split View control placement (v1.2.0)
 
-This branch previews an automatic iPhone Duo Split View layout. When Tide is
+Tide automatically adapts its floating controls to either side of the iPhone Duo's inner Split View. When Tide is
 running in the **left half** of the unfolded inner display, the floating
 action rail moves to the left edge and the torrent list/detail view reserves
 a left gutter for those controls.
@@ -36,9 +36,7 @@ orientation, and horizontal safe areas near **0 / 0** (left half) versus
 because iOS might not emit resize events when Split View windows move.
 Unknown readings fall back to the existing right-edge layout.
 
-**Test build only:** [download the Split View branch ZIP](https://github.com/Joeljoel/tide/archive/refs/heads/feature/duo-split-edge-controls-1.2.0.zip).
-The latest published stable version remains **v1.1.0**. Please test
-both halves and moving the same window from one side to the other before merging.
+Released in **Tide v1.2.0**. The existing v1.1.1 landscape-rotation fix remains under investigation in a separate draft PR.
 
 ## Screenshots
 
@@ -88,7 +86,14 @@ Use **Settings → About → Check updates** to check for newer stable versions 
 
 ## Versioning
 
-Tide follows [Semantic Versioning](https://semver.org/): major releases contain breaking changes, minor releases add features (for example `1.1.0`), and patch releases contain compatible fixes (`1.1.1`). Pre-release test builds use version suffixes such as `1.2.0-beta.2`, `1.2.0-beta.2`, and `1.2.0-rc.1` before the stable release.
+Tide follows [Semantic Versioning](https://semver.org/): major releases contain breaking changes, minor releases add features (for example `1.1.0`), and patch releases contain compatible fixes (`1.1.1`). Pre-release test builds use version suffixes such as `1.2.0`, `1.2.0`, and `1.2.0-rc.1` before the stable release.
+
+## What's new in v1.2.0
+
+- Automatic left/right inner Split View detection based on the device's orientation and browser safe-area insets.
+- Edge controls on the **left** when Tide is in the left half, with matching left-side space for cards, detail content, search and the header.
+- Edge controls remain on the **right** when Tide is in the right half; full-screen, folded and desktop layouts retain their existing behaviour.
+- Live rechecking of the safe-area values when moving the same app window between halves.
 
 ## What's new in v1.1.0
 

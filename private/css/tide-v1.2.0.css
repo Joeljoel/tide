@@ -2339,7 +2339,7 @@ html[data-tide-theme="light"] .search-wrap.bottom-search input::placeholder {
 }
 
 
-/* v1.2.0-beta.2 — iPhone Duo left-hand inner Split View window.
+/* v1.2.0 — iPhone Duo left-hand inner Split View window.
    The detector applies tide-split-left only to a portrait-shaped half
    window on a landscape-oriented iPhone with safe areas near 0 / 0.
    All rules are opt-in: right Split View, folded and full-screen remain
