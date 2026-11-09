@@ -18,6 +18,9 @@
 
 Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
 
+**[Try the interactive demo](https://joeljoel.github.io/tide/)** — explore Tide with fake torrents, simulated actions, Settings, and switchable desktop/iPhone Duo layouts. No qBittorrent server required.
+
+
 ## Screenshots
 
 ### iPhone Duo

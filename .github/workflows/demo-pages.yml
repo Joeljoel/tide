@@ -1,0 +1,65 @@
+name: Build and deploy Tide demo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - demo/**
+      - private/**
+      - version.json
+      - .github/workflows/demo-pages.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - demo/**
+      - private/**
+      - version.json
+      - .github/workflows/demo-pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-\${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Tide
+        uses: actions/checkout@v4
+      - name: Generate static demo
+        run: python3 demo/build.py --output _site
+      - name: Validate demo scripts and isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check _site/showcase.js
+          node --check "$(find _site/app/js -maxdepth 1 -name 'tide-v*.js' -print -quit)"
+          grep -Fq 'const demo = true;' _site/app/js/tide-v*.js
+          grep -Fq "connect-src 'none'" _site/app/index.html
+          grep -Fq 'tide-demo-set-pose' _site/app/js/tide-v*.js
+          test -f _site/.nojekyll
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: \${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Publish static demo
+        id: deployment
+        uses: actions/deploy-pages@v4
