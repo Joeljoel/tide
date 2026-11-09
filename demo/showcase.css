@@ -34,7 +34,8 @@ main{width:100%;max-width:1710px;margin:auto;padding:12px clamp(8px,2.4vw,28px) 
   min-height:370px;border:1px solid #34404e;border-radius:19px;
   background:radial-gradient(ellipse 75% 70% at 50% 35%,#23313c99,transparent 80%),#101720;overflow:hidden}
 .frame-holder{flex:none;position:relative;transition:width .2s,height .2s}
-.device-frame{position:absolute;top:0;left:0;transform-origin:top left;
+.device-frame{position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(var(--device-scale,1));
   border:6px solid #05070b;background:#05070b;
   border-radius:var(--tl,40px) var(--tr,40px) var(--br,40px) var(--bl,40px);
   box-shadow:0 16px 56px #000b,0 0 0 1px #70818e70;overflow:hidden}
@@ -93,18 +94,9 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 }
 @media(prefers-reduced-motion:reduce){.frame-holder{transition:none}}
 
-/* Short, restrained transitions for the simulator only. The iframe itself
-   is never reloaded when changing poses, so mock torrent state persists. */
-@keyframes demo-fold{0%{opacity:.65;transform:scaleX(.90) scaleY(.97)}100%{opacity:1;transform:none}}
-@keyframes demo-rotate{0%{opacity:.7;transform:rotate(-3deg) scale(.97)}100%{opacity:1;transform:none}}
-@keyframes demo-split{0%{opacity:.7;transform:scale(.97)}100%{opacity:1;transform:none}}
-@keyframes demo-shift{0%{opacity:.8;transform:translateX(5px)}100%{opacity:1;transform:none}}
-.device-frame[data-motion="fold"] .device-screen{animation:demo-fold .25s cubic-bezier(.2,.8,.2,1) both}
-.device-frame[data-motion="rotate"] .device-screen{animation:demo-rotate .23s ease-out both}
-.device-frame[data-motion="split"] .device-screen{animation:demo-split .23s ease-out both}
-.device-frame[data-motion="shift"] .tide-panel{animation:demo-shift .18s ease-out both}
-@media(prefers-reduced-motion:reduce){
-  .frame-holder{transition:none}
-  .device-frame[data-motion] .device-screen,
-  .device-frame[data-motion] .duo-panel{animation:none}
-}
+.fold-shade{
+  position:absolute;z-index:9;inset:0 0 0 50%;pointer-events:none;
+  transform-origin:left center;background:linear-gradient(90deg,#020407d9,#192a36aa 22%,#080d16eb);
+  border-left:1px solid #9cadbd55}
+.stage:has(.device-frame[aria-busy]){overflow:visible}
+.device-frame[aria-busy] .device-screen{pointer-events:none}

@@ -159,6 +159,40 @@ def run(site: Path, snapshots: Path) -> None:
             page.locator("#rotateBtn").click()
             capture("unfolded-portrait")
 
+            # Exercise the animated path at a narrow width, where independently
+            # fitting each pose would give a different scale.
+            page.set_viewport_size({"width": 640, "height": 840})
+            page.emulate_media(reduced_motion="no-preference")
+            frame = page.locator("#deviceFrame")
+            page.locator("#desktopBtn").click()
+            page.locator("#duoBtn").click()
+
+            def animated_pose(button, pose):
+                page.locator(f"#{button}").click()
+                expect(frame).to_have_attribute("aria-busy", "true")
+                expect(frame).to_have_attribute("data-pose", pose)
+                expect(page.locator("#deviceFrame[aria-busy]")).to_have_count(0)
+                return frame.bounding_box()
+
+            folded_portrait = frame.bounding_box()
+            folded_landscape = animated_pose("rotateBtn", "folded-landscape")
+            unfolded_landscape = animated_pose("foldBtn", "unfolded-landscape")
+            unfolded_portrait = animated_pose("rotateBtn", "unfolded-portrait")
+            for portrait, landscape in (
+                (folded_portrait, folded_landscape),
+                (unfolded_portrait, unfolded_landscape),
+            ):
+                assert abs(portrait["width"] - landscape["height"]) < 1
+                assert abs(portrait["height"] - landscape["width"]) < 1
+            assert abs(folded_portrait["height"] - unfolded_landscape["height"]) < 1
+            assert abs(2 * folded_portrait["width"] / unfolded_landscape["width"] - 1) < .02
+            animated_pose("foldBtn", "folded-portrait")
+            animated_pose("foldBtn", "unfolded-landscape")
+            animated_pose("splitBtn", "split-left")
+            animated_pose("shiftBtn", "split-right")
+            animated_pose("splitBtn", "unfolded-landscape")
+            expect(demo.locator(".torrent-card").filter(has_text="Tide Demo Collection")).to_have_count(1)
+
             # The public showcase should never expose the removed footer.
             assert page.locator("#demoVersion").count() == 0
             assert page.get_by_text("Fake torrents and settings").count() == 0

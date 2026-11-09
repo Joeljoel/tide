@@ -7,6 +7,7 @@ Run: python3 demo/build.py --output _site
 from __future__ import annotations
 
 import argparse
+import hashlib
 from pathlib import Path
 import shutil
 
@@ -193,8 +194,13 @@ def build(output: Path) -> None:
     index = replace_one(index, '<meta charset="utf-8">', '<meta charset="utf-8">\n  '+csp, "demo-only CSP")
     app_index.write_text(index, encoding="utf-8")
 
-    for name in ("index.html", "showcase.css", "showcase.js"):
-        shutil.copy2(DEMO / name, output / name)
+    showcase = (DEMO / "index.html").read_text(encoding="utf-8")
+    for name in ("showcase.css", "showcase.js"):
+        asset = (DEMO / name).read_bytes()
+        (output / name).write_bytes(asset)
+        revision = hashlib.sha256(asset).hexdigest()[:12]
+        showcase = replace_one(showcase, f'"{name}"', f'"{name}?v={revision}"', "showcase asset URL")
+    (output / "index.html").write_text(showcase, encoding="utf-8")
     shutil.copytree(DEMO / "assets", output / "assets", dirs_exist_ok=True)
     (output / ".nojekyll").write_text("", encoding="utf-8")
 
