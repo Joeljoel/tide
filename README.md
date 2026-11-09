@@ -62,7 +62,7 @@ For remote access, keep authentication enabled and use HTTPS or a VPN.
 
 Replace the Tide files in your configured alternative WebUI directory with the latest repository files, then reload the app. If the PWA shows a cached version, close and reopen it.
 
-Use **Settings → About → Check updates** to check the latest Settings beta and the stable version on `main`. Updates are installed manually.
+Use **Settings → About → Check updates** to check for newer stable versions on `main`. Updates are installed manually.
 
 ## Versioning
 
