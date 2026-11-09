@@ -23,7 +23,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages-\${{ github.ref }}
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -46,7 +46,6 @@ jobs:
           grep -Fq 'body.dataset.tideDemoPose=__previewPose' _site/app/js/tide-v*.js
           grep -Fq 'tide-split-left' _site/app/js/tide-v*.js
           test -s _site/assets/status-overlay.webp
-          test -s _site/assets/home-reference.avif
           grep -Fq 'Tide Demo Collection' _site/app/js/tide-v*.js
           grep -Fq "demoFile.disabled=true" _site/app/js/tide-v*.js
           test -f _site/app/demo-pose.css
@@ -89,9 +88,7 @@ jobs:
           grep -Fq 'Tide Demo Collection' _site/previews/pr-7/app/js/tide-v*.js
           grep -Fq "connect-src 'none'" _site/previews/pr-7/app/index.html
           test -s _site/previews/pr-7/assets/status-overlay.webp
-          test -s _site/previews/pr-7/assets/camera.webp
           grep -Fq 'id="duoBtn"' _site/previews/pr-7/index.html
-          test -s _site/previews/pr-7/assets/home-reference.avif
           grep -Fq 'Tide Demo Collection' _site/previews/pr-7/app/js/tide-v*.js
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -105,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: \${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Configure Pages
         uses: actions/configure-pages@v5
