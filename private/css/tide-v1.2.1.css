@@ -2418,3 +2418,11 @@ html.tide-duo-full-inner-vh body {
 html.tide-duo-full-inner-vh body .shell {
   height:100vh !important;
 }
+
+/* Folded Duo landscape: clear only the corner occupied by the camera. */
+body.tide-folded-camera-top-left .topbar {
+  padding-left:88px;
+}
+body.tide-folded-camera-bottom-right .action-rail[data-mode="global"] {
+  bottom:max(74px, var(--rail-bottom)) !important;
+}

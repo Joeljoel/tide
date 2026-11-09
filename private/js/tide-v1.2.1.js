@@ -30,14 +30,7 @@
     if(m.safeLeft<=10 && m.safeRight<=10)return 'left';
     return null; // Unrecognised insets: retain Tide's default right rail.
   }
-  function detectDuoSplitSide(){
-    const landscapeReported=/^landscape/i.test(screen.orientation?.type||'')
-      || (typeof window.orientation==='number' && Math.abs(window.orientation)===90);
-    const width=window.innerWidth,height=window.innerHeight;
-    const fine=window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
-    // Avoid style measurements outside plausible Duo Split View windows.
-    if(!splitSafeProbe || !/iPhone/i.test(navigator.userAgent) || fine
-      || width<350 || width>540 || height<=width || !landscapeReported)return null;
+  function readDuoSafeInsets(){
     // Side changes do not necessarily emit a resize event on iOS. Toggle
     // equivalent env() declarations before reading computed insets.
     splitProbePhase=!splitProbePhase;
@@ -49,6 +42,33 @@
     const computed=getComputedStyle(splitSafeProbe);
     const safeLeft=parseFloat(computed.paddingLeft);
     const safeRight=parseFloat(computed.paddingRight);
+    return {safeLeft,safeRight};
+  }
+  function detectFoldedDuoCamera(){
+    const width=window.innerWidth,height=window.innerHeight;
+    const fine=window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
+    if(!splitSafeProbe || !/iPhone/i.test(navigator.userAgent) || fine
+      || width<=height || width>=850 || height>=540)return '';
+    const {safeLeft,safeRight}=readDuoSafeInsets();
+    if(Math.abs(safeLeft-84)<=1 && safeRight<=1)return 'top-left';
+    if(safeLeft<=1 && Math.abs(safeRight-84)<=1)return 'bottom-right';
+    return '';
+  }
+  function syncFoldedDuoCamera(){
+    const camera=detectFoldedDuoCamera();
+    const body=document.body;
+    body.classList.toggle('tide-folded-camera-top-left',camera==='top-left');
+    body.classList.toggle('tide-folded-camera-bottom-right',camera==='bottom-right');
+  }
+  function detectDuoSplitSide(){
+    const landscapeReported=/^landscape/i.test(screen.orientation?.type||'')
+      || (typeof window.orientation==='number' && Math.abs(window.orientation)===90);
+    const width=window.innerWidth,height=window.innerHeight;
+    const fine=window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
+    // Avoid style measurements outside plausible Duo Split View windows.
+    if(!splitSafeProbe || !/iPhone/i.test(navigator.userAgent) || fine
+      || width<350 || width>540 || height<=width || !landscapeReported)return null;
+    const {safeLeft,safeRight}=readDuoSafeInsets();
     if(!Number.isFinite(safeLeft)||!Number.isFinite(safeRight))return null;
     return classifyDuoSplitSide({
       iphone:true,desktop:false,width,height,landscapeReported,safeLeft,safeRight
@@ -130,6 +150,7 @@
       if(!diagnostics.hidden) diagnostics.textContent=`Tide viewport · ${desktop?'desktop':duoPortrait?'Duo portrait':'rail'}\nscreen ${screen.width}×${screen.height} · avail ${screen.availHeight} · outer ${outerHeight}\ninner ${innerWidth}×${innerHeight} · doc ${document.documentElement.clientHeight}\nvisual ${Math.round(vv?.width||0)}×${Math.round(vv?.height||0)} + ${Math.round(vv?.offsetTop||0)}\nstandalone ${standalone} · gap ${gap} · root ${Math.round(rootHeight)} · body ${Math.round(bodyHeight)} · large ${Math.round(largeViewport)} · trial ${portraitHeaderTrial} · shell ${Math.round(document.getElementById('app')?.getBoundingClientRect().height||0)}`;
     }
     syncDuoSplitPlacement();
+    syncFoldedDuoCamera();
   };
   window.addEventListener('resize',syncDeviceGeometry,{passive:true});
   window.addEventListener('orientationchange',syncDeviceGeometry,{passive:true});
@@ -142,7 +163,11 @@
   // Split View can move between halves with unchanged viewport dimensions.
   // Re-read the safe area only while the page is visible; the normal
   // orientation/resize listeners above also update the placement.
-  setInterval(()=>{if(!document.hidden)syncDuoSplitPlacement();},400);
+  setInterval(()=>{
+    if(document.hidden)return;
+    syncDuoSplitPlacement();
+    syncFoldedDuoCamera();
+  },400);
   window.addEventListener('focus',syncDuoSplitPlacement,{passive:true});
   const $ = (selector, root=document) => root.querySelector(selector);
   const demo = location.protocol === 'file:' || new URLSearchParams(location.search).get('demo') === '1';
