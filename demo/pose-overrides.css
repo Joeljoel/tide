@@ -62,5 +62,11 @@ body[data-tide-demo-pose="unfolded-portrait"] .action-rail:not([data-mode="searc
   transform:translateX(-50%) !important;
 }
 
+/* Preserve a right-side OS strip in full unfolded portrait. The embedded
+   preview has no real PWA safe-area values, so this is simulated here. */
+body[data-tide-demo-pose="unfolded-portrait"] .topbar {padding-right:100px !important}
+body[data-tide-demo-pose="unfolded-portrait"] .list-panel {padding-right:92px !important}
+body[data-tide-demo-pose="unfolded-portrait"] .detail-panel.mobile-open .detail-inner {padding-right:92px !important}
+
 /* Iframe samples don't inherit the host's system status region: the outer
    showcase draws the OS indicator independently, based on the screenshots. */

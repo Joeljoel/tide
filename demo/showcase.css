@@ -106,8 +106,9 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 .device-frame[data-pose=unfolded-portrait] .system-ui{top:30px;right:19px;width:58px;height:250px}
 .device-frame[data-pose=unfolded-portrait] .status-camera{width:52px;height:103px;border-radius:27px;right:1px}
 .device-frame[data-pose=unfolded-portrait] .status-from-photo{
-  /* Landscape status artwork turned with the unfolded portrait pose. */
-  top:135px;right:22px;transform:rotate(90deg);transform-origin:center center;
+  /* Landscape-style icons rotated with the display, in the reserved strip. */
+  top:116px;right:1px;transform:rotate(90deg) scale(.72);
+  transform-origin:center center;
 }
 /* Right-hand Split View has the physical camera on the far right above
    the user-supplied time/connectivity crop. The other half's snapshot
