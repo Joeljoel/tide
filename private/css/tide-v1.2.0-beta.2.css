@@ -2339,7 +2339,7 @@ html[data-tide-theme="light"] .search-wrap.bottom-search input::placeholder {
 }
 
 
-/* v1.2.0-beta.1 — iPhone Duo left-hand inner Split View window.
+/* v1.2.0-beta.2 — iPhone Duo left-hand inner Split View window.
    The detector applies tide-split-left only to a portrait-shaped half
    window on a landscape-oriented iPhone with safe areas near 0 / 0.
    All rules are opt-in: right Split View, folded and full-screen remain
@@ -2391,4 +2391,15 @@ body.tide-split-left.tide-search-open:not(.tide-desktop) .search-wrap.bottom-sea
    its separate bottom-toolbar treatment is only for unfolded portrait. */
 body.tide-split-left:not(.tide-desktop) .topbar > .header-settings-button {
   pointer-events:auto !important;
+}
+
+/* Align the entire header with the torrent content on the LEFT Split View
+   half. Safe-area detection already gates this class, so the right window,
+   outer display and full unfolded layouts retain their original spacing.
+   Reduce the old right-side status clearance in this one configuration so
+   the Settings button shifts with the logo and transfer rates, but remains
+   comfortably inside the inner seam. */
+body.tide-split-left:not(.tide-desktop) .topbar {
+  padding-left:calc(var(--rail-slot) + 7px) !important;
+  padding-right:clamp(12px, 10vw, 48px) !important;
 }
