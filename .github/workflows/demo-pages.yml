@@ -43,6 +43,10 @@ jobs:
           grep -Fq 'const demo = true;' _site/app/js/tide-v*.js
           grep -Fq "connect-src 'none'" _site/app/index.html
           grep -Fq 'tide-demo-set-pose' _site/app/js/tide-v*.js
+          grep -Fq 'body.dataset.tideDemoPose=__previewPose' _site/app/js/tide-v*.js
+          grep -Fq 'tide-split-left' _site/app/js/tide-v*.js
+          test -s _site/assets/home-duo.webp
+          test -f _site/app/demo-pose.css
           test -f _site/.nojekyll
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

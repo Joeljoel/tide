@@ -53,7 +53,7 @@
     holder.style.height=Math.ceil(height*scale)+'px';
     stage.style.minHeight=Math.ceil(height*scale)+38+'px';
     $('selectedLabel').textContent=p.label;
-    $('selectedDimensions').textContent=(p.split?'951 × 669 · 469 + 13 + 469':p.width+' × '+p.height)+' CSS px';
+    $('selectedDimensions').textContent=p.width+' × '+p.height;
     $('scaleNote').textContent=scale<.999?Math.round(scale*100)+'%':'100%';
   }
 
