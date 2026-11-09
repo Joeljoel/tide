@@ -1993,26 +1993,38 @@ body.tide-search-open:not(.tide-desktop) .list-panel {
 .header-settings-button:active{transform:scale(.94);background:rgba(204,230,236,.24);}
 body.tide-desktop .header-rates {margin-left:16px!important;margin-right:0!important;}
 body.tide-desktop .header-settings-button {order:5;margin-left:4px;}
+/* Keep the Settings action with the transfer rates, clear of the Duo status controls. */
 body.tide-duo-portrait .header-rates,
-body.tide-duo-portrait .topbar .header-rates {margin-right:auto!important;margin-left:clamp(10px,2vw,24px)!important;}
+body.tide-duo-portrait .topbar .header-rates {
+  margin-right:10px!important;
+  margin-left:clamp(10px,2vw,24px)!important;
+}
+body.tide-duo-portrait .header-settings-button {margin-left:0!important;margin-right:auto!important;}
 body.tide-duo-portrait .topbar {padding-right:clamp(98px,14vw,130px)!important;}
 @media(max-width:390px){.header-settings-button{width:38px;height:38px;}.topbar .header-rates{margin-left:8px;}}
 @media(max-width:350px){.topbar .brand{font-size:19px!important;}.topbar .header-rate{font-size:10px;}}
 
-/* Settings dialog: a single scrollable surface with a persistent tab selector. */
+/* The Settings top edge stays fixed while its content pane changes height. */
 .dialog.floating-dialog.tide-settings-dialog {
-  left:50%!important;right:auto!important;top:auto!important;
-  bottom:max(14px, env(safe-area-inset-bottom, 0px))!important;
+  --settings-top: max(24px, calc(env(safe-area-inset-top, 0px) + 16px));
+  position:fixed!important;
+  top:var(--settings-top)!important;bottom:auto!important;
+  left:50%!important;right:auto!important;
   width:min(460px,calc(100vw - 28px))!important;
-  max-height:min(770px,calc(100dvh - 32px))!important;
+  max-height:calc(100dvh - var(--settings-top) - 20px)!important;
   padding:0!important;
   transform:translate3d(-50%,var(--sheet-drag,0px),0)!important;
   display:flex!important;flex-direction:column;min-height:0;
   overflow:hidden!important;overscroll-behavior:contain;border-radius:29px!important;
 }
-body.tide-desktop .dialog.floating-dialog.tide-settings-dialog{
-  top:50%!important;bottom:auto!important;
-  transform:translate3d(-50%,calc(-50% + var(--sheet-drag,0px)),0)!important;
+/* The folded screen has a dedicated action lane on the right. */
+@media (max-width:599px) {
+  .dialog.floating-dialog.tide-settings-dialog {
+    left:14px!important;
+    right:calc(var(--rail-edge,17px) + var(--rail-button-size,43px) + 12px)!important;
+    width:auto!important;
+    transform:translate3d(0,var(--sheet-drag,0px),0)!important;
+  }
 }
 /* Settings scrolls within its content pane; the toolbar remains outside the scrollport. */
 .tide-settings-dialog .settings-toolbar{
@@ -2071,7 +2083,7 @@ body.tide-desktop .dialog.floating-dialog.tide-settings-dialog{
 .settings-error button{background:rgba(200,222,231,.16);border:1px solid rgba(255,255,255,.14);padding:10px 18px;color:inherit;border-radius:20px;}
 .tide-settings-dialog .info-current{margin-top:2px;}
 @media(max-width:425px){
-  .dialog.floating-dialog.tide-settings-dialog{padding:0!important;width:calc(100vw - 20px)!important;max-height:calc(100dvh - 22px)!important;}
+  .dialog.floating-dialog.tide-settings-dialog{padding:0!important;max-height:calc(100dvh - var(--settings-top) - 20px)!important;}
   .tide-settings-dialog .settings-toolbar{padding:13px 15px 11px;gap:7px;}
   .tide-settings-dialog .settings-panel{padding:14px 15px 18px;}
   .tide-settings-dialog .settings-tabs button{font-size:12px;}
@@ -2104,6 +2116,13 @@ html[data-tide-theme="light"] .settings-save{color:#175137;background:rgba(145,2
 html[data-tide-theme="light"] .dialog .info-signout{color:#9d3c3c;background:rgba(188,73,73,.08);}
 html[data-tide-theme="light"] .info-current strong{color:#1b3242;}
 html[data-tide-theme="light"] .info-update-row{color:#285544;}
+html[data-tide-theme="light"] .tide-settings-dialog .info-check {
+  background:#dcece5!important;
+  color:#1b523d!important;
+  border:1px solid #b8d3c5!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+html[data-tide-theme="light"] .tide-settings-dialog .info-check:active {background:#cde1d6!important;}
 html[data-tide-theme="light"] .settings-tabs button.active{color:#1d5237!important;}
 html[data-tide-theme="light"] .tide-settings-dialog .settings-toolbar{background:#eef4f7!important;}
 html[data-tide-theme="light"] .tide-settings-dialog .settings-tabs{background:#e1ebf1!important;}

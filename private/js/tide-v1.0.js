@@ -642,6 +642,10 @@
       button.tabIndex=active?0:-1;
     });
     const target=mount.querySelector('#settingsPanel');if(!target)return;
+    if(target.dataset.activeTab!==state.settingsTab){
+      target.scrollTop=0;
+      target.dataset.activeTab=state.settingsTab;
+    }
     if(state.settingsTab==='about'){
       target.innerHTML=settingsAboutHTML();
       void loadAboutTransferTotals();void checkAboutUpdates();
