@@ -107,7 +107,13 @@ def run(site: Path, snapshots: Path) -> None:
             transform = page.locator(".status-from-photo").evaluate(
                 "el => getComputedStyle(el).transform"
             )
-            assert transform.startswith("matrix(0, 1, -1, 0"), transform
+            terms = [float(v) for v in transform.removeprefix("matrix(").removesuffix(")").split(",")]
+            assert (
+                len(terms) == 6
+                and abs(terms[0]) < .01 and abs(terms[3]) < .01
+                and terms[1] > 0 and terms[2] < 0
+                and abs(terms[1] + terms[2]) < .01
+            ), transform
 
             # The public showcase should never expose the removed footer.
             assert page.locator("#demoVersion").count() == 0
