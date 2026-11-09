@@ -93,6 +93,18 @@ jobs:
           Download the Source code ZIP, replace your existing Tide files, and reopen the PWA. See the README for setup instructions.
           EOF
             )
+          elif [[ "$version" == "1.3.0" ]]; then
+            notes=$(cat <<'EOF'
+          ## What's new in Tide 1.3.0
+
+          - In folded landscape on iPhone Duo, Tide moves the logo clear of the top-left camera or raises Search, Refresh, and Add clear of the bottom-right camera.
+          - The interactive demo includes animated folding, rotation, and Split View with a consistent device scale.
+
+          ## Installation
+
+          Download the Source code ZIP, replace your existing Tide files, and reopen the PWA. See the README for setup instructions.
+          EOF
+            )
           else
             notes=$(printf '%s\n\n%s\n' \
               "Tide $version is a touch-first alternative qBittorrent WebUI, designed for the iPhone Duo and desktop." \
