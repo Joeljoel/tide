@@ -163,7 +163,7 @@ def run(site: Path, snapshots: Path) -> None:
             page.locator("#partialBtn").click()
             capture("partially-folded-portrait")
             expect(demo.locator("body")).to_have_class(
-                re.compile(r"\\btide-posture-folded-portrait\\b"), timeout=10000
+                re.compile("tide-posture-folded-portrait"), timeout=10000
             )
             expect(demo.locator(".torrent-card").first).to_be_visible()
             # Compact Details normally hides the list. In the laptop pose both
@@ -180,7 +180,7 @@ def run(site: Path, snapshots: Path) -> None:
             page.locator("#rotateBtn").click()
             capture("partially-folded-landscape")
             expect(demo.locator("body")).to_have_class(
-                re.compile(r"\\btide-posture-folded-landscape\\b"), timeout=10000
+                re.compile("tide-posture-folded-landscape"), timeout=10000
             )
             grid = demo.locator("#torrentList").evaluate(
                 "el => getComputedStyle(el).gridTemplateColumns"
