@@ -363,10 +363,11 @@ def run(site: Path, snapshots: Path) -> None:
             capture("unfolded-landscape")
             expect(page.locator("#splitBtn")).to_be_visible()
             page.locator("#splitBtn").click()
-            capture("split-left")
+            # Retain the last chosen split side across partial/full poses.
+            capture("split-right")
             expect(page.locator("#shiftBtn")).to_be_visible()
             page.locator("#shiftBtn").click()
-            capture("split-right")
+            capture("split-left")
             page.locator("#splitBtn").click()
             page.locator("#rotateBtn").click()
             capture("unfolded-portrait")
