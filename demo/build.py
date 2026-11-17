@@ -197,18 +197,20 @@ def make_preview_script(source: str) -> str:
 
 
 def make_preview_posture_script(source: str) -> str:
-    # Only replace the browser API in the public demonstration. Production
-    # continues to read navigator.devicePosture and actual viewport segments.
+    # Repoint only the generated demo to simulated physical device signals.
+    # Production Tide continues to use navigator.devicePosture and viewport.segments.
     source = replace_one(
         source,
         "    try { return Array.from(window.viewport?.segments || []); }",
-        "    if (window.__TIDE_DEMO_POSTURE__) return window.__TIDE_DEMO_POSTURE__.segments;\\n    try { return Array.from(window.viewport?.segments || []); }".replace("\\\\n", "\\n"),
+        """    if (window.__TIDE_DEMO_POSTURE__) return window.__TIDE_DEMO_POSTURE__.segments;
+    try { return Array.from(window.viewport?.segments || []); }""",
         "simulated viewport segments",
     )
     source = replace_one(
         source,
         "  function isFolded() {",
-        "  function isFolded() {\\n    if (window.__TIDE_DEMO_POSTURE__) return window.__TIDE_DEMO_POSTURE__.folded;".replace("\\\\n", "\\n"),
+        """  function isFolded() {
+    if (window.__TIDE_DEMO_POSTURE__) return window.__TIDE_DEMO_POSTURE__.folded;""",
         "simulated device posture",
     )
     source = replace_one(
@@ -221,16 +223,16 @@ def make_preview_posture_script(source: str) -> str:
         source,
         "      !window.matchMedia('(hover: hover) and (pointer: fine)').matches;",
         "      !window.matchMedia('(hover: hover) and (pointer: fine)').matches);",
-        "end simulated touch-device fallback",
+        "finish touch capability fallback",
     )
     source = replace_one(
         source,
         "  posture?.addEventListener?.('change', schedule);",
-        "  window.addEventListener('tide-demo-posechange', schedule);\\n  posture?.addEventListener?.('change', schedule);".replace("\\\\n", "\\n"),
-        "simulated posture change event",
+        """  window.addEventListener('tide-demo-posechange', schedule);
+  posture?.addEventListener?.('change', schedule);""",
+        "simulated posture-change event",
     )
     return source
-
 
 def build(output: Path) -> None:
     output = output.resolve()
