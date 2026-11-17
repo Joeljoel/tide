@@ -247,6 +247,12 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 }
 [data-pose="partially-folded-split-left"] .fold-home-visual{display:block}
 [data-pose="partially-folded-split-left"] .fold-flap-status{display:none}
+/* In Split View, Tide itself occupies only one physical half. Unlike
+   normal partial-fold mode, the far iframe has a half-width *layout
+   viewport*; cropping half of a full-width app caused missing headers. */
+[data-pose="partially-folded-split-right"] .fold-flap iframe{
+  left:0;top:0;width:100%;height:100%;
+}
 .fold-flap::after{
   content:"";position:absolute;z-index:9;inset:0;
   border:5px solid #05070b;border-left:0;border-radius:inherit;

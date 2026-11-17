@@ -401,7 +401,10 @@
     const u=Math.max(0,Math.min(1,(event.clientX-bounds.left)/bounds.width));
     const v=Math.max(0,Math.min(1,(event.clientY-bounds.top)/bounds.height));
     const portrait=currentPose==='partially-folded-portrait';
-    const x=(portrait?u:.5+.5*u)*iframe.contentWindow.innerWidth;
+    // Partial Split View right uses an actual half-width Tide viewport.
+    // Normal book posture uses the right half of one full-width viewport.
+    const splitRight=currentPose==='partially-folded-split-right';
+    const x=(portrait||splitRight?u:.5+.5*u)*iframe.contentWindow.innerWidth;
     const y=(portrait?.5+.5*v:v)*iframe.contentWindow.innerHeight;
     return {document,x,y,target:document.elementFromPoint(x,y)};
   }

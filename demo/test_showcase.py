@@ -61,8 +61,9 @@ def run(site: Path, snapshots: Path) -> None:
                     pose.startswith("partially-folded-split-")
                 ) else pose
                 page.wait_for_function(
-                    """pose => document.querySelector('#tidePreview')
-                      ?.contentDocument?.body?.dataset.tideDemoPose === pose""",
+                    """pose => ['tidePreview','tideFoldPreview'].every(id =>
+                      document.getElementById(id)
+                        ?.contentDocument?.body?.dataset.tideDemoPose === pose)""",
                     arg=app_pose,
                     timeout=10000,
                 )
@@ -349,6 +350,14 @@ def run(site: Path, snapshots: Path) -> None:
             page.locator("#shiftBtn").click()
             capture("partially-folded-split-right")
             assert not page.locator(".fold-home-visual").is_visible()
+            # Same half-width app viewport as fully unfolded Split View.
+            left_width=page.evaluate("""() =>
+              document.getElementById('tidePreview').contentWindow.innerWidth""")
+            right_width=page.evaluate("""() =>
+              document.getElementById('tideFoldPreview').contentWindow.innerWidth""")
+            assert abs(left_width-right_width)<7,(left_width,right_width)
+            assert right_width<600,right_width
+            expect(other.locator(".brand")).to_be_visible()
             expect(demo.locator("body")).to_have_class(
                 re.compile("tide-split-right")
             )
