@@ -310,8 +310,11 @@
   function peerFor(source,doc){
     const node=source.closest('[data-action],[data-filter],[data-sort],'+
       '[data-folder-toggle],[data-settings-tab],[data-appearance],'+
-      '[data-hash],.torrent-card');
+      '[data-hash],.torrent-card,.desktop-add,#addForm button[type="submit"]');
     if(!node)return null;
+    if(node.matches('.desktop-add'))return doc.querySelector('.desktop-add');
+    if(node.matches('#addForm button[type="submit"]'))
+      return doc.querySelector('#addForm button[type="submit"]');
     for(const attribute of ['data-action','data-filter','data-sort',
       'data-folder-toggle','data-settings-tab','data-appearance','data-hash']){
       if(!node.hasAttribute(attribute))continue;
@@ -336,14 +339,14 @@
       if(peerDoc)syncScroll(event.target,peerDoc);
     },true);
     doc.addEventListener('click',event=>{
-      if(mirroring || !frame.classList.contains('is-partially-folded'))return;
+      if(mirroring)return;
       const peer=to.contentDocument && peerFor(event.target,to.contentDocument);
       if(!peer)return;
       mirroring=true;
       try{peer.click();}finally{mirroring=false;}
     },true);
     doc.addEventListener('input',event=>{
-      if(mirroring || !frame.classList.contains('is-partially-folded'))return;
+      if(mirroring)return;
       if(!event.target.id)return;
       const peer=to.contentDocument?.getElementById(event.target.id);
       if(!peer)return;
