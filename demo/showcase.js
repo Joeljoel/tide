@@ -23,6 +23,8 @@
   const foldButtons=[foldedBtn,partialBtn,unfoldedBtn];
   const rotateBtn=get('rotateBtn'),splitBtn=get('splitBtn'),shiftBtn=get('shiftBtn');
   const foldIframe=get('tideFoldPreview'),foldFlap=get('foldFlap');
+  const nearSheen=get('foldNearSheen'),farSheen=foldFlap.querySelector('.fold-flap-light'),
+    hingeSheen=get('hingeSheen');
   const foldInteraction=get('foldInteraction');
   const statusTemplate=get('systemUi').querySelector('.status-indicators');
   const foldStatus=get('foldFlapViewport').querySelector('.fold-flap-status');
@@ -93,7 +95,10 @@
       currentPose==='folded-landscape'?[9,9,73,73]:
       currentPose==='desktop'?[18,18,18,18]:
       currentPose.endsWith('portrait')?[53,51,51,53]:[51,51,51,51];
-    ['tl','tr','br','bl'].forEach((name,i)=>frame.style.setProperty('--'+name,radii[i]+'px'));
+    ['tl','tr','br','bl'].forEach((name,i)=>{
+      frame.style.setProperty('--'+name,radii[i]+'px');
+      holder.style.setProperty('--outer-'+name,(radii[i]*scale)+'px');
+    });
     holder.style.width=Math.ceil(w*scale)+'px';
     holder.style.height=Math.ceil(h*scale)+'px';
     stage.style.minHeight=Math.ceil(h*scale)+38+'px';
@@ -129,8 +134,9 @@
     });
   }
 
-  // Animate the two physical wrappers about the hinge. Both inner Tide
-  // iframes remain flat and clipped; portrait uses a gentler upper-plane bend.
+  // The phone-level shadow + rim highlight live on frame-holder and never
+  // unmount. Rotate the physical glass planes while their hinge-only lighting
+  // smoothly approaches zero as the device opens.
   async function foldTransition(nextPose){
     const entering=nextPose.startsWith('partially-folded-');
     const leaving=currentPose.startsWith('partially-folded-');
@@ -138,18 +144,26 @@
     const open='rotate'+(portrait?'X':'Y')+'(0deg)';
     const firstBend=portrait?'rotateX(-6deg)':'rotateY(10deg)';
     const secondBend=portrait?'rotateX(10deg)':'rotateY(-10deg)';
+    const sheens=[nearSheen,farSheen,hingeSheen];
+    const hingeAlpha=0.45;
     if(entering){
       showPose(nextPose);
       const motions=[
         play(nearPlane,[{transform:open},{transform:firstBend}],330),
-        play(foldFlap,[{transform:open},{transform:secondBend}],330)
+        play(foldFlap,[{transform:open},{transform:secondBend}],330),
+        ...sheens.map((element,i)=>play(element,[
+          {opacity:0},{opacity:i===2?hingeAlpha:1}
+        ],330))
       ];
       await Promise.all(motions.map(motion=>motion.finished));
       motions.forEach(motion=>motion.cancel());
     }else if(leaving){
       const motions=[
         play(nearPlane,[{transform:firstBend},{transform:open}],290),
-        play(foldFlap,[{transform:secondBend},{transform:open}],290)
+        play(foldFlap,[{transform:secondBend},{transform:open}],290),
+        ...sheens.map((element,i)=>play(element,[
+          {opacity:i===2?hingeAlpha:1},{opacity:0}
+        ],290))
       ];
       await Promise.all(motions.map(motion=>motion.finished));
       showPose(nextPose);
