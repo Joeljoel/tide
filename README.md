@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.4.0--beta.1-293a46?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.4.0--beta.2-293a46?style=flat-square">
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
 
 Tide is intended to be used as a Progressive Web App (PWA) on iPhone.
 
-**Beta preview (PR #10):** v1.4.0-beta.1 adds animated fold-aware panes for the iPhone Duo. Stable installs remain at v1.3.0 until this PR is merged.
+**Beta preview (PR #10):** v1.4.0-beta.2 adds fold-aware layouts for iPhone Duo, including a 50/50 Details split while partially folded in portrait and a 35/65 list/Details split when fully unfolded in portrait. Stable installs remain at v1.3.0 until this PR is merged.
 
 **[Try the interactive demo](https://joeljoel.github.io/tide/)**
 

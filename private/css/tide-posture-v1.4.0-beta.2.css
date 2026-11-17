@@ -120,7 +120,7 @@
   }
 }
 
-/* v1.4.0-beta.1: keep the torrent list interactive in the upper half.
+/* v1.4.0-beta.2: keep the torrent list interactive in the upper half.
    Tide core intentionally hides the compact list behind full-screen Details. */
 @media (orientation: portrait) and (min-width: 580px) {
   body.tide-posture-folded-portrait:not(.tide-desktop) .shell.detail-open .list-panel {

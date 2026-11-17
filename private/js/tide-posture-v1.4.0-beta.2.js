@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   // Beta build marker for Settings > About; the stable 1.3.0 core remains intact.
-  window.__TIDE_BUILD__ = '1.4.0-beta.1';
+  window.__TIDE_BUILD__ = '1.4.0-beta.2';
 
   const root = document.documentElement;
   const body = document.body;
