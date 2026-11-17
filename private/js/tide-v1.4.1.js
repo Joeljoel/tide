@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  window.__TIDE_BUILD__ = '1.3.0';
+  window.__TIDE_BUILD__ = '1.4.1';
   const themePreference = (()=>{try{return localStorage.getItem('tide_appearance')||'dark';}catch{return 'dark';}})();
   const systemAppearance=window.matchMedia?.('(prefers-color-scheme: light)');
   function setAppearance(value){
@@ -479,14 +479,16 @@
     render();
   }
   function selectTorrent(hash){
-    if(state.detailOpen && (document.body.classList.contains('tide-desktop') || document.body.classList.contains('tide-duo-landscape'))){
+    // Once Details is open, tapping a visible torrent always navigates to
+    // that torrent's Details, including the 50/50 and 35/65 portrait splits.
+    // Multi-selection is available only when Details is closed.
+    if(state.detailOpen){
       if(hash!==state.selected || state.selection.size!==1){
         state.selection=new Set([hash]);state.selected=hash;state.files=[];state.collapsedFolders.clear();
-        openDetails(hash);
+        void openDetails(hash);
       }
       return;
     }
-    if(state.detailOpen)closeDetail();
     if(state.selection.has(hash))state.selection.delete(hash);else state.selection.add(hash);
     state.selected=state.selection.has(hash)?hash:(currentHashes().at(-1)||null);
     state.files=[];state.collapsedFolders.clear();
