@@ -674,8 +674,9 @@ def run(site: Path, snapshots: Path) -> None:
             assert "90deg" in book_mask and "90deg" in book_tint, (
                 book_mask,book_tint
             )
-            assert "transparent 0%" in book_mask, book_mask
-            assert "transparent 0%" in book_tint, book_tint
+            # Chromium serializes CSS 'transparent' as rgba(..., 0).
+            assert "rgba(0, 0, 0, 0) 0%" in book_mask, book_mask
+            assert "rgba(0, 0, 0, 0) 0%" in book_tint, book_tint
             assert "76%" in book_mask and "100%" in book_mask, book_mask
 
             # Record the browser's real keyframes as the hinge opens and
@@ -739,7 +740,7 @@ def run(site: Path, snapshots: Path) -> None:
             assert "180deg" in portrait_mask and "180deg" in portrait_tint, (
                 portrait_mask,portrait_tint
             )
-            assert "transparent 0%" in portrait_mask, portrait_mask
+            assert "rgba(0, 0, 0, 0) 0%" in portrait_mask, portrait_mask
             animated_pose("unfoldedBtn", "unfolded-portrait")
             assert overlay.evaluate(
                 "el => getComputedStyle(el).opacity"
