@@ -41,8 +41,12 @@ main{width:100%;max-width:1710px;margin:auto;padding:12px clamp(8px,2.4vw,28px) 
   content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
   border-radius:var(--outer-tl,40px) var(--outer-tr,40px)
     var(--outer-br,40px) var(--outer-bl,40px);
-  box-shadow:0 16px 56px #000b,0 0 0 1px #70818e70;
+  box-shadow:0 16px 56px #000b;
 }
+/* Flat poses outline the real outer device perimeter. The matching partial
+   outlines are attached to its *rotating* halves instead (below). Keeping
+   the highlight off frame-holder prevents a ghost line at the centre hinge. */
+.device-frame:not(.is-partially-folded){box-shadow:0 0 0 1px #70818e70}
 .device-frame{position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%) scale(var(--device-scale,1));
   border:8px solid #05070b;background:#05070b;
@@ -196,14 +200,22 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   border:8px solid #05070b;border-right:0;
   border-radius:var(--tl,40px) 0 0 var(--bl,40px);
   pointer-events:none;
-  box-shadow:0 0 0 1px #70818e70,inset 2px 1px 3px #b6c9cf18;
-  -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 93%,transparent 100%);
-  mask-image:linear-gradient(90deg,#000 0%,#000 93%,transparent 100%);
+  box-shadow:inset 2px 1px 3px #b6c9cf18;
+}
+/* Use a 1px *border*, rather than a box-shadow that the soft seam mask
+   clips away. This traces the bent left exterior edge and both corners. */
+.is-partially-folded .fold-near-plane::before{
+  content:"";position:absolute;z-index:13;inset:-8px 0 -8px -8px;
+  border:1px solid #70818e70;border-right:0;
+  border-radius:var(--tl,40px) 0 0 var(--bl,40px);
+  pointer-events:none;
 }
 .fold-near-sheen{
+  /* Only a barely perceptible hinge reflection; the previous brighter
+     screen-edge glow ended abruptly when the panes became flat. */
   position:absolute;z-index:11;pointer-events:none;
-  right:0;top:4%;bottom:4%;width:11px;opacity:1;
-  background:linear-gradient(to left,rgba(232,249,255,.045),transparent 100%);
+  right:0;top:2%;bottom:2%;width:8px;opacity:1;
+  background:linear-gradient(to left,rgba(232,249,255,.008),transparent);
 }
 .fold-planes{
   display:none;
@@ -274,16 +286,21 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   border:8px solid #05070b;border-left:0;
   border-radius:0 var(--tr,40px) var(--br,40px) 0;
   pointer-events:none;
-  box-shadow:0 0 0 1px #70818e70,inset -2px 1px 3px #b6c9cf16;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 100%);
-  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 100%);
+  box-shadow:inset -2px 1px 3px #b6c9cf16;
+}
+/* Match the opposite physical edge with the same unmasked light stroke. */
+.fold-flap::before{
+  content:"";position:absolute;z-index:12;inset:-8px -8px -8px 0;
+  border:1px solid #70818e70;border-left:0;
+  border-radius:0 var(--tr,40px) var(--br,40px) 0;
+  pointer-events:none;
 }
 .fold-flap-light{
   position:absolute;inset:0;z-index:6;
   pointer-events:none;
   background:linear-gradient(90deg,
-    rgba(233,249,255,.045),transparent 9%,transparent 94%,
-    rgba(225,244,255,.02));
+    rgba(233,249,255,.008),transparent 9%,transparent 94%,
+    rgba(225,244,255,.006));
   box-shadow:none;
 }
 .fold-flap-status{
@@ -297,9 +314,9 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 
 .hinge-sheen{
   position:absolute;z-index:11;pointer-events:none;
-  top:3%;bottom:3%;left:calc(50% - 7px);width:14px;
-  background:linear-gradient(90deg,transparent,rgba(215,242,249,.14),transparent);
-  opacity:.45;filter:blur(5px);
+  top:2%;bottom:2%;left:calc(50% - 6px);width:12px;
+  background:linear-gradient(90deg,transparent,rgba(215,242,249,.055),transparent);
+  opacity:.20;filter:blur(7px);
 }
 
 /* Laptop posture: the upper screen is nearly flat for legibility.
@@ -320,12 +337,15 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   inset:-8px -8px 0 -8px;
   border:8px solid #05070b;border-bottom:0;
   border-radius:var(--tl,40px) var(--tr,40px) 0 0;
-  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 93%,transparent 100%);
-  mask-image:linear-gradient(180deg,#000 0%,#000 93%,transparent 100%);
+}
+[data-pose="partially-folded-portrait"] .fold-near-plane::before{
+  inset:-8px -8px 0 -8px;
+  border:1px solid #70818e70;border-bottom:0;
+  border-radius:var(--tl,40px) var(--tr,40px) 0 0;
 }
 [data-pose="partially-folded-portrait"] .fold-near-sheen{
-  left:3%;right:3%;top:auto;bottom:0;width:auto;height:10px;
-  background:linear-gradient(to top,rgba(233,249,255,.035),transparent);
+  left:2%;right:2%;top:auto;bottom:0;width:auto;height:8px;
+  background:linear-gradient(to top,rgba(233,249,255,.008),transparent);
 }
 [data-pose="partially-folded-portrait"] .fold-flap{
   width:100%;height:50%;top:50%;right:0;
@@ -350,19 +370,22 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   inset:0 -8px -8px -8px;
   border:8px solid #05070b;border-top:0;
   border-radius:0 0 var(--br,40px) var(--bl,40px);
-  -webkit-mask-image:linear-gradient(180deg,transparent,#000 7%,#000 100%);
-  mask-image:linear-gradient(180deg,transparent,#000 7%,#000 100%);
+}
+[data-pose="partially-folded-portrait"] .fold-flap::before{
+  inset:0 -8px -8px -8px;
+  border:1px solid #70818e70;border-top:0;
+  border-radius:0 0 var(--br,40px) var(--bl,40px);
 }
 [data-pose="partially-folded-portrait"] .fold-flap-light{
   background:linear-gradient(180deg,
-    rgba(233,249,255,.04),transparent 10%,transparent 95%,
-    rgba(225,244,255,.02));
+    rgba(233,249,255,.008),transparent 10%,transparent 95%,
+    rgba(225,244,255,.006));
 }
 .device-frame[data-pose="partially-folded-portrait"] .fold-flap-status{display:none!important}
 [data-pose="partially-folded-portrait"] .hinge-sheen{
-  top:calc(50% - 7px);bottom:auto;left:3%;right:3%;
-  width:auto;height:14px;
-  background:linear-gradient(180deg,transparent,rgba(215,242,249,.12),transparent);
+  top:calc(50% - 6px);bottom:auto;left:2%;right:2%;
+  width:auto;height:12px;
+  background:linear-gradient(180deg,transparent,rgba(215,242,249,.05),transparent);
 }
 /* Screen contents must never protrude around any physical corner. */
 .device-frame:not(.is-partially-folded){overflow:hidden}

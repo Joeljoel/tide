@@ -101,12 +101,20 @@ def run(site: Path, snapshots: Path) -> None:
                 chrome = page.locator("#frameHolder").evaluate(
                     "el => getComputedStyle(el,'::before').boxShadow"
                 )
-                assert "1px" in chrome and "rgba(112, 129, 142" in chrome, (
+                assert "56px" in chrome, (pose, chrome)
+                assert "rgba(112, 129, 142" not in chrome, (
+                    "Flat outline should never leak at the centre hinge",
                     pose, chrome
                 )
-                assert page.locator("#deviceFrame").evaluate(
+                frame_rim=page.locator("#deviceFrame").evaluate(
                     "el => getComputedStyle(el).boxShadow"
-                ) == "none"
+                )
+                if pose.startswith("partially-folded-"):
+                    assert frame_rim=="none", frame_rim
+                else:
+                    assert "rgba(112, 129, 142" in frame_rim, (
+                        pose, frame_rim
+                    )
                 status = page.locator("#systemUi .status-indicators")
                 # All Duo states now share a continuous, even bezel.
                 if pose!="desktop":
@@ -161,16 +169,24 @@ def run(site: Path, snapshots: Path) -> None:
                     expect(page.locator("#tideFoldPreview")).to_be_visible()
                     for element in ("#foldNearPlane","#foldFlap"):
                         rim=page.locator(element).evaluate(
-                            "el => getComputedStyle(el,'::after').boxShadow"
+                            "el => getComputedStyle(el,'::before').borderColor"
                         )
                         assert "rgba(112, 129, 142" in rim, (
                             element, pose, rim
+                        )
+                        rim_geometry=page.locator(element).evaluate(
+                            "el => {const s=getComputedStyle(el,'::before');"+
+                            "return [s.borderTopWidth,s.borderRightWidth,"+
+                            "s.borderBottomWidth,s.borderLeftWidth]}"
+                        )
+                        assert rim_geometry.count("1px")==3, (
+                            element, pose, rim_geometry
                         )
                     for element in ("#foldNearSheen", "#hingeSheen"):
                         expect(page.locator(element)).to_be_visible()
                     assert page.locator("#hingeSheen").evaluate(
                         "el => getComputedStyle(el).opacity"
-                    ) == "0.45"
+                    ) == "0.2"
                     # Both visual planes use the exact same clock, location
                     # arrow and connectivity artwork as the fully open state.
                     assert page.evaluate("""() => {

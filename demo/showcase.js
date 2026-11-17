@@ -145,7 +145,7 @@
     const firstBend=portrait?'rotateX(-6deg)':'rotateY(10deg)';
     const secondBend=portrait?'rotateX(10deg)':'rotateY(-10deg)';
     const sheens=[nearSheen,farSheen,hingeSheen];
-    const hingeAlpha=0.45;
+    const hingeAlpha=0.20;
     if(entering){
       showPose(nextPose);
       const motions=[
