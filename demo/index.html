@@ -48,7 +48,8 @@
       <div class="frame-holder" id="frameHolder">
         <div class="device-frame" id="deviceFrame" data-pose="desktop">
           <div class="fold-near-plane" id="foldNearPlane">
-            <div class="device-screen" id="deviceScreen">
+            <div class="fold-near-viewport" id="foldNearViewport">
+              <div class="device-screen" id="deviceScreen">
             <div class="duo-panel tide-panel" id="tidePanel">
               <iframe id="tidePreview" title="Interactive Tide demo" src="app/index.html?demo=1&amp;pose=desktop"
                 loading="eager" referrerpolicy="no-referrer"></iframe>
@@ -72,19 +73,24 @@
               </div>
             </div>
           </div>
+            </div>
           </div>
             <!-- Two independently clipped physical planes share one *logical* viewport.
                  Only their wrappers rotate. Demo scrolling and actions are synchronized. -->
             <div class="fold-planes" id="foldPlanes">
               <div class="fold-flap" id="foldFlap">
-                <iframe id="tideFoldPreview" title="Other side of Tide's foldable display"
-                  src="app/index.html?demo=1&amp;pose=desktop" tabindex="-1"
-                  loading="eager" referrerpolicy="no-referrer"></iframe>
-                <div class="fold-flap-light" aria-hidden="true"></div>
-                <div class="fold-flap-status" aria-hidden="true">
-                  <span class="fold-time">7:52</span>
-                  <img src="assets/status-connectivity.svg" width="42" height="42" alt="">
+                <div class="fold-flap-viewport" id="foldFlapViewport">
+                  <iframe id="tideFoldPreview" title="Other side of Tide's foldable display"
+                    src="app/index.html?demo=1&amp;pose=desktop" tabindex="-1"
+                    loading="eager" referrerpolicy="no-referrer"></iframe>
+                  <div class="fold-home-visual" aria-hidden="true"></div>
+                  <div class="fold-flap-light" aria-hidden="true"></div>
+                  <div class="fold-flap-status" aria-hidden="true">
+                    <span class="fold-time">7:52</span>
+                    <img src="assets/status-connectivity.svg" width="42" height="42" alt="">
+                  </div>
                 </div>
+                <div class="fold-interaction" id="foldInteraction" aria-label="Interact with the folded display"></div>
               </div>
             </div>
         </div>

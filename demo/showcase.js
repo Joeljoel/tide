@@ -8,6 +8,8 @@
     'unfolded-portrait':{label:'Inner · portrait',width:669,height:951},
     'partially-folded-portrait':{label:'Inner · partially folded · portrait',width:669,height:951},
     'partially-folded-landscape':{label:'Inner · partially folded · landscape',width:951,height:669},
+    'partially-folded-split-left':{label:'Split View · partially folded · Tide left',width:951,height:669,split:true},
+    'partially-folded-split-right':{label:'Split View · partially folded · Tide right',width:951,height:669,split:true},
     'unfolded-landscape':{label:'Inner · landscape',width:951,height:669},
     'split-left':{label:'Split View · Tide left',width:951,height:669,split:true},
     'split-right':{label:'Split View · Tide right',width:951,height:669,split:true}
@@ -37,7 +39,10 @@
     if(device==='desktop')return 'desktop';
     if(foldState==='folded')return 'folded-'+orientation;
     const inner=innerOrientation();
-    if(foldState==='partial')return 'partially-folded-'+inner;
+    if(foldState==='partial'){
+      if(inner==='landscape' && split)return 'partially-folded-split-'+side;
+      return 'partially-folded-'+inner;
+    }
     if(inner==='portrait')return 'unfolded-portrait';
     return split?'split-'+side:'unfolded-landscape';
   }
@@ -45,7 +50,13 @@
   function sendPose(){
     for(const [element,ready] of [[iframe,loaded],[foldIframe,foldLoaded]]){
       if(ready && element.contentWindow){
-        element.contentWindow.postMessage({type:'tide-demo-set-pose',pose:currentPose},location.origin);
+        // Split View has exactly the same app UI and viewport at either
+        // physical hinge angle: only the outer device presentation changes.
+        const appPose=currentPose.startsWith('partially-folded-split-')
+          ?currentPose.replace('partially-folded-',''):currentPose;
+        element.contentWindow.postMessage({type:'tide-demo-set-pose',pose:appPose},location.origin);
+        element.contentDocument?.documentElement.classList.toggle(
+          'tide-demo-fold-visual',currentPose.startsWith('partially-folded-'));
       }
     }
   }
@@ -207,7 +218,7 @@
       button.tabIndex=index===selectedIndex?0:-1;
     });
     rotateBtn.setAttribute('aria-label','Rotate '+(orientation==='portrait'?'to landscape':'to portrait'));
-    splitBtn.hidden=foldState!=='unfolded'||innerOrientation()!=='landscape';
+    splitBtn.hidden=foldState==='folded'||innerOrientation()!=='landscape';
     splitBtn.textContent=split?'Unsplit':'Split';
     splitBtn.setAttribute('aria-pressed',String(split));
     shiftBtn.hidden=!split;
@@ -226,7 +237,7 @@
   foldButtons.forEach(button=>{
     button.addEventListener('click',()=>transition('fold',()=>{
       foldState=button.dataset.foldState;
-      split=false;
+      if(foldState==='folded'||innerOrientation()!=='landscape')split=false;
     }));
     button.addEventListener('keydown',event=>{
       const i=foldButtons.indexOf(button);

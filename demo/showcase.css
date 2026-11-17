@@ -50,13 +50,13 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
    and 100px handle in the reference scale to 13px and 46px here. */
 .is-split .device-screen{background:#000}
 .is-split .duo-panel{width:calc((100% - 13px) / 2);border-radius:30px}
-.is-split[data-pose=split-left] .tide-panel,
-.is-split[data-pose=split-right] .home-panel{right:auto}
-.is-split[data-pose=split-left] .home-panel,
-.is-split[data-pose=split-right] .tide-panel{left:auto}
+.is-split:is([data-pose=split-left],[data-pose=partially-folded-split-left]) .tide-panel,
+.is-split:is([data-pose=split-right],[data-pose=partially-folded-split-right]) .home-panel{right:auto}
+.is-split:is([data-pose=split-left],[data-pose=partially-folded-split-left]) .home-panel,
+.is-split:is([data-pose=split-right],[data-pose=partially-folded-split-right]) .tide-panel{left:auto}
 .is-split .home-panel,
-.is-split[data-pose=split-left] .home-right,
-.is-split[data-pose=split-right] .home-left{display:block}
+.is-split:is([data-pose=split-left],[data-pose=partially-folded-split-left]) .home-right,
+.is-split:is([data-pose=split-right],[data-pose=partially-folded-split-right]) .home-left{display:block}
 .home-panel img{width:100%;height:100%;object-fit:cover}
 .is-split .split-handle{
   display:block;position:absolute;z-index:2;top:50%;left:50%;width:3px;height:46px;
@@ -133,6 +133,7 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 .frame-holder{perspective:1200px}
  .device-frame{isolation:isolate}
 .fold-near-plane{position:relative;width:100%;height:100%}
+.fold-near-viewport{position:relative;width:100%;height:100%}
 .device-screen{clip-path:inset(0 round
     max(0px,calc(var(--tl,40px) - 5px))
     max(0px,calc(var(--tr,40px) - 5px))
@@ -154,7 +155,7 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 .is-partially-folded .fold-near-plane{
   position:absolute;inset:0 auto 0 0;
   width:50%;height:100%;
-  overflow:hidden;
+  overflow:visible;
   z-index:2;
   transform:rotateY(10deg);
   transform-origin:right center;
@@ -164,6 +165,16 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   box-shadow:-5px 11px 24px #0006;
   -webkit-backface-visibility:hidden;
   backface-visibility:hidden;
+}
+.is-partially-folded .fold-near-viewport{
+  position:absolute;inset:0;
+  overflow:hidden;
+  border-radius:inherit;
+  clip-path:inset(0 round max(0px,calc(var(--tl,40px) - 5px))
+    0 0 max(0px,calc(var(--bl,40px) - 5px)));
+  -webkit-mask-image:linear-gradient(white,white);
+  mask-image:linear-gradient(white,white);
+  isolation:isolate;
 }
 .is-partially-folded .fold-near-plane .device-screen{
   width:200%;height:100%;border-radius:0;
@@ -192,7 +203,7 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 .is-partially-folded .fold-planes{display:block}
 .fold-flap{
   position:absolute;top:0;right:0;width:50%;height:100%;
-  overflow:hidden;
+  overflow:visible;
   pointer-events:auto;
   transform-origin:left center;
   transform:rotateY(-10deg);
@@ -203,11 +214,39 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   -webkit-backface-visibility:hidden;
   backface-visibility:hidden;
 }
+.fold-flap-viewport{
+  position:absolute;inset:0;
+  overflow:hidden;
+  isolation:isolate;
+  border-radius:inherit;
+  clip-path:inset(0 round 0
+    max(0px,calc(var(--tr,40px) - 5px))
+    max(0px,calc(var(--br,40px) - 5px)) 0);
+  -webkit-mask-image:linear-gradient(white,white);
+  mask-image:linear-gradient(white,white);
+}
 .fold-flap iframe{
   position:absolute;top:0;left:-100%;
   width:200%;height:100%;
   border:0;background:#0a1119;
+  pointer-events:none;
 }
+.fold-interaction{
+  position:absolute;inset:5px 5px 5px 0;
+  z-index:13;
+  pointer-events:auto;
+  background:transparent;
+  touch-action:none;
+}
+.fold-home-visual{
+  display:none;
+  position:absolute;inset:0;
+  z-index:5;
+  background:#0a1119 url("assets/home-right.webp") center/cover no-repeat;
+  pointer-events:none;
+}
+[data-pose="partially-folded-split-left"] .fold-home-visual{display:block}
+[data-pose="partially-folded-split-left"] .fold-flap-status{display:none}
 .fold-flap::after{
   content:"";position:absolute;z-index:9;inset:0;
   border:5px solid #05070b;border-left:0;border-radius:inherit;
@@ -269,6 +308,14 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 [data-pose="partially-folded-portrait"] .fold-flap iframe{
   left:0;top:-100%;width:100%;height:200%;
 }
+[data-pose="partially-folded-portrait"] .fold-flap-viewport{
+  clip-path:inset(0 round 0 0
+    max(0px,calc(var(--br,40px) - 5px))
+    max(0px,calc(var(--bl,40px) - 5px)));
+}
+[data-pose="partially-folded-portrait"] .fold-interaction{
+  inset:0 5px 5px 5px;
+}
 [data-pose="partially-folded-portrait"] .fold-flap::after{
   border:5px solid #05070b;border-top:0;
 }
@@ -285,7 +332,11 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 }
 /* Screen contents must never protrude around any physical corner. */
 .device-frame:not(.is-partially-folded){overflow:hidden}
-.device-frame .device-screen,.fold-near-plane,.fold-flap{contain:paint}
+.device-frame:not(.is-partially-folded) .device-screen{contain:paint}
+.is-partially-folded .fold-near-plane,
+.is-partially-folded .fold-flap{will-change:transform}
+.is-partially-folded .fold-near-viewport,
+.is-partially-folded .fold-flap-viewport{contain:paint}
 @media(max-width:670px){.preview-note{flex-basis:100%;margin-left:0}
   .fold-selector{padding:2px 7px;gap:3px}
   .duo-choices .fold-stops button{min-width:32px;width:32px}}
