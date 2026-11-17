@@ -130,7 +130,7 @@ def run(site: Path, snapshots: Path) -> None:
                     light = page.locator(".fold-flap-light").evaluate(
                         "el => getComputedStyle(el).backgroundImage"
                     )
-                    assert "rgba(233, 249, 255" in light and "rgba(0, 0, 0" not in light, light
+                    assert "rgba(233, 249, 255" in light and "rgba(0, 0, 0, 0.5" not in light, light
                     expect(page.locator("#tideFoldPreview")).to_be_visible()
                     if pose.endswith("portrait"):
                         expect(status).to_be_visible()
