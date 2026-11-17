@@ -598,6 +598,41 @@ def run(site: Path, snapshots: Path) -> None:
                 expect(page.locator("#deviceFrame[aria-busy]")).to_have_count(0)
                 return frame.bounding_box()
 
+            # Freeze the short first-pane blur at its peak and save a
+            # screenshot. This verifies the reference-like *temporary*
+            # appearance rather than merely checking animation keyframes.
+            page.evaluate("""() => {
+                window.__originalPreviewAnimate=Element.prototype.animate;
+                Element.prototype.animate=function(frames,opts){
+                    const motion=window.__originalPreviewAnimate.apply(
+                        this,arguments);
+                    if(this.id==='foldTransitionBlur'){
+                        motion.pause();
+                        motion.currentTime=opts.duration*.37;
+                        window.__frozenPreviewBlur=motion;
+                    }
+                    return motion;
+                };
+            }""")
+            page.locator("#partialBtn").click()
+            expect(frame).to_have_attribute("data-pose",
+                                            "partially-folded-landscape")
+            page.wait_for_function("!!window.__frozenPreviewBlur")
+            expect(frame).to_have_attribute("aria-busy","true")
+            mid_opacity=page.locator("#foldTransitionBlur").evaluate(
+                "el => Number(getComputedStyle(el).opacity)")
+            assert mid_opacity>.8, mid_opacity
+            page.screenshot(path=str(snapshots/"fold-transition-iOS-blur.png"),
+                            full_page=True)
+            page.evaluate("""() => {
+                Element.prototype.animate=window.__originalPreviewAnimate;
+                window.__frozenPreviewBlur.play();
+            }""")
+            expect(page.locator("#deviceFrame[aria-busy]")).to_have_count(0)
+            assert page.locator("#foldTransitionBlur").evaluate(
+                "el => getComputedStyle(el).opacity")=="0"
+            animated_pose("foldedBtn", "folded-portrait")
+
             folded_portrait=frame.bounding_box()
             unfolded_landscape=animated_pose("unfoldedBtn", "unfolded-landscape")
             folded_again=animated_pose("foldedBtn", "folded-portrait")
