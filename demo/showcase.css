@@ -33,15 +33,28 @@ main{width:100%;max-width:1710px;margin:auto;padding:12px clamp(8px,2.4vw,28px) 
 .stage{display:flex;justify-content:center;align-items:flex-start;width:100%;padding:clamp(10px,2vw,25px);
   min-height:370px;border:1px solid #34404e;border-radius:19px;
   background:radial-gradient(ellipse 75% 70% at 50% 35%,#23313c99,transparent 80%),#101720;overflow:hidden}
-.frame-holder{flex:none;position:relative;transition:width .2s,height .2s}
+.frame-holder{flex:none;position:relative;isolation:isolate;transition:width .2s,height .2s}
+ /* One chrome shadow and perimeter highlight for every physical device pose.
+    This stays mounted through the hinge animation, so its lighting cannot
+    disappear when the partial-fold screen planes are replaced by the flat one. */
+.frame-holder::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  border-radius:var(--outer-tl,40px) var(--outer-tr,40px)
+    var(--outer-br,40px) var(--outer-bl,40px);
+  box-shadow:0 16px 56px #000b;
+}
+/* Flat poses outline the real outer device perimeter. The matching partial
+   outlines are attached to its *rotating* halves instead (below). Keeping
+   the highlight off frame-holder prevents a ghost line at the centre hinge. */
+.device-frame:not(.is-partially-folded){box-shadow:0 0 0 1px #70818e70}
 .device-frame{position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%) scale(var(--device-scale,1));
-  border:6px solid #05070b;background:#05070b;
+  border:8px solid #05070b;background:#05070b;
   border-radius:var(--tl,40px) var(--tr,40px) var(--br,40px) var(--bl,40px);
-  box-shadow:0 16px 56px #000b,0 0 0 1px #70818e70;overflow:hidden}
+  box-shadow:none;overflow:hidden}
 .device-screen{width:100%;height:100%;position:relative;background:#0a1119;
-  border-radius:calc(var(--tl,40px) - 5px) calc(var(--tr,40px) - 5px)
-    calc(var(--br,40px) - 5px) calc(var(--bl,40px) - 5px);overflow:hidden}
+  border-radius:calc(var(--tl,40px) - 8px) calc(var(--tr,40px) - 8px)
+    calc(var(--br,40px) - 8px) calc(var(--bl,40px) - 8px);overflow:hidden}
 .duo-panel{position:absolute;inset:0;overflow:hidden}
 .tide-panel{z-index:1;background:#0a1119}
 iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
@@ -50,13 +63,13 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
    and 100px handle in the reference scale to 13px and 46px here. */
 .is-split .device-screen{background:#000}
 .is-split .duo-panel{width:calc((100% - 13px) / 2);border-radius:30px}
-.is-split[data-pose=split-left] .tide-panel,
-.is-split[data-pose=split-right] .home-panel{right:auto}
-.is-split[data-pose=split-left] .home-panel,
-.is-split[data-pose=split-right] .tide-panel{left:auto}
+.is-split:is([data-pose=split-left],[data-pose=partially-folded-split-left]) .tide-panel,
+.is-split:is([data-pose=split-right],[data-pose=partially-folded-split-right]) .home-panel{right:auto}
+.is-split:is([data-pose=split-left],[data-pose=partially-folded-split-left]) .home-panel,
+.is-split:is([data-pose=split-right],[data-pose=partially-folded-split-right]) .tide-panel{left:auto}
 .is-split .home-panel,
-.is-split[data-pose=split-left] .home-right,
-.is-split[data-pose=split-right] .home-left{display:block}
+.is-split:is([data-pose=split-left],[data-pose=partially-folded-split-left]) .home-right,
+.is-split:is([data-pose=split-right],[data-pose=partially-folded-split-right]) .home-left{display:block}
 .home-panel img{width:100%;height:100%;object-fit:cover}
 .is-split .split-handle{
   display:block;position:absolute;z-index:2;top:50%;left:50%;width:3px;height:46px;
@@ -82,6 +95,12 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 .status-connectivity{display:block;width:42px;height:42px}
 .device-frame[data-pose=folded-portrait] .status-indicators{top:84px;gap:9px}
 .device-frame[data-pose=folded-portrait] .status-location{display:none}
+.device-frame[data-pose^="partially-folded-"] .status-indicators{
+  position:absolute;display:grid;justify-items:center;align-items:start;gap:8px;right:27px;top:22px;
+}
+.device-frame[data-pose=partially-folded-portrait] .status-indicators{
+  top:27px;grid-auto-flow:column;align-items:center;gap:13px;
+}
 .device-frame[data-pose=unfolded-portrait] .status-indicators{
   top:27px;right:27px;grid-auto-flow:column;align-items:center;gap:13px}
 .device-frame[data-pose=unfolded-portrait] .status-clock{width:34px;gap:5px}
@@ -98,5 +117,340 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   position:absolute;z-index:9;inset:0 0 0 50%;pointer-events:none;
   transform-origin:left center;background:linear-gradient(90deg,#020407d9,#192a36aa 22%,#080d16eb);
   border-left:1px solid #9cadbd55}
-.stage:has(.device-frame[aria-busy]){overflow:visible}
+.stage:has(.device-frame[aria-busy]){overflow:hidden}
 .device-frame[aria-busy] .device-screen{pointer-events:none}
+
+
+/* Three physical fold stops: the selected dot changes device geometry. */
+.fold-selector{display:flex;align-items:center;gap:7px;margin-right:2px;
+  padding:2px 11px;border:1px solid #354d5c;border-radius:12px;
+  background:rgba(26,45,57,.87);min-height:40px}
+.fold-end-label{color:#b7c7d0;font-size:11px;letter-spacing:.01em;font-weight:650}
+.fold-stops{display:flex;align-items:center;position:relative;gap:0}
+.fold-stops::before{content:"";position:absolute;left:19px;right:19px;top:50%;height:1px;
+  background:#547070;transform:translateY(-50%);pointer-events:none}
+.duo-choices .fold-stops button{position:relative;display:grid;place-items:center;
+  min-width:36px;width:36px;height:36px;min-height:36px;padding:0;
+  background:transparent!important;border:0!important;border-radius:50%;
+  cursor:pointer;touch-action:manipulation}
+.fold-stops button span{display:block;width:9px;height:9px;border-radius:50%;
+  border:1.5px solid #90a4b1;background:#172832;transition:background .2s,border-color .2s,scale .2s}
+.fold-stops button[aria-checked="true"] span{width:13px;height:13px;
+  border-color:#d7ffeb;background:#a5e5c5;box-shadow:0 0 0 4px #82c6a327,0 0 12px #82c6a347}
+.fold-stops button:focus-visible{outline:2px solid #b0e7c4;outline-offset:-3px}
+.preview-note{font-size:11px;color:#81b5b4;white-space:nowrap;margin-left:auto}
+#resetDemo{margin-left:0}
+.stage{perspective:1200px;perspective-origin:50% 42%;background:
+  radial-gradient(ellipse 42% 30% at 50% 79%,#6a8fa01b,transparent 90%),
+  radial-gradient(ellipse 75% 70% at 50% 35%,#23313c99,transparent 80%),#101720}
+.frame-holder{perspective:1200px}
+ .device-frame{isolation:isolate}
+.fold-near-plane{position:relative;width:100%;height:100%}
+.fold-near-viewport{position:relative;width:100%;height:100%}
+/* iOS-inspired transient first-pane effect. A single parent controls time
+   while two independent children control spatial falloff:
+   - BLUR rapidly approaches full strength moving away from the hinge,
+     so most of the outer half is defocused.
+   - SHADE increases gently toward the outer edge.
+   The final strip adjacent to the crease is clear and undimmed. */
+.fold-transition-blur{
+  position:absolute;inset:0;z-index:20;pointer-events:none;
+  opacity:0;will-change:opacity;
+}
+.fold-transition-blur-layer,
+.fold-transition-shade{
+  position:absolute;inset:0;pointer-events:none;
+}
+.fold-transition-blur-layer{
+  -webkit-backdrop-filter:blur(17px);
+  backdrop-filter:blur(17px);
+  /* On the FIRST (left) half, the centre crease is its RIGHT edge.
+     Blur is ~full across the outer 70%, then tapers toward clear glass. */
+  -webkit-mask-image:linear-gradient(90deg,
+    #000 0%,#000 60%,rgba(0,0,0,.94) 72%,
+    rgba(0,0,0,.64) 82%,rgba(0,0,0,.17) 94%,transparent 100%);
+  mask-image:linear-gradient(90deg,
+    #000 0%,#000 60%,rgba(0,0,0,.94) 72%,
+    rgba(0,0,0,.64) 82%,rgba(0,0,0,.17) 94%,transparent 100%);
+}
+.fold-transition-shade{
+  /* Darkness increases independently and much more gradually toward the
+     exterior. At the crease its opacity is exactly zero. */
+  background:linear-gradient(90deg,
+    rgba(6,10,16,.12) 0%,rgba(6,10,16,.105) 26%,
+    rgba(6,10,16,.073) 52%,rgba(6,10,16,.035) 76%,
+    rgba(6,10,16,.008) 93%,transparent 100%);
+}
+/* Portrait: the upper pane is first; its BOTTOM edge meets the crease. */
+.device-frame[data-pose="partially-folded-portrait"] .fold-transition-blur-layer{
+  -webkit-mask-image:linear-gradient(180deg,
+    #000 0%,#000 60%,rgba(0,0,0,.94) 72%,
+    rgba(0,0,0,.64) 82%,rgba(0,0,0,.17) 94%,transparent 100%);
+  mask-image:linear-gradient(180deg,
+    #000 0%,#000 60%,rgba(0,0,0,.94) 72%,
+    rgba(0,0,0,.64) 82%,rgba(0,0,0,.17) 94%,transparent 100%);
+}
+.device-frame[data-pose="partially-folded-portrait"] .fold-transition-shade{
+  background:linear-gradient(180deg,
+    rgba(6,10,16,.12) 0%,rgba(6,10,16,.105) 26%,
+    rgba(6,10,16,.073) 52%,rgba(6,10,16,.035) 76%,
+    rgba(6,10,16,.008) 93%,transparent 100%);
+}
+@media(prefers-reduced-motion:reduce){
+  .fold-transition-blur{opacity:0!important;will-change:auto}
+}
+.device-screen{clip-path:inset(0 round
+    max(0px,calc(var(--tl,40px) - 8px))
+    max(0px,calc(var(--tr,40px) - 8px))
+    max(0px,calc(var(--br,40px) - 8px))
+    max(0px,calc(var(--bl,40px) - 8px)))}
+/* A real inward fold. Both shallowly angled wrappers pivot at the physical
+   hinge. The Tide iframes themselves stay flat *inside* their clipped halves.
+   Depth: the exterior edges come forward, with the crease slightly recessed. */
+.device-frame.is-partially-folded{
+  overflow:visible;
+  background:transparent;
+  border-color:transparent;
+  transform:translate(-50%,-50%) scale(var(--device-scale,1));
+  perspective:1550px;
+  perspective-origin:50% 50%;
+  transform-style:preserve-3d;
+  box-shadow:none;
+}
+.is-partially-folded .fold-near-plane{
+  position:absolute;inset:0 auto 0 0;
+  width:50%;height:100%;
+  overflow:visible;
+  z-index:2;
+  transform:rotateY(10deg);
+  transform-origin:right center;
+  border-radius:max(0px,calc(var(--tl,40px) - 8px)) 0 0
+    max(0px,calc(var(--bl,40px) - 8px));
+  background:#0a1119;
+  box-shadow:none;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+.is-partially-folded .fold-near-viewport{
+  position:absolute;inset:0;
+  overflow:hidden;
+  border-radius:inherit;
+  clip-path:inset(0 round max(0px,calc(var(--tl,40px) - 8px))
+    0 0 max(0px,calc(var(--bl,40px) - 8px)));
+  -webkit-mask-image:linear-gradient(white,white);
+  mask-image:linear-gradient(white,white);
+  isolation:isolate;
+}
+.is-partially-folded .fold-near-plane .device-screen{
+  width:200%;height:100%;border-radius:0;
+  clip-path:none;overflow:visible;
+}
+.is-partially-folded .fold-near-plane::after{
+  /* Draw on the OUTSIDE of the viewport, exactly as device-frame's
+     flat-state border does. Both strokes share the same outer radius. */
+  content:"";position:absolute;z-index:12;inset:-8px 0 -8px -8px;
+  border:8px solid #05070b;border-right:0;
+  border-radius:var(--tl,40px) 0 0 var(--bl,40px);
+  pointer-events:none;
+  /* The normal open bezel has no inside-glass shadow. Match it here;
+     only the separate outside ::before border carries the rim highlight. */
+  box-shadow:none;
+}
+/* Use a 1px *border*, rather than a box-shadow that the soft seam mask
+   clips away. This traces the bent left exterior edge and both corners. */
+.is-partially-folded .fold-near-plane::before{
+  content:"";position:absolute;z-index:13;inset:-8px 0 -8px -8px;
+  border:1px solid #70818e70;border-right:0;
+  border-radius:var(--tl,40px) 0 0 var(--bl,40px);
+  pointer-events:none;
+}
+.fold-near-sheen{
+  /* Only a barely perceptible hinge reflection; the previous brighter
+     screen-edge glow ended abruptly when the panes became flat. */
+  position:absolute;z-index:11;pointer-events:none;
+  right:0;top:2%;bottom:2%;width:8px;opacity:1;
+  background:linear-gradient(to left,rgba(232,249,255,.008),transparent);
+}
+.fold-planes{
+  display:none;
+  position:absolute;inset:0;
+  z-index:3;
+  pointer-events:none;
+  overflow:visible;
+  transform-style:preserve-3d;
+}
+.is-partially-folded .fold-planes{display:block}
+.fold-flap{
+  position:absolute;top:0;right:0;width:50%;height:100%;
+  overflow:visible;
+  pointer-events:auto;
+  transform-origin:left center;
+  transform:rotateY(-10deg);
+  background:#0a1119;
+  border-radius:0 max(0px,calc(var(--tr,40px) - 8px))
+    max(0px,calc(var(--br,40px) - 8px)) 0;
+  box-shadow:none;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+.fold-flap-viewport{
+  position:absolute;inset:0;
+  overflow:hidden;
+  isolation:isolate;
+  border-radius:inherit;
+  clip-path:inset(0 round 0
+    max(0px,calc(var(--tr,40px) - 8px))
+    max(0px,calc(var(--br,40px) - 8px)) 0);
+  -webkit-mask-image:linear-gradient(white,white);
+  mask-image:linear-gradient(white,white);
+}
+.fold-flap iframe{
+  position:absolute;top:0;left:-100%;
+  width:200%;height:100%;
+  border:0;background:#0a1119;
+  pointer-events:none;
+}
+.fold-interaction{
+  /* Bezel sits outside the glass, so full in-glass hit area is usable. */
+  position:absolute;inset:0;
+  z-index:13;
+  pointer-events:auto;
+  background:transparent;
+  touch-action:none;
+}
+.fold-home-visual{
+  display:none;
+  position:absolute;inset:0;
+  z-index:5;
+  background:#0a1119 url("assets/home-right.webp") center/cover no-repeat;
+  pointer-events:none;
+}
+[data-pose="partially-folded-split-left"] .fold-home-visual{display:block}
+.device-frame[data-pose="partially-folded-split-left"] .fold-flap-status{display:none!important}
+/* In Split View, Tide itself occupies only one physical half. Unlike
+   normal partial-fold mode, the far iframe has a half-width *layout
+   viewport*; cropping half of a full-width app caused missing headers. */
+[data-pose="partially-folded-split-right"] .fold-flap iframe{
+  /* Match the 13px central Split View gutter of the unfolded mockup. */
+  left:7px;top:0;width:calc(100% - 7px);height:100%;
+}
+.fold-flap::after{
+  /* Physical bezel lives beyond the glass instead of covering it. */
+  content:"";position:absolute;z-index:9;inset:-8px -8px -8px 0;
+  border:8px solid #05070b;border-left:0;
+  border-radius:0 var(--tr,40px) var(--br,40px) 0;
+  pointer-events:none;
+  box-shadow:none;
+}
+/* Match the opposite physical edge with the same unmasked light stroke. */
+.fold-flap::before{
+  content:"";position:absolute;z-index:12;inset:-8px -8px -8px 0;
+  border:1px solid #70818e70;border-left:0;
+  border-radius:0 var(--tr,40px) var(--br,40px) 0;
+  pointer-events:none;
+}
+.fold-flap-light{
+  position:absolute;inset:0;z-index:6;
+  pointer-events:none;
+  background:linear-gradient(90deg,
+    rgba(233,249,255,.008),transparent 9%,transparent 94%,
+    rgba(225,244,255,.006));
+  box-shadow:none;
+}
+.fold-flap-status{
+  position:absolute;z-index:7;top:22px;right:27px;
+  display:grid;justify-items:center;align-items:start;gap:8px;
+  pointer-events:none;color:white;
+}
+.fold-flap-status .status-clock,.fold-flap-status .status-connectivity{
+  /* Identical components and measurements to the unfolded indicator. */
+}
+
+.hinge-sheen{
+  position:absolute;z-index:11;pointer-events:none;
+  top:2%;bottom:2%;left:calc(50% - 6px);width:12px;
+  background:linear-gradient(90deg,transparent,rgba(215,242,249,.055),transparent);
+  opacity:.20;filter:blur(7px);
+}
+
+/* Laptop posture: the upper screen is nearly flat for legibility.
+   The lower screen has a slightly stronger inward tilt, pivoting at the same
+   horizontal hinge. The content surfaces retain their original rectangles. */
+[data-pose="partially-folded-portrait"] .fold-near-plane{
+  width:100%;height:50%;inset:0 0 auto 0;
+  transform:rotateX(-6deg);
+  transform-origin:center bottom;
+  border-radius:max(0px,calc(var(--tl,40px) - 8px))
+    max(0px,calc(var(--tr,40px) - 8px)) 0 0;
+  box-shadow:0 -3px 22px #0004;
+}
+[data-pose="partially-folded-portrait"] .fold-near-plane .device-screen{
+  width:100%;height:200%;
+}
+[data-pose="partially-folded-portrait"] .fold-near-plane::after{
+  inset:-8px -8px 0 -8px;
+  border:8px solid #05070b;border-bottom:0;
+  border-radius:var(--tl,40px) var(--tr,40px) 0 0;
+}
+[data-pose="partially-folded-portrait"] .fold-near-plane::before{
+  inset:-8px -8px 0 -8px;
+  border:1px solid #70818e70;border-bottom:0;
+  border-radius:var(--tl,40px) var(--tr,40px) 0 0;
+}
+[data-pose="partially-folded-portrait"] .fold-near-sheen{
+  left:2%;right:2%;top:auto;bottom:0;width:auto;height:8px;
+  background:linear-gradient(to top,rgba(233,249,255,.008),transparent);
+}
+[data-pose="partially-folded-portrait"] .fold-flap{
+  width:100%;height:50%;top:50%;right:0;
+  transform:rotateX(10deg);
+  transform-origin:center top;
+  border-radius:0 0 max(0px,calc(var(--br,40px) - 8px))
+    max(0px,calc(var(--bl,40px) - 8px));
+  box-shadow:0 8px 23px #0005;
+}
+[data-pose="partially-folded-portrait"] .fold-flap iframe{
+  left:0;top:-100%;width:100%;height:200%;
+}
+[data-pose="partially-folded-portrait"] .fold-flap-viewport{
+  clip-path:inset(0 round 0 0
+    max(0px,calc(var(--br,40px) - 8px))
+    max(0px,calc(var(--bl,40px) - 8px)));
+}
+[data-pose="partially-folded-portrait"] .fold-interaction{
+  inset:0;
+}
+[data-pose="partially-folded-portrait"] .fold-flap::after{
+  inset:0 -8px -8px -8px;
+  border:8px solid #05070b;border-top:0;
+  border-radius:0 0 var(--br,40px) var(--bl,40px);
+}
+[data-pose="partially-folded-portrait"] .fold-flap::before{
+  inset:0 -8px -8px -8px;
+  border:1px solid #70818e70;border-top:0;
+  border-radius:0 0 var(--br,40px) var(--bl,40px);
+}
+[data-pose="partially-folded-portrait"] .fold-flap-light{
+  background:linear-gradient(180deg,
+    rgba(233,249,255,.008),transparent 10%,transparent 95%,
+    rgba(225,244,255,.006));
+}
+.device-frame[data-pose="partially-folded-portrait"] .fold-flap-status{display:none!important}
+[data-pose="partially-folded-portrait"] .hinge-sheen{
+  top:calc(50% - 6px);bottom:auto;left:2%;right:2%;
+  width:auto;height:12px;
+  background:linear-gradient(180deg,transparent,rgba(215,242,249,.05),transparent);
+}
+/* Screen contents must never protrude around any physical corner. */
+.device-frame:not(.is-partially-folded){overflow:hidden}
+.device-frame:not(.is-partially-folded) .device-screen{contain:paint}
+.is-partially-folded .fold-near-plane,
+.is-partially-folded .fold-flap{will-change:transform}
+.is-partially-folded .fold-near-viewport,
+.is-partially-folded .fold-flap-viewport{contain:paint}
+@media(max-width:670px){.preview-note{flex-basis:100%;margin-left:0}
+  .fold-selector{padding:2px 7px;gap:3px}
+  .duo-choices .fold-stops button{min-width:32px;width:32px}}
+@media(prefers-reduced-motion:reduce){
+  .fold-stops button span,.fold-flap{transition:none!important}
+}

@@ -21,7 +21,15 @@
       <button id="duoBtn" type="button" aria-pressed="false">Duo</button>
     </nav>
     <div class="duo-choices" id="duoChoices" hidden>
-      <button id="foldBtn" type="button">Fold</button>
+      <div class="fold-selector" role="radiogroup" aria-label="Duo fold position">
+        <span class="fold-end-label">Folded</span>
+        <div class="fold-stops">
+          <button id="foldedBtn" type="button" role="radio" aria-label="Folded" aria-checked="true" data-fold-state="folded"><span></span></button>
+          <button id="partialBtn" type="button" role="radio" aria-label="Partially folded" aria-checked="false" data-fold-state="partial"><span></span></button>
+          <button id="unfoldedBtn" type="button" role="radio" aria-label="Unfolded" aria-checked="false" data-fold-state="unfolded"><span></span></button>
+        </div>
+        <span class="fold-end-label">Unfolded</span>
+      </div>
       <button id="rotateBtn" type="button">Rotate <span aria-hidden="true">↻</span></button>
       <button id="splitBtn" type="button" hidden>Split</button>
       <button id="shiftBtn" type="button" hidden>Move Tide right</button>
@@ -33,12 +41,15 @@
     <div class="preview-meta">
       <span id="poseName">Desktop</span>
       <span id="poseDimensions">1280 × 800</span>
+      <span class="preview-note" id="previewNote">v1.4.0</span>
       <button id="resetDemo" type="button" title="Reset sample torrents">↺ Reset</button>
     </div>
     <div class="stage" id="stage">
       <div class="frame-holder" id="frameHolder">
         <div class="device-frame" id="deviceFrame" data-pose="desktop">
-          <div class="device-screen" id="deviceScreen">
+          <div class="fold-near-plane" id="foldNearPlane">
+            <div class="fold-near-viewport" id="foldNearViewport">
+              <div class="device-screen" id="deviceScreen">
             <div class="duo-panel tide-panel" id="tidePanel">
               <iframe id="tidePreview" title="Interactive Tide demo" src="app/index.html?demo=1&amp;pose=desktop"
                 loading="eager" referrerpolicy="no-referrer"></iframe>
@@ -62,6 +73,33 @@
               </div>
             </div>
           </div>
+              <!-- A transient iOS-style blur only over the first visual pane.
+                   It remains clipped to the glass and never intercepts input. -->
+              <div class="fold-transition-blur" id="foldTransitionBlur" aria-hidden="true">
+                <div class="fold-transition-blur-layer" aria-hidden="true"></div>
+                <div class="fold-transition-shade" aria-hidden="true"></div>
+              </div>
+            </div>
+            <div class="fold-near-sheen" id="foldNearSheen" aria-hidden="true"></div>
+          </div>
+            <!-- Two independently clipped physical planes share one *logical* viewport.
+                 Only their wrappers rotate. Demo scrolling and actions are synchronized. -->
+            <div class="fold-planes" id="foldPlanes">
+              <div class="fold-flap" id="foldFlap">
+                <div class="fold-flap-viewport" id="foldFlapViewport">
+                  <iframe id="tideFoldPreview" title="Other side of Tide's foldable display"
+                    src="app/index.html?demo=1&amp;pose=desktop" tabindex="-1"
+                    loading="eager" referrerpolicy="no-referrer"></iframe>
+                  <div class="fold-home-visual" aria-hidden="true"></div>
+                  <div class="fold-flap-light" aria-hidden="true"></div>
+                  <!-- The far indicator is cloned from the exact same status
+                       markup used in the flat inner screen. -->
+                  <div class="status-indicators fold-flap-status" aria-hidden="true"></div>
+                </div>
+                <div class="fold-interaction" id="foldInteraction" aria-label="Interact with the folded display"></div>
+              </div>
+              <div class="hinge-sheen" id="hingeSheen" aria-hidden="true"></div>
+            </div>
         </div>
       </div>
     </div>

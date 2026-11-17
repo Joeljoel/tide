@@ -105,6 +105,27 @@ jobs:
           Download the Source code ZIP, replace your existing Tide files, and reopen the PWA. See the README for setup instructions.
           EOF
             )
+          elif [[ "$version" == "1.4.0" ]]; then
+            notes=$(cat <<'EOF'
+          ## What's new in Tide 1.4.0
+
+          - **Device posture support for iPhone Duo:** Tide detects partially folded portrait and landscape states and adapts the torrent list, Details, and Settings to the hinge.
+          - In partially folded landscape, torrent cards use a two-column layout and Details can sit alongside the list, with Settings on the right.
+          - In partially folded portrait, the torrent list stays visible above Details in a 50/50 split.
+          - In fully unfolded portrait, the torrent list remains visible in the top 35% while Details occupies the lower 65%. The divider animates smoothly between the 50/50 and 35/65 layouts as the device folds or unfolds.
+          - **Updated interactive demo:** Folded, partially folded and fully open device states, 3D hinge animation, rotation, Split View, consistent bezel styling, and transition-only screen blur.
+          
+          ### Experimental Safari support
+          
+          Device posture detection is currently supported on **iOS 27.3 Beta 2** with Safari's optional **Device Posture API** feature flag enabled under **Settings → Apps → Safari → Advanced → Feature Flags**. Enable **Viewport Segments API** there as well for hinge-aware viewport geometry.
+          
+          The Device Posture API remains experimental, so availability may change with iOS/Safari updates.
+          
+          ### Installation
+          
+          Download the **Source code ZIP** below, extract it, and configure qBittorrent's alternative Web UI to the directory containing `private/` and `public/`. Existing installs can replace their Tide files and reopen the PWA. See the README for full instructions.
+          EOF
+            )
           else
             notes=$(printf '%s\n\n%s\n' \
               "Tide $version is a touch-first alternative qBittorrent WebUI, designed for the iPhone Duo and desktop." \

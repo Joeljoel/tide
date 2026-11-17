@@ -1,0 +1,198 @@
+/* Safari 27.1 fold-aware layouts. No effect on continuous/unsupported posture. */
+
+/* Book posture: respect the vertical hinge while keeping the torrent rail. */
+@media (orientation: landscape) and (min-width: 850px) {
+  body.tide-posture-folded-landscape:not(.tide-desktop) .torrent-list {
+    display: grid !important;
+    grid-template-columns:
+      minmax(0, var(--tide-fold-left-column, 1fr))
+      minmax(0, var(--tide-fold-right-column, 1fr)) !important;
+    column-gap: var(--tide-fold-column-gap, clamp(54px, 6vw, 88px)) !important;
+    row-gap: 12px !important;
+    align-items: start;
+  }
+
+  /* With Details open, each pane occupies one side of the fold. */
+  body.tide-posture-folded-landscape:not(.tide-desktop) .shell.detail-open .layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    column-gap: clamp(36px, 5vw, 64px) !important;
+  }
+  body.tide-posture-folded-landscape:not(.tide-desktop) .shell.detail-open .torrent-list {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+  body.tide-posture-folded-landscape:not(.tide-desktop) .shell.detail-open .list-panel {
+    padding-right: 12px !important;
+  }
+  body.tide-posture-folded-landscape:not(.tide-desktop) .shell.detail-open .detail-panel {
+    border-left: 0 !important;
+  }
+}
+
+/* Laptop posture: keep the torrent list visible above the horizontal fold,
+   and make the open Details panel independently scroll on the lower half. */
+@media (orientation: portrait) and (min-width: 580px) {
+  body.tide-posture-folded-portrait:not(.tide-desktop) .shell.detail-open .layout {
+    display: block !important;
+    height: max(120px, calc(var(--tide-fold-split-y, 50dvh) - var(--tide-fold-layout-top, 82px) - 12px)) !important;
+    min-height: 0 !important;
+  }
+  body.tide-posture-folded-portrait:not(.tide-desktop) .shell.detail-open .list-panel {
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 20px !important;
+  }
+  body.tide-posture-folded-portrait:not(.tide-desktop) .detail-panel.mobile-open {
+    position: fixed !important;
+    inset: auto 0 0 !important;
+    top: calc(var(--tide-fold-split-y, 50dvh) + 12px) !important;
+    height: calc(100dvh - var(--tide-fold-split-y, 50dvh) - 12px) !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    border-top: 1px solid var(--glass-line) !important;
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, .28);
+    z-index: 25 !important;
+  }
+  body.tide-posture-folded-portrait:not(.tide-desktop) .detail-panel.mobile-open .detail-inner {
+    padding-top: 24px !important;
+    padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+
+/* Fully unfolded inner portrait: leave the torrent list visible in the top
+   35% of the screen, with Details occupying and scrolling in the lower 65%.
+   The partially folded laptop posture retains its separate 50/50 layout. */
+@media (orientation: portrait) and (min-width: 600px) and (max-width: 849px) {
+  body.tide-posture-unfolded-portrait:not(.tide-desktop) {
+    --tide-open-portrait-details-top: 35dvh;
+  }
+  body.tide-posture-unfolded-portrait:not(.tide-desktop) .shell.detail-open .layout {
+    display: block !important;
+    flex: 0 0 auto !important;
+    height: max(110px, calc(var(--tide-open-portrait-details-top) - 82px)) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 82px) !important;
+    overflow: hidden !important;
+  }
+  body.tide-posture-unfolded-portrait:not(.tide-desktop) .shell.detail-open .list-panel {
+    height: 100% !important;
+    min-height: 0 !important;
+    position: relative !important;
+    z-index: 1;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 20px !important;
+  }
+  body.tide-posture-unfolded-portrait:not(.tide-desktop) .shell.detail-open .torrent-list {
+    visibility: visible !important;
+  }
+  body.tide-posture-unfolded-portrait:not(.tide-desktop) .detail-panel.mobile-open {
+    display: block !important;
+    position: fixed !important;
+    inset: auto 0 0 !important;
+    top: var(--tide-open-portrait-details-top) !important;
+    height: calc(100dvh - var(--tide-open-portrait-details-top)) !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    border-top: 1px solid var(--glass-line) !important;
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, .28);
+    z-index: 25 !important;
+    animation: tide-posture-bottom-in 240ms cubic-bezier(.22, 1, .36, 1) both;
+  }
+  body.tide-posture-unfolded-portrait:not(.tide-desktop) .detail-panel.mobile-open .detail-inner {
+    padding-top: 24px !important;
+    padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* v1.4.0: keep the torrent list interactive in the upper half.
+   Tide core intentionally hides the compact list behind full-screen Details. */
+@media (orientation: portrait) and (min-width: 580px) {
+  body.tide-posture-folded-portrait:not(.tide-desktop) .shell.detail-open .list-panel {
+    visibility: visible !important;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 1;
+  }
+  body.tide-posture-folded-portrait:not(.tide-desktop) .shell.detail-open .torrent-list {
+    visibility: visible !important;
+  }
+}
+
+/* Book posture: Settings belongs on the right side of the fold, clear of
+   the action rail. Other orientations keep Tide's normal modal placement. */
+@media (orientation: landscape) and (min-width: 850px) {
+  body.tide-posture-folded-landscape:not(.tide-desktop) .dialog.floating-dialog.tide-settings-dialog {
+    left: calc(50vw + clamp(18px, 2.5vw, 32px)) !important;
+    right: calc(var(--rail-slot, 84px) + 12px) !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: translate3d(0, var(--sheet-drag, 0px), 0) !important;
+    animation: tide-posture-settings-in 210ms ease-out both;
+  }
+}
+
+/* Light transitions when changing posture and when opening Details. The card
+   count itself changes discretely; JS animates each card's position (FLIP). */
+body.tide-posture-folded-landscape:not(.tide-desktop) .shell.detail-open .layout {
+  transition: grid-template-columns 280ms cubic-bezier(.22, 1, .36, 1),
+              column-gap 280ms cubic-bezier(.22, 1, .36, 1);
+}
+body.tide-posture-folded-landscape:not(.tide-desktop) .torrent-list {
+  transition: column-gap 260ms cubic-bezier(.22, 1, .36, 1);
+}
+/* Keep these transitions present in BOTH portrait postures: switching the
+   body class from folded to continuous must not discard a transition mid-way.
+   The DOM, Details selection, and list scroll position remain untouched. */
+@media (orientation: portrait) and (min-width: 600px) and (max-width: 849px) {
+  body:is(.tide-posture-folded-portrait, .tide-posture-unfolded-portrait):not(.tide-desktop) .shell.detail-open .layout {
+    transition: height 320ms cubic-bezier(.22, 1, .36, 1);
+  }
+  body:is(.tide-posture-folded-portrait, .tide-posture-unfolded-portrait):not(.tide-desktop) .detail-panel.mobile-open {
+    transition: top 320ms cubic-bezier(.22, 1, .36, 1),
+                height 320ms cubic-bezier(.22, 1, .36, 1);
+  }
+}
+body.tide-posture-folded-landscape:not(.tide-desktop) .shell.detail-open #detailPanel {
+  animation: tide-posture-panel-in 240ms cubic-bezier(.22, 1, .36, 1) both !important;
+}
+body.tide-posture-folded-portrait:not(.tide-desktop) .detail-panel.mobile-open {
+  animation: tide-posture-bottom-in 240ms cubic-bezier(.22, 1, .36, 1) both !important;
+}
+@keyframes tide-posture-panel-in {
+  from { opacity: .75; transform: translate3d(10px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes tide-posture-bottom-in {
+  from { opacity: .78; transform: translate3d(0, 12px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes tide-posture-settings-in {
+  from {opacity: 0.7;}
+  to {opacity: 1;}
+}
+@media (prefers-reduced-motion: reduce) {
+  body.tide-posture-folded-landscape:not(.tide-desktop) :is(.layout, .torrent-list, #detailPanel),
+  body.tide-posture-folded-portrait:not(.tide-desktop) :is(.layout, .detail-panel.mobile-open),
+  body.tide-posture-unfolded-portrait:not(.tide-desktop) :is(.layout, .detail-panel.mobile-open),
+  body.tide-posture-folded-landscape:not(.tide-desktop) .dialog.floating-dialog.tide-settings-dialog {
+    animation: none !important;
+    transition: none !important;
+  }
+}
