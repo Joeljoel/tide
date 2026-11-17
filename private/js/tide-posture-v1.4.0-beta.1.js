@@ -57,12 +57,19 @@
     // display and narrow Split View windows on their existing Tide layouts.
     const book = folded && landscape && window.innerWidth >= 850;
     const laptop = folded && !landscape && window.innerWidth >= 580;
+    // Full inner screen only: keep the list visible above a 65%-height
+    // Details sheet in portrait. Exclude the folded outer display and
+    // narrow Split View windows; the laptop fold still has its 50/50 split.
+    const openPortrait = touchDuo && !folded && !landscape &&
+      window.innerWidth >= 600 && window.innerWidth <= 849;
     const postureChanged = body.classList.contains('tide-posture-folded-landscape') !== book ||
-      body.classList.contains('tide-posture-folded-portrait') !== laptop;
+      body.classList.contains('tide-posture-folded-portrait') !== laptop ||
+      body.classList.contains('tide-posture-unfolded-portrait') !== openPortrait;
     const before = initialized && postureChanged ? captureCards() : [];
 
     body.classList.toggle('tide-posture-folded-landscape', book);
     body.classList.toggle('tide-posture-folded-portrait', laptop);
+    body.classList.toggle('tide-posture-unfolded-portrait', openPortrait);
     body.dataset.tidePosture = folded ? 'folded' : posture?.type === 'continuous' ? 'continuous' : 'unavailable';
 
     for (const name of ['--tide-fold-split-y', '--tide-fold-layout-top',

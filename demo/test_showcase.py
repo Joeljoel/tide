@@ -566,10 +566,52 @@ def run(site: Path, snapshots: Path) -> None:
             assert demo.locator(".list-panel").evaluate(
                 "el => getComputedStyle(el).visibility"
             ) == "visible"
-            demo.locator('[data-action="close-detail"]').first.evaluate("el => el.click()")
+            # The hinged laptop keeps its current 50/50 division.
+            page.wait_for_function("""() => {
+              const win=document.getElementById('tidePreview').contentWindow;
+              const panel=win.document.querySelector('#detailPanel');
+              return Math.abs(panel.getBoundingClientRect().top/
+                win.innerHeight-.5)<.035;
+            }""")
 
+            # Preserve the selected torrent while fully unfolding into
+            # portrait; Details becomes 65% tall and the top list stays
+            # visible, independently scrollable and interactive.
             page.locator("#unfoldedBtn").click()
             capture("unfolded-portrait")
+            expect(demo.locator("body")).to_have_class(
+                re.compile("tide-posture-unfolded-portrait"), timeout=10000
+            )
+            expect(demo.locator("#detailPanel.mobile-open")).to_be_visible()
+            expect(demo.locator(".torrent-card").first).to_be_visible()
+            measurements=demo.locator("#detailPanel").evaluate("""panel => {
+              const win=panel.ownerDocument.defaultView;
+              const r=panel.getBoundingClientRect();
+              const list=win.document.querySelector('.list-panel');
+              const layout=win.document.querySelector('.layout');
+              const listRect=list.getBoundingClientRect();
+              const layoutRect=layout.getBoundingClientRect();
+              return {
+                viewport:win.innerHeight,
+                top:r.top,height:r.height,bottom:r.bottom,
+                listVisible:getComputedStyle(list).visibility,
+                listPointer:getComputedStyle(list).pointerEvents,
+                listScroll:getComputedStyle(list).overflowY,
+                panelScroll:getComputedStyle(panel).overflowY,
+                layoutBottom:layoutRect.bottom,
+                listTop:listRect.top,listBottom:listRect.bottom
+              };
+            }""")
+            assert abs(measurements["top"]/measurements["viewport"]-.35)<.015, measurements
+            assert abs(measurements["height"]/measurements["viewport"]-.65)<.015, measurements
+            assert abs(measurements["bottom"]-measurements["viewport"])<2, measurements
+            assert measurements["layoutBottom"]<=measurements["top"]+3, measurements
+            assert measurements["listVisible"]=="visible", measurements
+            assert measurements["listPointer"]=="auto", measurements
+            assert measurements["listScroll"]=="auto", measurements
+            assert measurements["panelScroll"]=="auto", measurements
+            demo.locator('[data-action="close-detail"]').first.evaluate("el => el.click()")
+            expect(demo.locator("#detailPanel.mobile-open")).to_have_count(0)
             page.locator("#foldedBtn").click()
             capture("folded-landscape")
             page.locator("#unfoldedBtn").click()
