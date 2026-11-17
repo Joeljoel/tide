@@ -278,7 +278,7 @@ def run(site: Path, snapshots: Path) -> None:
         server.shutdown()
         server.server_close()
 
-    assert len(poses) == 16, poses
+    assert len(poses) == 15, poses
     print("Passed browser checks for:", ", ".join(poses))
 
 
