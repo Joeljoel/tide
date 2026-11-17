@@ -573,6 +573,8 @@ def run(site: Path, snapshots: Path) -> None:
               return Math.abs(panel.getBoundingClientRect().top/
                 win.innerHeight-.5)<.035;
             }""")
+            page.screenshot(path=str(snapshots/"partially-folded-portrait-details-50pct.png"),
+                            full_page=True, animations="disabled")
 
             # Preserve the selected torrent while fully unfolding into
             # portrait; Details becomes 65% tall and the top list stays
@@ -610,6 +612,20 @@ def run(site: Path, snapshots: Path) -> None:
             assert measurements["listPointer"]=="auto", measurements
             assert measurements["listScroll"]=="auto", measurements
             assert measurements["panelScroll"]=="auto", measurements
+            # Archive a screenshot with Details actually OPEN for manual
+            # review. The ordinary named pose snapshot gets overwritten
+            # later by the test's closed-details navigation sequence.
+            page.screenshot(path=str(snapshots/"unfolded-portrait-details-65pct.png"),
+                            full_page=True, animations="disabled")
+            scroll_result=demo.locator(".list-panel").evaluate("""list => {
+              const detail=list.ownerDocument.querySelector('#detailPanel');
+              const detailBefore=detail.scrollTop;
+              list.scrollTop=120;
+              return {list:list.scrollTop,detail:detail.scrollTop,
+                      detailBefore:detailBefore};
+            }""")
+            assert scroll_result["list"]>0, scroll_result
+            assert scroll_result["detail"]==scroll_result["detailBefore"], scroll_result
             demo.locator('[data-action="close-detail"]').first.evaluate("el => el.click()")
             expect(demo.locator("#detailPanel.mobile-open")).to_have_count(0)
             page.locator("#foldedBtn").click()
