@@ -589,6 +589,43 @@ def run(site: Path, snapshots: Path) -> None:
             animated_pose("splitBtn", "split-left")
             animated_pose("shiftBtn", "split-right")
             animated_pose("splitBtn", "unfolded-landscape")
+
+            # Record the browser's real keyframes as the hinge opens and
+            # closes. Fold-only lighting must fade, while the shared shadow
+            # remains on the stable holder throughout both transitions.
+            page.evaluate("""() => {
+              window.__hingeAnimations=[];
+              const animate=Element.prototype.animate;
+              Element.prototype.animate=function(frames,options){
+                const name=this.id ||
+                  (this.classList.contains('fold-flap-light')
+                    ? 'foldFlapLight' : '');
+                if(['foldNearSheen','hingeSheen','foldFlapLight'].includes(name))
+                  window.__hingeAnimations.push({
+                    name,opacity:frames.map(frame=>frame.opacity)
+                  });
+                return animate.apply(this,arguments);
+              };
+            }""")
+            outer_shadow=page.locator("#frameHolder").evaluate(
+              "el => getComputedStyle(el,'::before').boxShadow"
+            )
+            animated_pose("partialBtn", "partially-folded-landscape")
+            animated_pose("unfoldedBtn", "unfolded-landscape")
+            assert page.locator("#frameHolder").evaluate(
+              "el => getComputedStyle(el,'::before').boxShadow"
+            )==outer_shadow
+            hinge_fades=page.evaluate("window.__hingeAnimations")
+            for name in ("foldNearSheen","hingeSheen","foldFlapLight"):
+                transitions=[item["opacity"] for item in hinge_fades
+                             if item["name"]==name]
+                assert len(transitions)>=2, (name,hinge_fades)
+                assert transitions[0][0]==0 and transitions[0][-1]>0, (
+                    name, transitions
+                )
+                assert transitions[1][0]>0 and transitions[1][-1]==0, (
+                    name, transitions
+                )
             animated_pose("partialBtn", "partially-folded-landscape")
             animated_pose("rotateBtn", "partially-folded-portrait")
             animated_pose("unfoldedBtn", "unfolded-portrait")
