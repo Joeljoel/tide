@@ -170,6 +170,7 @@ def run(site: Path, snapshots: Path) -> None:
                     ) == "none"
                     if pose.endswith("portrait"):
                         expect(status).to_be_visible()
+                        expect(page.locator(".fold-flap-status")).to_be_hidden()
                     elif pose == "partially-folded-split-left":
                         expect(page.locator(".fold-home-visual")).to_be_visible()
                         expect(page.locator(".fold-flap-status")).to_be_hidden()

@@ -333,7 +333,7 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
     rgba(233,249,255,.04),transparent 10%,transparent 95%,
     rgba(225,244,255,.02));
 }
-[data-pose="partially-folded-portrait"] .fold-flap-status{display:none}
+.device-frame[data-pose="partially-folded-portrait"] .fold-flap-status{display:none!important}
 [data-pose="partially-folded-portrait"] .fold-planes::after{
   top:calc(50% - 7px);bottom:auto;left:3%;right:3%;
   width:auto;height:14px;
