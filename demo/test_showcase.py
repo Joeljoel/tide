@@ -90,12 +90,22 @@ def run(site: Path, snapshots: Path) -> None:
                     "split-right": 66,
                 }
                 if pose.startswith("partially-folded-"):
-                    # Perspective deforms the mock screen, so do not apply the
-                    # flat 2D pixel-position assertions to its status icons.
-                    expect(status).to_be_visible()
-                    gauge = status.locator(".status-connectivity")
-                    expect(gauge).to_be_visible()
-                    assert gauge.evaluate("el => el.complete && el.naturalWidth > 0")
+                    # The screen is now truly divided into independent 3D
+                    # planes, and the farther plane is perspective-transformed.
+                    flap = page.locator("#foldFlap")
+                    expect(flap).to_be_visible()
+                    transform = flap.evaluate("el => getComputedStyle(el).transform")
+                    assert transform.startswith("matrix3d("), transform
+                    clip = page.locator("#deviceScreen").evaluate(
+                        "el => getComputedStyle(el).clipPath"
+                    )
+                    assert clip.startswith("inset(") and "50%" in clip, clip
+                    expect(page.locator("#tideFoldPreview")).to_be_visible()
+                    if pose.endswith("portrait"):
+                        expect(status).to_be_visible()
+                    else:
+                        expect(page.locator(".fold-flap-status")).to_be_visible()
+                        expect(page.locator(".fold-flap-status img")).to_be_visible()
                 elif pose in connectivity_top:
                     expect(status).to_be_visible()
                     location = status.locator(".status-location")
@@ -152,10 +162,16 @@ def run(site: Path, snapshots: Path) -> None:
             capture("desktop")
             page.locator("#duoBtn").click()
             capture("folded-portrait")  # Duo always begins folded portrait
+            expect(page.locator("#foldedBtn")).to_have_attribute("aria-checked", "true")
+            page.locator("#unfoldedBtn").focus()
+            page.keyboard.press("ArrowLeft")
+            expect(page.locator("#partialBtn")).to_have_attribute("aria-checked", "true")
+            page.locator("#foldedBtn").click()
+            expect(page.locator("#foldedBtn")).to_have_attribute("aria-checked", "true")
             page.locator("#rotateBtn").click()
             capture("folded-landscape")
-            page.locator("#foldBtn").click()
-            capture("unfolded-landscape")  # Unfold resets orientation
+            page.locator("#unfoldedBtn").click()
+            capture("unfolded-landscape")  # Orientation stays landscape
             page.locator("#rotateBtn").click()
             capture("unfolded-portrait")
 
@@ -195,13 +211,15 @@ def run(site: Path, snapshots: Path) -> None:
             assert modal_left > 951 / 2, modal_left
             demo.locator('[data-action="dismiss"]').first.evaluate("el => el.click()")
 
-            page.locator("#partialBtn").click()
+            page.locator("#unfoldedBtn").click()
             capture("unfolded-landscape")
             page.locator("#rotateBtn").click()
             capture("unfolded-portrait")
-            page.locator("#foldBtn").click()
-            capture("folded-portrait")  # Fold resets orientation
-            page.locator("#foldBtn").click()
+            page.locator("#foldedBtn").click()
+            capture("folded-portrait")
+            page.locator("#unfoldedBtn").click()
+            capture("unfolded-portrait")
+            page.locator("#rotateBtn").click()
             capture("unfolded-landscape")
             expect(page.locator("#splitBtn")).to_be_visible()
             page.locator("#splitBtn").click()
@@ -230,7 +248,7 @@ def run(site: Path, snapshots: Path) -> None:
 
             folded_portrait = frame.bounding_box()
             folded_landscape = animated_pose("rotateBtn", "folded-landscape")
-            unfolded_landscape = animated_pose("foldBtn", "unfolded-landscape")
+            unfolded_landscape = animated_pose("unfoldedBtn", "unfolded-landscape")
             unfolded_portrait = animated_pose("rotateBtn", "unfolded-portrait")
             for portrait, landscape in (
                 (folded_portrait, folded_landscape),
@@ -240,14 +258,15 @@ def run(site: Path, snapshots: Path) -> None:
                 assert abs(portrait["height"] - landscape["width"]) < 1
             assert abs(folded_portrait["height"] - unfolded_landscape["height"]) < 1
             assert abs(2 * folded_portrait["width"] / unfolded_landscape["width"] - 1) < .02
-            animated_pose("foldBtn", "folded-portrait")
-            animated_pose("foldBtn", "unfolded-landscape")
+            animated_pose("foldedBtn", "folded-portrait")
+            animated_pose("unfoldedBtn", "unfolded-portrait")
+            animated_pose("rotateBtn", "unfolded-landscape")
             animated_pose("splitBtn", "split-left")
             animated_pose("shiftBtn", "split-right")
             animated_pose("splitBtn", "unfolded-landscape")
             animated_pose("partialBtn", "partially-folded-landscape")
             animated_pose("rotateBtn", "partially-folded-portrait")
-            animated_pose("partialBtn", "unfolded-portrait")
+            animated_pose("unfoldedBtn", "unfolded-portrait")
             expect(demo.locator(".torrent-card").filter(has_text="Tide Demo Collection")).to_have_count(1)
 
             # The public showcase should never expose the removed footer.
@@ -259,7 +278,7 @@ def run(site: Path, snapshots: Path) -> None:
         server.shutdown()
         server.server_close()
 
-    assert len(poses) == 14, poses
+    assert len(poses) == 16, poses
     print("Passed browser checks for:", ", ".join(poses))
 
 
