@@ -75,18 +75,10 @@ body[data-tide-demo-pose="partially-folded-portrait"] .action-rail:not([data-mod
 body[data-tide-demo-pose="partially-folded-portrait"] .topbar{padding-right:100px!important}
 
 
-/* Inside the 3D showcase each physical half is GPU masked. Blurring the
-   entire page behind every torrent card forces both offscreen iframe
-   compositors to repaint on hover/selection; use the same glass colour
-   with a pre-composited backing instead. Real Tide is unchanged. */
+/* Rendering two masked 3D planes makes per-card backdrop blur expensive,
+   so disable the blur *only* in the generated preview. Preserve the exact
+   normal Tide backgrounds, gradients, borders and selected states. */
 html.tide-demo-fold-visual .torrent-card {
   -webkit-backdrop-filter:none !important;
   backdrop-filter:none !important;
-  background:linear-gradient(155deg,rgba(55,70,82,.97),rgba(30,42,54,.98)) !important;
-}
-html.tide-demo-fold-visual .torrent-card.selected {
-  background:linear-gradient(155deg,rgba(57,82,75,.98),rgba(32,51,51,.98)) !important;
-}
-html.tide-demo-fold-visual[data-tide-theme="light"] .torrent-card {
-  background:linear-gradient(155deg,rgba(248,253,255,.99),rgba(229,239,244,.99)) !important;
 }

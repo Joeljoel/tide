@@ -24,6 +24,9 @@
   const rotateBtn=get('rotateBtn'),splitBtn=get('splitBtn'),shiftBtn=get('shiftBtn');
   const foldIframe=get('tideFoldPreview'),foldFlap=get('foldFlap');
   const foldInteraction=get('foldInteraction');
+  const statusTemplate=get('systemUi').querySelector('.status-indicators');
+  const foldStatus=get('foldFlapViewport').querySelector('.fold-flap-status');
+  foldStatus.replaceChildren(...Array.from(statusTemplate.children,child=>child.cloneNode(true)));
   let device='desktop',foldState='folded',orientation='portrait',split=false,side='left',loaded=false,foldLoaded=false;
   let transitioning=false;
   let currentPose='desktop';
@@ -67,7 +70,7 @@
     const desktop=currentPose==='desktop';
     // Equal physical length along the hinge, including the bezel. Keep the
     // measured app viewport sizes and absorb the 9px difference in the frame.
-    const bezel=desktop?6:5;
+    const bezel=desktop?6:8;
     const extraX=currentPose.endsWith('portrait') && !currentPose.startsWith('folded-')?9:0;
     const extraY=config.width===951?9:0;
     const w=config.width+bezel*2+extraX,h=config.height+bezel*2+extraY;
