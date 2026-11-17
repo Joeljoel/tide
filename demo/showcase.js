@@ -394,6 +394,54 @@
   // A transparent interaction plane maps pointer positions back to the one
   // primary Tide document. This prevents hover/focus from triggering a
   // second compositor repaint while keeping right/bottom cards usable.
+  function visualModalKind(doc){
+    const dialog=doc?.querySelector('#modalMount .dialog');
+    if(!dialog)return '';
+    if(dialog.classList.contains('tide-settings-dialog'))return 'settings';
+    if(dialog.classList.contains('sort-alert'))return 'sort';
+    if(dialog.classList.contains('add-alert'))return 'add';
+    if(dialog.classList.contains('delete-alert'))return 'delete';
+    return 'menu';
+  }
+  let modalObserver=null;
+  function syncVisualModal(){
+    const primary=iframe.contentDocument,secondary=foldIframe.contentDocument;
+    if(!primary||!secondary)return;
+    const kind=visualModalKind(primary),rendered=visualModalKind(secondary);
+    if(kind===rendered)return;
+    if(!kind){
+      secondary.querySelector('#modalMount [data-action="dismiss"]')?.click();
+      return;
+    }
+    const triggers={
+      settings:'.header-settings-button',
+      sort:'[data-action="sort"]',
+      add:'[data-action="add"]'
+    };
+    let opener=secondary.querySelector(triggers[kind]||'');
+    if(kind==='menu'){
+      const active=primary.querySelector('#modalMount [data-hash]');
+      const hash=active?.dataset.hash;
+      opener=Array.from(secondary.querySelectorAll('[data-action="menu"]'))
+        .find(button=>button.dataset.hash===hash)||opener;
+    }
+    if(opener){
+      opener.click();
+      // Render can reinsert settings content after an asynchronous request;
+      // never make another competing Tide instance responsible for clicks.
+    }
+  }
+  function watchPrimaryModal(){
+    modalObserver?.disconnect();
+    const primary=iframe.contentDocument;
+    const mount=primary?.getElementById('modalMount');
+    const overlay=primary?.getElementById('overlay');
+    if(!mount||!overlay)return;
+    modalObserver=new MutationObserver(syncVisualModal);
+    modalObserver.observe(mount,{childList:true});
+    modalObserver.observe(overlay,{attributes:true,attributeFilter:['hidden']});
+    syncVisualModal();
+  }
   function hitPrimary(event){
     if(!loaded || !frame.classList.contains('is-partially-folded'))return null;
     if(poses[currentPose].split && side==='left')return null; // Home screen
@@ -407,9 +455,16 @@
     // Partial Split View right uses an actual half-width Tide viewport.
     // Normal book posture uses the right half of one full-width viewport.
     const splitRight=currentPose==='partially-folded-split-right';
-    const x=(portrait||splitRight?u:.5+.5*u)*iframe.contentWindow.innerWidth;
-    const y=(portrait?.5+.5*v:v)*iframe.contentWindow.innerHeight;
-    return {document,x,y,target:document.elementFromPoint(x,y)};
+    const normalizedX=portrait||splitRight?u:.5+.5*u;
+    const normalizedY=portrait?.5+.5*v:v;
+    const x=normalizedX*iframe.contentWindow.innerWidth;
+    const y=normalizedY*iframe.contentWindow.innerHeight;
+    const visibleDoc=foldIframe.contentDocument;
+    const visualTarget=visibleDoc?.elementFromPoint(
+      normalizedX*foldIframe.contentWindow.innerWidth,
+      normalizedY*foldIframe.contentWindow.innerHeight
+    );
+    return {document,x,y,target:document.elementFromPoint(x,y),visualTarget};
   }
   function primaryScrollTarget(hit){
     let element=hit?.target;
@@ -424,7 +479,37 @@
   }
   foldInteraction.addEventListener('click',event=>{
     const hit=hitPrimary(event);
-    if(!hit?.target)return;
+    if(!hit?.document)return;
+    const modal=hit.document.querySelector('#modalMount .dialog');
+    if(modal){
+      // Modals are modal even on the far visual pane. Resolve against the
+      // VISIBLE pane's dialog rather than a torrent underneath it. Clicking
+      // outside the dialog dismisses via the actual Tide overlay.
+      const visual=hit.visualTarget;
+      const inside=visual?.closest?.('#modalMount .dialog');
+      const visibleControl=visual?.closest?.(
+        '[data-action],[data-sort],[data-settings-tab],[data-appearance],'+
+        'button,input,textarea,select');
+      if(!inside){
+        hit.document.getElementById('overlay')?.click();
+        return;
+      }
+      if(visibleControl){
+        let target=peerFor(visibleControl,hit.document);
+        if(visibleControl.dataset.action==='dismiss'){
+          target=hit.document.querySelector('#modalMount [data-action="dismiss"]');
+        }
+        if(!target && visibleControl.id){
+          target=hit.document.getElementById(visibleControl.id);
+        }
+        if(target){
+          if(target.matches('input,textarea,select'))target.focus();
+          else target.click();
+        }
+      }
+      return; // Never allow a modal tap to fall through to torrent cards.
+    }
+    if(!hit.target)return;
     const target=hit.target.closest(
       'button,input,textarea,a,[role="button"],[data-action],'+
       '[data-filter],[data-sort],[data-hash],.torrent-card')||hit.target;
@@ -467,12 +552,14 @@
   iframe.addEventListener('load',()=>{
     loaded=true;
     wireMirror(iframe,foldIframe);
+    watchPrimaryModal();
     sendPose();
   });
   foldIframe.addEventListener('load',()=>{
     foldLoaded=true;
     wireMirror(foldIframe,iframe);
     sendPose();
+    syncVisualModal();
   });
   get('resetDemo').addEventListener('click',()=>{
     loaded=false;foldLoaded=false;
