@@ -579,6 +579,9 @@ def run(site: Path, snapshots: Path) -> None:
             # Preserve the selected torrent while fully unfolding into
             # portrait; Details becomes 65% tall and the top list stays
             # visible, independently scrollable and interactive.
+            # Previous visual checks deliberately disable animation. Enable
+            # motion here so we verify interpolation (and not just end layout).
+            page.emulate_media(reduced_motion="no-preference")
             # Track the real intermediate panel geometry frame by frame.
             # A static fade/slide alone would leave the divider snapping.
             # Record transitionrun/transitionend for the detail top/height
@@ -610,7 +613,8 @@ def run(site: Path, snapshots: Path) -> None:
               }
             }""")
             page.locator("#unfoldedBtn").click()
-            capture("unfolded-portrait")
+            expect(page.locator("#deviceFrame")).to_have_attribute(
+                "data-pose", "unfolded-portrait")
             expect(demo.locator("body")).to_have_class(
                 re.compile("tide-posture-unfolded-portrait"), timeout=10000
             )
@@ -632,6 +636,7 @@ def run(site: Path, snapshots: Path) -> None:
             assert len(set(round(n,1) for n in animation_data['listSizes']))>2, (
                 'Torrent list height did not animate',animation_data
             )
+            capture("unfolded-portrait")
             expect(demo.locator("#detailPanel.mobile-open")).to_be_visible()
             expect(demo.locator(".torrent-card").first).to_be_visible()
             measurements=demo.locator("#detailPanel").evaluate("""panel => {

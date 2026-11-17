@@ -61,8 +61,11 @@
         const appPose=pose.startsWith('partially-folded-split-')
           ?pose.replace('partially-folded-',''):pose;
         element.contentWindow.postMessage({type:'tide-demo-set-pose',pose:appPose},location.origin);
+        // The physical screen stays partially folded during a pre-dispatched
+        // app layout change. Keep the GPU-safe visual styling until the
+        // hinged display itself has finished unfolding.
         element.contentDocument?.documentElement.classList.toggle(
-          'tide-demo-fold-visual',pose.startsWith('partially-folded-'));
+          'tide-demo-fold-visual',currentPose.startsWith('partially-folded-'));
       }
     }
   }
