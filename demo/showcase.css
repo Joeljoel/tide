@@ -86,7 +86,7 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   position:absolute;display:grid;justify-items:center;align-items:start;gap:8px;right:27px;top:22px;
 }
 .device-frame[data-pose=partially-folded-portrait] .status-indicators{
-  grid-auto-flow:column;align-items:center;gap:13px;
+  top:27px;grid-auto-flow:column;align-items:center;gap:13px;
 }
 .device-frame[data-pose=unfolded-portrait] .status-indicators{
   top:27px;right:27px;grid-auto-flow:column;align-items:center;gap:13px}

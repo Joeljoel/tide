@@ -86,6 +86,8 @@ def run(site: Path, snapshots: Path) -> None:
                 connectivity_top = {
                     "folded-portrait": 109,
                     "unfolded-landscape": 66,
+                    "partially-folded-landscape": 66,
+                    "partially-folded-portrait": 27,
                     "unfolded-portrait": 27,
                     "split-right": 66,
                 }
@@ -108,7 +110,7 @@ def run(site: Path, snapshots: Path) -> None:
                     assert abs(right_inset / scale - 27) < 1
                     assert abs(box["width"] / scale - 42) < 1
                     clock = status.locator(".status-time").bounding_box()
-                    if pose == "unfolded-portrait":
+                    if pose in ("unfolded-portrait", "partially-folded-portrait"):
                         assert clock["x"] + clock["width"] < box["x"]
                     else:
                         assert clock["y"] + clock["height"] < box["y"]
