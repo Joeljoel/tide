@@ -25,11 +25,20 @@
   let transitioning=false;
   let currentPose='desktop';
 
+  // Orientation describes the outside/closed device. When opening its
+  // book-style inner screen, the physical display direction turns 90 degrees:
+  // portrait OUTER -> landscape INNER and landscape OUTER -> portrait INNER.
+  // Keep this mapping for both the partially folded and unfolded positions.
+  function innerOrientation(){
+    return orientation==='portrait'?'landscape':'portrait';
+  }
+
   function selectedPose(){
     if(device==='desktop')return 'desktop';
     if(foldState==='folded')return 'folded-'+orientation;
-    if(foldState==='partial')return 'partially-folded-'+orientation;
-    if(orientation==='portrait')return 'unfolded-portrait';
+    const inner=innerOrientation();
+    if(foldState==='partial')return 'partially-folded-'+inner;
+    if(inner==='portrait')return 'unfolded-portrait';
     return split?'split-'+side:'unfolded-landscape';
   }
 
@@ -109,17 +118,24 @@
     const leaving=currentPose.startsWith('partially-folded-');
     const portrait=(entering?nextPose:currentPose).endsWith('portrait');
     const open='rotate'+(portrait?'X':'Y')+'(0deg)';
-    const bent='rotate'+(portrait?'X(55deg)':'Y(-52deg)');
+    const bent='rotate'+(portrait?'X(-16deg)':'Y(16deg)');
+    const firstPlaneBend='rotate'+(portrait?'X(16deg)':'Y(-16deg)');
     if(entering){
       showPose(nextPose);
-      const motion=play(foldFlap,[{transform:open},{transform:bent}],340);
-      await motion.finished;
-      motion.cancel();
+      const motions=[
+        play(screen,[{transform:open},{transform:firstPlaneBend}],340),
+        play(foldFlap,[{transform:open},{transform:bent}],340)
+      ];
+      await Promise.all(motions.map(motion=>motion.finished));
+      motions.forEach(motion=>motion.cancel());
     }else if(leaving){
-      const motion=play(foldFlap,[{transform:bent},{transform:open}],310);
-      await motion.finished;
+      const motions=[
+        play(screen,[{transform:firstPlaneBend},{transform:open}],310),
+        play(foldFlap,[{transform:bent},{transform:open}],310)
+      ];
+      await Promise.all(motions.map(motion=>motion.finished));
       showPose(nextPose);
-      motion.cancel();
+      motions.forEach(motion=>motion.cancel());
     }else{
       showPose(nextPose);
       const motion=play(frame,[{opacity:.76},{opacity:1}],220);
@@ -187,7 +203,7 @@
       button.tabIndex=index===selectedIndex?0:-1;
     });
     rotateBtn.setAttribute('aria-label','Rotate '+(orientation==='portrait'?'to landscape':'to portrait'));
-    splitBtn.hidden=foldState!=='unfolded'||orientation!=='landscape';
+    splitBtn.hidden=foldState!=='unfolded'||innerOrientation()!=='landscape';
     splitBtn.textContent=split?'Unsplit':'Split';
     splitBtn.setAttribute('aria-pressed',String(split));
     shiftBtn.hidden=!split;
