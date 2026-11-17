@@ -737,7 +737,11 @@ def run(site: Path, snapshots: Path) -> None:
             portrait_tint=overlay.evaluate(
                 "el => getComputedStyle(el).backgroundImage"
             )
-            assert "180deg" in portrait_mask and "180deg" in portrait_tint, (
+            # 180deg is the default gradient direction ('to bottom');
+            # Chromium omits it when serializing computed CSS.
+            assert portrait_mask.startswith("linear-gradient(")
+            assert portrait_tint.startswith("linear-gradient(")
+            assert "90deg" not in portrait_mask and "90deg" not in portrait_tint, (
                 portrait_mask,portrait_tint
             )
             assert "rgba(0, 0, 0, 0) 0%" in portrait_mask, portrait_mask
