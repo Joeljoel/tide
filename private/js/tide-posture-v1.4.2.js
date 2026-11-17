@@ -24,9 +24,9 @@
     const visibleTop = (clip?.top ?? 0) - 100;
     const visibleBottom = (clip?.bottom ?? window.innerHeight) + 100;
     return Array.from(document.querySelectorAll('#torrentList .torrent-card[data-hash]'))
-      .slice(0, 80)
       .map(card => ({hash: card.dataset.hash, rect: card.getBoundingClientRect()}))
-      .filter(({rect}) => rect.bottom > visibleTop && rect.top < visibleBottom);
+      .filter(({rect}) => rect.bottom > visibleTop && rect.top < visibleBottom)
+      .slice(0, 80);
   }
 
   function animateCards(before) {
