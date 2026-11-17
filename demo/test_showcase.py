@@ -55,6 +55,10 @@ def run(site: Path, snapshots: Path) -> None:
 
             def capture(pose: str) -> None:
                 expect(page.locator("#deviceFrame")).to_have_attribute("data-pose", pose)
+                expect(page.locator("#previewNote")).to_have_text("v1.4.0-beta.1")
+                assert page.locator("#poseName").inner_text() not in (
+                    "3D hinge preview", "Interactive preview"
+                )
                 # The outer device can be partially folded while its Split
                 # View app uses the identical full-unfolded split layout.
                 app_pose = pose.removeprefix("partially-folded-") if (

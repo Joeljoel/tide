@@ -3,14 +3,14 @@
   // Split View shares the full unfolded landscape viewport.
   const poses={
     desktop:{label:'Desktop',width:1280,height:800},
-    'folded-portrait':{label:'Outer · portrait',width:466,height:678},
-    'folded-landscape':{label:'Outer · landscape',width:678,height:466},
-    'unfolded-portrait':{label:'Inner · portrait',width:669,height:951},
-    'partially-folded-portrait':{label:'Inner · partially folded · portrait',width:669,height:951},
-    'partially-folded-landscape':{label:'Inner · partially folded · landscape',width:951,height:669},
-    'partially-folded-split-left':{label:'Split View · partially folded · Tide left',width:951,height:669,split:true},
-    'partially-folded-split-right':{label:'Split View · partially folded · Tide right',width:951,height:669,split:true},
-    'unfolded-landscape':{label:'Inner · landscape',width:951,height:669},
+    'folded-portrait':{label:'Folded · Portrait',width:466,height:678},
+    'folded-landscape':{label:'Folded · Landscape',width:678,height:466},
+    'unfolded-portrait':{label:'Unfolded · Portrait',width:669,height:951},
+    'partially-folded-portrait':{label:'Partially folded · Portrait',width:669,height:951},
+    'partially-folded-landscape':{label:'Partially folded · Landscape',width:951,height:669},
+    'partially-folded-split-left':{label:'Partially folded · Split left',width:951,height:669,split:true},
+    'partially-folded-split-right':{label:'Partially folded · Split right',width:951,height:669,split:true},
+    'unfolded-landscape':{label:'Unfolded · Landscape',width:951,height:669},
     'split-left':{label:'Split View · Tide left',width:951,height:669,split:true},
     'split-right':{label:'Split View · Tide right',width:951,height:669,split:true}
   };
@@ -104,7 +104,6 @@
     stage.style.minHeight=Math.ceil(h*scale)+38+'px';
     get('poseName').textContent=config.label;
     get('poseDimensions').textContent=config.width+' × '+config.height;
-    get('previewNote').textContent=currentPose.startsWith('partially-folded-')?'3D hinge preview · simulated posture · v1.4.0-beta.1':'Interactive preview · v1.4.0-beta.1';
   }
 
   function showPose(pose){
