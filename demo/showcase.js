@@ -23,6 +23,7 @@
   const foldButtons=[foldedBtn,partialBtn,unfoldedBtn];
   const rotateBtn=get('rotateBtn'),splitBtn=get('splitBtn'),shiftBtn=get('shiftBtn');
   const foldIframe=get('tideFoldPreview'),foldFlap=get('foldFlap');
+  const foldInteraction=get('foldInteraction');
   let device='desktop',foldState='folded',orientation='portrait',split=false,side='left',loaded=false,foldLoaded=false;
   let transitioning=false;
   let currentPose='desktop';
@@ -260,6 +261,7 @@
   // Proxy common UI events between the same-origin frames so either half
   // stays interactive and the demo's two views remain visually synchronized.
   let mirroring=false;
+  const scrollEcho=new WeakMap();
   function peerScrollport(source,peerDoc){
     if(source.nodeType===9 || source===source.ownerDocument.documentElement ||
        source===source.ownerDocument.body)
@@ -291,6 +293,12 @@
   }
   function syncScroll(source,peerDoc){
     if(!frame.classList.contains('is-partially-folded'))return;
+    const echoed=scrollEcho.get(source);
+    if(echoed){
+      scrollEcho.delete(source);
+      if(Math.abs(source.scrollTop-echoed.top)<1 &&
+         Math.abs(source.scrollLeft-echoed.left)<1)return;
+    }
     const peer=peerScrollport(source,peerDoc);
     if(!peer)return;
     const fromMax=Math.max(0,source.scrollHeight-source.clientHeight);
@@ -299,8 +307,11 @@
     const fromX=Math.max(0,source.scrollWidth-source.clientWidth);
     const toX=Math.max(0,peer.scrollWidth-peer.clientWidth);
     const destX=fromX>0?source.scrollLeft/fromX*toX:source.scrollLeft;
-    if(Math.abs(peer.scrollTop-destY)>.75)peer.scrollTop=destY;
-    if(Math.abs(peer.scrollLeft-destX)>.75)peer.scrollLeft=destX;
+    if(Math.abs(peer.scrollTop-destY)>.75 || Math.abs(peer.scrollLeft-destX)>.75){
+      scrollEcho.set(peer,{top:destY,left:destX});
+      peer.scrollTop=destY;
+      peer.scrollLeft=destX;
+    }
   }
   function alignScrolls(){
     if(!loaded||!foldLoaded)return;
@@ -352,10 +363,16 @@
     },true);
     doc.addEventListener('click',event=>{
       if(mirroring)return;
-      const peer=to.contentDocument && peerFor(event.target,to.contentDocument);
-      if(!peer)return;
-      mirroring=true;
-      try{peer.click();}finally{mirroring=false;}
+      const target=event.target;
+      // Let the active Tide instance process the user action before
+      // replaying it in the visual copy. Dispatching during capture caused
+      // two async rerenders to race during card selections.
+      queueMicrotask(()=>{
+        const peer=to.contentDocument && peerFor(target,to.contentDocument);
+        if(!peer)return;
+        mirroring=true;
+        try{peer.click();}finally{mirroring=false;}
+      });
     },true);
     doc.addEventListener('input',event=>{
       if(mirroring)return;
@@ -369,6 +386,78 @@
       }finally{mirroring=false;}
     },true);
   }
+
+  // The far half is a visual surface, not a second independent touchscreen.
+  // A transparent interaction plane maps pointer positions back to the one
+  // primary Tide document. This prevents hover/focus from triggering a
+  // second compositor repaint while keeping right/bottom cards usable.
+  function hitPrimary(event){
+    if(!loaded || !frame.classList.contains('is-partially-folded'))return null;
+    if(poses[currentPose].split && side==='left')return null; // Home screen
+    const document=iframe.contentDocument;
+    if(!document)return null;
+    const bounds=foldInteraction.getBoundingClientRect();
+    if(!bounds.width || !bounds.height)return null;
+    const u=Math.max(0,Math.min(1,(event.clientX-bounds.left)/bounds.width));
+    const v=Math.max(0,Math.min(1,(event.clientY-bounds.top)/bounds.height));
+    const portrait=currentPose==='partially-folded-portrait';
+    const x=(portrait?u:.5+.5*u)*iframe.contentWindow.innerWidth;
+    const y=(portrait?.5+.5*v:v)*iframe.contentWindow.innerHeight;
+    return {document,x,y,target:document.elementFromPoint(x,y)};
+  }
+  function primaryScrollTarget(hit){
+    let element=hit?.target;
+    while(element && element.nodeType===1){
+      const style=hit.document.defaultView.getComputedStyle(element);
+      if(element.scrollHeight>element.clientHeight+2 &&
+          /auto|scroll/.test(style.overflowY))return element;
+      element=element.parentElement;
+    }
+    return hit?.document.querySelector('.list-panel') ||
+      hit?.document.scrollingElement;
+  }
+  foldInteraction.addEventListener('click',event=>{
+    const hit=hitPrimary(event);
+    if(!hit?.target)return;
+    const target=hit.target.closest(
+      'button,input,textarea,a,[role="button"],[data-action],'+
+      '[data-filter],[data-sort],[data-hash],.torrent-card')||hit.target;
+    if(target.matches('input,textarea,[contenteditable]'))target.focus();
+    else target.click();
+  });
+  foldInteraction.addEventListener('wheel',event=>{
+    const hit=hitPrimary(event);
+    if(!hit)return;
+    event.preventDefault();
+    const port=primaryScrollTarget(hit);
+    if(!port)return;
+    const factor=event.deltaMode===1?16:event.deltaMode===2?port.clientHeight:1;
+    port.scrollTop+=event.deltaY*factor;
+    port.scrollLeft+=event.deltaX*factor;
+  },{passive:false});
+  let drag=null;
+  foldInteraction.addEventListener('pointerdown',event=>{
+    if(event.pointerType==='mouse')return;
+    drag={id:event.pointerId,lastY:event.clientY,lastX:event.clientX};
+    foldInteraction.setPointerCapture?.(event.pointerId);
+  });
+  foldInteraction.addEventListener('pointermove',event=>{
+    if(!drag || drag.id!==event.pointerId)return;
+    const hit=hitPrimary(event);
+    const port=hit&&primaryScrollTarget(hit);
+    if(port){
+      const bounds=foldInteraction.getBoundingClientRect();
+      const factor=currentPose==='partially-folded-portrait'
+        ?(.5*iframe.contentWindow.innerHeight/Math.max(1,bounds.height))
+        :iframe.contentWindow.innerHeight/Math.max(1,bounds.height);
+      port.scrollTop+=(drag.lastY-event.clientY)*factor;
+    }
+    drag.lastY=event.clientY;drag.lastX=event.clientX;
+  });
+  for(const name of ['pointerup','pointercancel','lostpointercapture']){
+    foldInteraction.addEventListener(name,()=>{drag=null});
+  }
+
   iframe.addEventListener('load',()=>{
     loaded=true;
     wireMirror(iframe,foldIframe);
