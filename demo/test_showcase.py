@@ -168,6 +168,15 @@ def run(site: Path, snapshots: Path) -> None:
                     assert "rgba(233, 249, 255" in light and "rgba(0, 0, 0, 0.5" not in light, light
                     expect(page.locator("#tideFoldPreview")).to_be_visible()
                     for element in ("#foldNearPlane","#foldFlap"):
+                        # No fold-only inner glow at the glass edge.
+                        # Its dark bezel must render without an inset
+                        # box-shadow, while retaining the 1px OUTER rim.
+                        inner_glow=page.locator(element).evaluate(
+                            "el => getComputedStyle(el,'::after').boxShadow"
+                        )
+                        assert inner_glow=="none", (
+                            element, pose, inner_glow
+                        )
                         rim=page.locator(element).evaluate(
                             "el => getComputedStyle(el,'::before').borderColor"
                         )
