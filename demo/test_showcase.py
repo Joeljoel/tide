@@ -96,7 +96,14 @@ def run(site: Path, snapshots: Path) -> None:
                         # verified by Tide's device-layout tests.
                 else:
                     expect(camera).to_be_hidden()
-                status = page.locator(".status-indicators")
+                status = page.locator("#systemUi .status-indicators")
+                # All Duo states now share a continuous, even bezel.
+                if pose!="desktop":
+                    borders=page.locator("#deviceFrame").evaluate(
+                      "el => ['Top','Right','Bottom','Left'].map(side => "+ 
+                      "getComputedStyle(el)['border'+side+'Width'])"
+                    )
+                    assert borders==["8px"]*4, (pose,borders)
                 connectivity_top = {
                     "folded-portrait": 109,
                     "unfolded-landscape": 66,
@@ -141,6 +148,18 @@ def run(site: Path, snapshots: Path) -> None:
                     )
                     assert "rgba(233, 249, 255" in light and "rgba(0, 0, 0, 0.5" not in light, light
                     expect(page.locator("#tideFoldPreview")).to_be_visible()
+                    # Both visual planes use the exact same clock, location
+                    # arrow and connectivity artwork as the fully open state.
+                    assert page.evaluate("""() => {
+                      const near=document.querySelector('#systemUi .status-indicators');
+                      const far=document.querySelector('.fold-flap-status');
+                      return near.querySelector('.status-time').textContent===
+                             far.querySelector('.status-time').textContent &&
+                             near.querySelector('.status-location').innerHTML===
+                             far.querySelector('.status-location').innerHTML &&
+                             near.querySelector('.status-connectivity').getAttribute('src')===
+                             far.querySelector('.status-connectivity').getAttribute('src')
+                    }"""), "Inconsistent status artwork across fold states"
                     for clip in ("#foldNearViewport", "#foldFlapViewport"):
                         surface = page.locator(clip)
                         assert surface.evaluate(
@@ -254,10 +273,10 @@ def run(site: Path, snapshots: Path) -> None:
             near=page.locator("#foldNearPlane")
             assert near.evaluate(
               "el => getComputedStyle(el,'::after').borderLeftWidth"
-            ) == "5px"
+            ) == "8px"
             assert page.locator("#foldFlap").evaluate(
               "el => getComputedStyle(el,'::after').borderRightWidth"
-            ) == "5px"
+            ) == "8px"
             for selector in ("#foldNearPlane", "#foldFlap"):
                 m=page.locator(selector).evaluate(
                   "el => getComputedStyle(el).transform"
@@ -273,9 +292,20 @@ def run(site: Path, snapshots: Path) -> None:
             capture("unfolded-portrait")  # Outer landscape becomes inner portrait
             page.locator("#rotateBtn").click()
             capture("unfolded-landscape")
+            # Fold posture must not recolour cards. Blur can be disabled in
+            # the rendered showcase, but original Tide colours are retained.
+            def first_card_colour():
+                return demo.locator(".torrent-card:not(.selected)").first.evaluate(
+                    "el => {const s=getComputedStyle(el);"+
+                    "return [s.backgroundImage,s.backgroundColor,s.borderColor]}")
+            unfolded_colours=first_card_colour()
 
             page.locator("#partialBtn").click()
             capture("partially-folded-landscape")
+            assert first_card_colour()==unfolded_colours, (
+                "Partial fold changed Torrent card colours",
+                first_card_colour(),unfolded_colours
+            )
             expect(demo.locator("body")).to_have_class(
                 re.compile("tide-posture-folded-landscape"), timeout=10000
             )
@@ -368,21 +398,78 @@ def run(site: Path, snapshots: Path) -> None:
             page.locator("#splitBtn").click()
             capture("partially-folded-landscape")
 
-            # Book posture Settings stays within the right-hand half.
+            # Header settings click stops propagation in Tide itself; the
+            # preview must synchronize modal DOM without relying on bubbling.
             demo.locator(".header-settings-button").evaluate("el => el.click()")
             expect(demo.locator(".tide-settings-dialog")).to_be_visible()
+            expect(other.locator(".tide-settings-dialog")).to_be_visible()
             modal_left=demo.locator(".tide-settings-dialog").evaluate(
                 "el => el.getBoundingClientRect().left"
             )
             assert modal_left > 951 / 2, modal_left
-            demo.locator('[data-action="dismiss"]').first.evaluate("el => el.click()")
+
+            def click_far(selector: str) -> None:
+                # Click the projected far-half interaction layer at the
+                # midpoint of the control as drawn in the visual iframe.
+                page.evaluate("""selector => {
+                    const far=document.getElementById('tideFoldPreview');
+                    const doc=far.contentDocument;
+                    const ctl=doc.querySelector(selector);
+                    if(!ctl)throw Error('Missing far control: '+selector);
+                    const r=ctl.getBoundingClientRect();
+                    const fx=(r.left+r.width/2)/far.contentWindow.innerWidth;
+                    const fy=(r.top+r.height/2)/far.contentWindow.innerHeight;
+                    const layer=document.getElementById('foldInteraction');
+                    const box=layer.getBoundingClientRect();
+                    if(fx<=.5)throw Error('Control is outside visible far half');
+                    layer.dispatchEvent(new MouseEvent('click',{
+                      bubbles:true,
+                      clientX:box.left+(fx-.5)*2*box.width,
+                      clientY:box.top+fy*box.height
+                    }));
+                }""",selector)
+
+            selection_before=demo.locator(".torrent-card.selected").count()
+            click_far(".tide-settings-dialog [data-action='dismiss']")
+            expect(demo.locator(".tide-settings-dialog")).to_have_count(0)
+            expect(other.locator(".tide-settings-dialog")).to_have_count(0)
+            assert demo.locator(".torrent-card.selected").count()==selection_before
+
+            # Both Sort and Settings must dismiss on backdrop taps originating
+            # from the far visual half, with no click-through to torrent cards.
+            demo.locator('[data-action="sort"]').first.evaluate("el => el.click()")
+            expect(demo.locator(".sort-alert")).to_be_visible()
+            expect(other.locator(".sort-alert")).to_be_visible()
+            selection_before=demo.locator(".torrent-card.selected").count()
+            page.evaluate("""() => {
+                const far=document.getElementById('tideFoldPreview');
+                const doc=far.contentDocument;
+                const layer=document.getElementById('foldInteraction');
+                const b=layer.getBoundingClientRect();
+                const dialog=doc.querySelector('.sort-alert').getBoundingClientRect();
+                const candidates=[[.95,.03],[.51,.03],[.95,.97],[.51,.97]];
+                const point=candidates.find(([u,v])=>{
+                  const x=(.5+.5*u)*far.contentWindow.innerWidth;
+                  const y=v*far.contentWindow.innerHeight;
+                  return !doc.elementFromPoint(x,y)?.closest('.dialog');
+                });
+                if(!point)throw Error('No visible backdrop point on far screen');
+                const [u,v]=point;
+                layer.dispatchEvent(new MouseEvent('click',{
+                  bubbles:true,
+                  clientX:b.left+u*b.width,clientY:b.top+v*b.height
+                }));
+            }""")
+            expect(demo.locator(".sort-alert")).to_have_count(0)
+            expect(other.locator(".sort-alert")).to_have_count(0)
+            assert demo.locator(".torrent-card.selected").count()==selection_before
 
             page.locator("#rotateBtn").click()
             capture("partially-folded-portrait")
             # The upper half retains the real top bezel, including corners.
             assert page.locator("#foldNearPlane").evaluate(
               "el => getComputedStyle(el,'::after').borderTopWidth"
-            ) == "5px"
+            ) == "8px"
             expect(demo.locator("body")).to_have_class(
                 re.compile("tide-posture-folded-portrait"), timeout=10000
             )
