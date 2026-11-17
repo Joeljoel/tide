@@ -584,7 +584,13 @@ def run(site: Path, snapshots: Path) -> None:
                 expect(demo.locator(".torrent-card.selected")).to_have_count(1)
                 expect(demo.locator('.torrent-card[data-hash="'+new_hash+'"].selected')).to_have_count(1)
                 expect(demo.locator(".detail-name")).to_have_text(new_name)
-                expect(other.locator("#detailPanel.mobile-open")).to_be_visible()
+                # The far mirror is physically displayed only while
+                # partially folded; when flat it must stay synchronized
+                # but correctly remains hidden in the showcase.
+                if page.locator("#deviceFrame").get_attribute("data-pose").startswith("partially-folded-"):
+                    expect(other.locator("#detailPanel.mobile-open")).to_be_visible()
+                else:
+                    expect(other.locator("#detailPanel.mobile-open")).to_have_count(1)
                 expect(other.locator(".torrent-card.selected")).to_have_count(1)
                 expect(other.locator(".detail-name")).to_have_text(new_name)
                 return new_hash
