@@ -1,6 +1,8 @@
 /* Tide iPhone Duo posture enhancement. Safari 27.1+ developer preview. */
 (() => {
   'use strict';
+  // Beta build marker for Settings > About; the stable 1.3.0 core remains intact.
+  window.__TIDE_BUILD__ = '1.4.0-beta.1';
 
   const root = document.documentElement;
   const body = document.body;
@@ -9,6 +11,29 @@
   const foldedQuery = window.matchMedia('(device-posture: folded)');
   const posture = navigator.devicePosture;
   let frame = 0;
+  let initialized = false;
+
+  // FLIP animation: only animate existing cards when posture actually changes.
+  // Keeping the cards in the document preserves scroll positions and selection.
+  function captureCards() {
+    return Array.from(document.querySelectorAll('#torrentList .torrent-card')).slice(0, 50)
+      .map(card => ({card, rect: card.getBoundingClientRect()}));
+  }
+
+  function animateCards(before) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    for (const {card, rect} of before) {
+      if (!card.isConnected || typeof card.animate !== 'function') continue;
+      const next = card.getBoundingClientRect();
+      const dx = rect.left - next.left, dy = rect.top - next.top;
+      // Ignore measurements made during a major viewport rotation.
+      if (!Number.isFinite(dx + dy) || Math.hypot(dx, dy) < 3 || Math.hypot(dx, dy) > 520) continue;
+      card.animate([
+        {transform: `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0)`, opacity: .86},
+        {transform: 'translate3d(0, 0, 0)', opacity: 1}
+      ], {duration: 260, easing: 'cubic-bezier(.22, 1, .36, 1)'});
+    }
+  }
 
   function segments() {
     try { return Array.from(window.viewport?.segments || []); }
@@ -32,6 +57,9 @@
     // display and narrow Split View windows on their existing Tide layouts.
     const book = folded && landscape && window.innerWidth >= 850;
     const laptop = folded && !landscape && window.innerWidth >= 580;
+    const postureChanged = body.classList.contains('tide-posture-folded-landscape') !== book ||
+      body.classList.contains('tide-posture-folded-portrait') !== laptop;
+    const before = initialized && postureChanged ? captureCards() : [];
 
     body.classList.toggle('tide-posture-folded-landscape', book);
     body.classList.toggle('tide-posture-folded-portrait', laptop);
@@ -82,6 +110,9 @@
         root.style.setProperty('--tide-fold-layout-top', Math.max(0, layoutTop).toFixed(1) + 'px');
       }
     }
+
+    if (before.length) animateCards(before);
+    initialized = true;
   }
 
   function schedule() {
