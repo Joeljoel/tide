@@ -1107,9 +1107,21 @@ def run(site: Path, snapshots: Path) -> None:
             page.emulate_media(reduced_motion="reduce")
             before_reduced=len(card_motion_calls())
             page.locator("#partialBtn").click()
+            page.wait_for_function("""() => {
+              const win=document.getElementById('tidePreview').contentWindow;
+              const el=win.document.querySelector('#torrentList');
+              return win.document.body.dataset.tideDemoPose==='partially-folded-landscape' &&
+                win.getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length===2;
+            }""",timeout=10000)
             assert grid_columns()==2
             assert len(card_motion_calls())==before_reduced
             page.locator("#unfoldedBtn").click()
+            page.wait_for_function("""() => {
+              const win=document.getElementById('tidePreview').contentWindow;
+              const el=win.document.querySelector('#torrentList');
+              return win.document.body.dataset.tideDemoPose==='unfolded-landscape' &&
+                win.getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length===3;
+            }""",timeout=10000)
             assert grid_columns()==3
             assert len(card_motion_calls())==before_reduced
 
