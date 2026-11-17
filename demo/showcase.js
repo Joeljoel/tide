@@ -103,45 +103,29 @@
     });
   }
 
-  async function hinge(nextPose){
-    const opening=nextPose==='unfolded-landscape';
-    if(opening)showPose(nextPose);
-    // The left pane stays full height while the right half turns on its
-    // vertical hinge. Clip the display to the projected edge of that flap.
-    const seam='inset(0 50% 0 0 round 9px 38px 38px 9px)';
-    const open='inset(0 0 0 0 round 51px)';
-    const centerFold=shift=>'translate(-50%,-50%) scale(var(--device-scale)) translateX('+shift+'%)';
-    const clipFrames=[
-      {clipPath:seam,transform:centerFold(25),offset:0},
-      {clipPath:'inset(0 15% 0 0 round 31px 47px 47px 31px)',transform:centerFold(7.5),offset:.45},
-      {clipPath:open,transform:centerFold(0),offset:1}
-    ];
-    const flapFrames=[
-      {transform:'rotateY(-90deg)',opacity:1},
-      {transform:'rotateY(0deg)',opacity:0}
-    ];
-    const shade=get('foldShade');
-    shade.hidden=false;
-    const duration=opening?350:300;
-    const clip=play(frame,opening?clipFrames:clipFrames.slice().reverse().map(key=>({...key,offset:1-key.offset})),duration);
-    const flap=play(shade,opening?flapFrames:flapFrames.slice().reverse(),duration);
-    await Promise.all([clip.finished,flap.finished]);
-    if(!opening)showPose(nextPose);
-    clip.cancel();
-    flap.cancel();
-    shade.hidden=true;
-  }
-
-  async function postureMorph(nextPose){
-    showPose(nextPose);
-    const shine=frame.querySelector('.fold-planes');
-    const motion=play(frame,[
-      {opacity:.88,filter:'brightness(.86)'},
-      {opacity:1,filter:'brightness(1)'}
-    ],340);
-    const light=play(shine,[{opacity:.2},{opacity:1}],340);
-    await Promise.all([motion.finished,light.finished]);
-    motion.cancel();light.cancel();
+  // The whole device stays still: animate the far screen plane at the hinge.
+  async function foldTransition(nextPose){
+    const entering=nextPose.startsWith('partially-folded-');
+    const leaving=currentPose.startsWith('partially-folded-');
+    const portrait=(entering?nextPose:currentPose).endsWith('portrait');
+    const open='rotate'+(portrait?'X':'Y')+'(0deg)';
+    const bent='rotate'+(portrait?'X(55deg)':'Y(-52deg)');
+    if(entering){
+      showPose(nextPose);
+      const motion=play(foldFlap,[{transform:open},{transform:bent}],340);
+      await motion.finished;
+      motion.cancel();
+    }else if(leaving){
+      const motion=play(foldFlap,[{transform:bent},{transform:open}],310);
+      await motion.finished;
+      showPose(nextPose);
+      motion.cancel();
+    }else{
+      showPose(nextPose);
+      const motion=play(frame,[{opacity:.76},{opacity:1}],220);
+      await motion.finished;
+      motion.cancel();
+    }
   }
 
   async function slide(nextPose,kind){
@@ -183,14 +167,8 @@
     frame.setAttribute('aria-busy','true');
     try{
       if(kind==='rotate')await turn(nextPose);
-      else if(kind==='partial')await postureMorph(nextPose);
-      else if(kind==='fold'){
-        // Align the hinge first when folding or opening from a rotated pose.
-        const aligned=folded?'unfolded-landscape':'folded-portrait';
-        if(currentPose.startsWith('split-'))await slide(aligned,'split');
-        else if(currentPose!==aligned)await turn(aligned);
-        await hinge(nextPose);
-      }else await slide(nextPose,kind);
+      else if(kind==='fold')await foldTransition(nextPose);
+      else await slide(nextPose,kind);
     }finally{
       transitioning=false;
       frame.removeAttribute('aria-busy');
