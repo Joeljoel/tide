@@ -142,6 +142,21 @@ jobs:
           Download the Source code ZIP, replace your existing Tide files, and reopen the PWA. See the README for installation instructions.
           EOF
             )
+          elif [[ "$version" == "1.4.2" ]]; then
+            notes=$(cat <<'EOF'
+          ## What's improved in Tide 1.4.2
+
+          - Smoothed the transition between the three-column unfolded landscape torrent grid and the two-column partially folded landscape grid.
+          - Torrent cards now animate their size as well as their position when the hinge posture changes, in either direction.
+          - Details-open landscape layouts transition their pane proportions and list columns smoothly in both directions.
+          - The interactive demo synchronizes landscape list reflow with the physical unfolding animation.
+          - Reduced-motion preferences continue to disable posture transition effects.
+
+          ## Installation
+
+          Download the Source code ZIP, replace your existing Tide files, and reopen the PWA. See the README for setup instructions.
+          EOF
+            )
           else
             notes=$(printf '%s\n\n%s\n' \
               "Tide $version is a touch-first alternative qBittorrent WebUI, designed for the iPhone Duo and desktop." \

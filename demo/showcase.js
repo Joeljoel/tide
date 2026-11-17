@@ -170,10 +170,11 @@
       await Promise.all(motions.map(motion=>motion.finished));
       motions.forEach(motion=>motion.cancel());
     }else if(leaving){
-      // Start the 50/50 -> 35/65 content resize DURING the physical unfold,
-      // rather than waiting for the hinge animation to finish. The device
-      // frame still changes pose only after the physical movement completes.
-      if(portrait && nextPose==='unfolded-portrait'){
+      // Start content reflow alongside physical unfolding, rather than
+      // waiting until the hinge finishes moving. This covers the portrait
+      // divider (50/50 -> 35/65) and landscape cards (2 -> 3 columns).
+      // The physical frame keeps its current pose until the hinge settles.
+      if(nextPose==='unfolded-portrait'||nextPose==='unfolded-landscape'){
         sendPose(nextPose);
       }
       const motions=[
