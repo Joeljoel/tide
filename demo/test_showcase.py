@@ -111,7 +111,11 @@ def run(site: Path, snapshots: Path) -> None:
                     assert transform.startswith("matrix3d("), transform
                     near = page.locator("#foldNearPlane")
                     expect(near).to_be_visible()
-                    assert near.evaluate("el => getComputedStyle(el).overflow") == "hidden"
+                    # A non-clipping 3D hinge shell contains a separately
+                    # masked clipping viewport for stable iframes.
+                    assert page.locator("#foldNearViewport").evaluate(
+                        "el => getComputedStyle(el).overflow"
+                    ) == "hidden"
                     assert page.locator("#deviceScreen").evaluate(
                         "el => getComputedStyle(el).transform"
                     ) == "none"
