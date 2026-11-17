@@ -379,7 +379,17 @@ def run(site: Path, snapshots: Path) -> None:
             )
             assert_shared_scroll()
             expect(demo.locator(".torrent-card").first).to_be_visible()
+            # Far-half click testing deliberately left one torrent selected.
+            # Clear that retained selection before verifying single-torrent
+            # Details; otherwise the rail may be in bulk-selection mode.
+            for _ in range(5):
+                chosen=demo.locator(".torrent-card.selected")
+                if chosen.count()==0:
+                    break
+                chosen.first.evaluate("el => el.click()")
+            expect(demo.locator(".torrent-card.selected")).to_have_count(0)
             demo.locator(".torrent-card").first.evaluate("el => el.click()")
+            expect(demo.locator(".torrent-card.selected")).to_have_count(1)
             demo.locator('[data-action="detail"]').first.evaluate("el => el.click()")
             expect(demo.locator("#detailPanel.mobile-open")).to_be_visible()
             expect(demo.locator(".torrent-card").first).to_be_visible()
