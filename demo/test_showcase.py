@@ -46,6 +46,12 @@ def run(site: Path, snapshots: Path) -> None:
             demo.locator("#addForm button[type=submit]").click()
             expect(demo.locator(".torrent-card")).to_have_count(before + 1, timeout=20000)
             expect(demo.locator(".torrent-card").filter(has_text="Tide Demo Collection")).to_have_count(1)
+            # The two visual planes must begin with the same sample torrents
+            # even when changes were made before the fold was opened.
+            other = page.frame_locator("#tideFoldPreview")
+            expect(other.locator(".torrent-card").filter(
+                has_text="Tide Demo Collection"
+            )).to_have_count(1, timeout=20000)
 
             def capture(pose: str) -> None:
                 expect(page.locator("#deviceFrame")).to_have_attribute("data-pose", pose)
@@ -78,8 +84,11 @@ def run(site: Path, snapshots: Path) -> None:
                         expect(demo.locator("body")).to_have_class(
                             re.compile(r"\btide-folded-camera-bottom-right\b")
                         )
-                        search = demo.locator('#actionRail [data-action="search"]').bounding_box()
-                        assert search["y"] + search["height"] < camera_box["y"]
+                        # The camera-specific clearance applies to global
+                        # controls. Detail/selection modes have different rails.
+                        if demo.locator("#actionRail").get_attribute("data-mode") == "global":
+                            search = demo.locator('#actionRail [data-action="search"]').bounding_box()
+                            assert search["y"] + search["height"] < camera_box["y"]
                 else:
                     expect(camera).to_be_hidden()
                 status = page.locator(".status-indicators")
