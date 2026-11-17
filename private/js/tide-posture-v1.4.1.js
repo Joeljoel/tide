@@ -13,25 +13,58 @@
   let frame = 0;
   let initialized = false;
 
-  // FLIP animation: only animate existing cards when posture actually changes.
-  // Keeping the cards in the document preserves scroll positions and selection.
+  // FLIP: both positions and dimensions must interpolate when the
+  // landscape torrent grid changes from three columns to two (or back).
+  // CSS cannot tween different track counts. Animate just visible cards;
+  // the actual grid and scroll positions remain native and interactive.
+  const activeCardMotions = new Map();
   function captureCards() {
-    return Array.from(document.querySelectorAll('#torrentList .torrent-card')).slice(0, 50)
-      .map(card => ({card, rect: card.getBoundingClientRect()}));
+    const pane = document.querySelector('.list-panel');
+    const clip = pane?.getBoundingClientRect();
+    const visibleTop = (clip?.top ?? 0) - 100;
+    const visibleBottom = (clip?.bottom ?? window.innerHeight) + 100;
+    return Array.from(document.querySelectorAll('#torrentList .torrent-card[data-hash]'))
+      .slice(0, 80)
+      .map(card => ({hash: card.dataset.hash, rect: card.getBoundingClientRect()}))
+      .filter(({rect}) => rect.bottom > visibleTop && rect.top < visibleBottom);
   }
 
   function animateCards(before) {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    for (const {card, rect} of before) {
-      if (!card.isConnected || typeof card.animate !== 'function') continue;
+    const current = new Map(Array.from(
+      document.querySelectorAll('#torrentList .torrent-card[data-hash]'),
+      card => [card.dataset.hash, card]
+    ));
+    for (const {hash, rect} of before) {
+      const card = current.get(hash);
+      if (!card || typeof card.animate !== 'function') continue;
+      // Reversing a fold mid-flight should continue from the actual visible
+      // position, not leave competing transforms on the same torrent card.
+      activeCardMotions.get(hash)?.cancel();
       const next = card.getBoundingClientRect();
+      if (!(next.width > 0 && next.height > 0)) continue;
       const dx = rect.left - next.left, dy = rect.top - next.top;
-      // Ignore measurements made during a major viewport rotation.
-      if (!Number.isFinite(dx + dy) || Math.hypot(dx, dy) < 3 || Math.hypot(dx, dy) > 520) continue;
-      card.animate([
-        {transform: `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0)`, opacity: .86},
-        {transform: 'translate3d(0, 0, 0)', opacity: 1}
-      ], {duration: 260, easing: 'cubic-bezier(.22, 1, .36, 1)'});
+      const scaleX = rect.width / next.width, scaleY = rect.height / next.height;
+      if (![dx, dy, scaleX, scaleY].every(Number.isFinite)) continue;
+      // An orientation/viewport resize is not a fold tween: skip cards that
+      // would have to fly across virtually the whole screen.
+      if (Math.hypot(dx, dy) > Math.max(600, window.innerWidth * .9)) continue;
+      if (Math.hypot(dx, dy) < 2 &&
+          Math.abs(scaleX - 1) < .015 && Math.abs(scaleY - 1) < .015) continue;
+      const motion = card.animate([
+        {
+          transformOrigin: '0 0',
+          transform: `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0) scale(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)})`,
+          opacity: .9
+        },
+        {transformOrigin: '0 0', transform: 'translate3d(0, 0, 0) scale(1, 1)', opacity: 1}
+      ], {duration: 320, easing: 'cubic-bezier(.22, 1, .36, 1)'});
+      activeCardMotions.set(hash, motion);
+      const cleanup = () => {
+        if (activeCardMotions.get(hash) === motion) activeCardMotions.delete(hash);
+      };
+      motion.addEventListener('finish', cleanup, {once: true});
+      motion.addEventListener('cancel', cleanup, {once: true});
     }
   }
 

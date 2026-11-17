@@ -150,12 +150,18 @@
 
 /* Light transitions when changing posture and when opening Details. The card
    count itself changes discretely; JS animates each card's position (FLIP). */
-body.tide-posture-folded-landscape:not(.tide-desktop) .shell.detail-open .layout {
-  transition: grid-template-columns 280ms cubic-bezier(.22, 1, .36, 1),
-              column-gap 280ms cubic-bezier(.22, 1, .36, 1);
-}
-body.tide-posture-folded-landscape:not(.tide-desktop) .torrent-list {
-  transition: column-gap 260ms cubic-bezier(.22, 1, .36, 1);
+/* Use the same transition declarations before and after the posture
+   class flips, so the reverse motion doesn't lose its CSS interpolation.
+   The card count and order change discretely in the grid; JS FLIP animates
+   each visible card's position and size through that 3↔2 / 2↔1 reflow. */
+@media (orientation: landscape) and (min-width: 850px) {
+  body.tide-duo-landscape:not(.tide-desktop) .shell.detail-open .layout {
+    transition: grid-template-columns 320ms cubic-bezier(.22, 1, .36, 1),
+                column-gap 320ms cubic-bezier(.22, 1, .36, 1);
+  }
+  body.tide-duo-landscape:not(.tide-desktop) .torrent-list {
+    transition: column-gap 320ms cubic-bezier(.22, 1, .36, 1);
+  }
 }
 /* Keep these transitions present in BOTH portrait postures: switching the
    body class from folded to continuous must not discard a transition mid-way.
@@ -191,7 +197,8 @@ body.tide-posture-folded-portrait:not(.tide-desktop) .detail-panel.mobile-open {
   body.tide-posture-folded-landscape:not(.tide-desktop) :is(.layout, .torrent-list, #detailPanel),
   body.tide-posture-folded-portrait:not(.tide-desktop) :is(.layout, .detail-panel.mobile-open),
   body.tide-posture-unfolded-portrait:not(.tide-desktop) :is(.layout, .detail-panel.mobile-open),
-  body.tide-posture-folded-landscape:not(.tide-desktop) .dialog.floating-dialog.tide-settings-dialog {
+  body.tide-posture-folded-landscape:not(.tide-desktop) .dialog.floating-dialog.tide-settings-dialog,
+  body.tide-duo-landscape:not(.tide-desktop) :is(.torrent-list, .shell.detail-open .layout) {
     animation: none !important;
     transition: none !important;
   }
