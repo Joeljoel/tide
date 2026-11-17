@@ -104,7 +104,7 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   position:absolute;z-index:9;inset:0 0 0 50%;pointer-events:none;
   transform-origin:left center;background:linear-gradient(90deg,#020407d9,#192a36aa 22%,#080d16eb);
   border-left:1px solid #9cadbd55}
-.stage:has(.device-frame[aria-busy]){overflow:visible}
+.stage:has(.device-frame[aria-busy]){overflow:hidden}
 .device-frame[aria-busy] .device-screen{pointer-events:none}
 
 
@@ -143,10 +143,19 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 .device-frame.is-partially-folded{
   overflow:visible;background:transparent;border-color:transparent;
   transform:translate(-50%,-50%) scale(var(--device-scale,1));
-  perspective:1100px;perspective-origin:50% 44%;
+  perspective:1350px;perspective-origin:50% 48%;
   transform-style:preserve-3d;box-shadow:none}
+.device-frame.is-partially-folded::before{
+  content:"";position:absolute;z-index:10;pointer-events:none;
+  inset:0 50% 0 0;box-sizing:border-box;
+  transform-origin:right center;transform:rotateY(-16deg);
+  border:5px solid #05070b;border-right:2px solid #101820;
+  border-radius:var(--tl,51px) 0 0 var(--bl,51px);
+  box-shadow:-6px 13px 25px #0006,inset 2px 1px 2px #b2bdc325;
+}
 .device-frame.is-partially-folded .device-screen{
-  box-shadow:inset 0 0 0 3px #05070b,0 8px 26px #0006}
+  transform:rotateY(-16deg);transform-origin:center center;
+  box-shadow:0 8px 26px #0006}
 .device-frame[data-pose="partially-folded-landscape"] .device-screen{
   clip-path:inset(0 50% 0 0 round
     max(0px,calc(var(--tl,40px) - 5px)) 0 0
@@ -159,15 +168,20 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   overflow:visible;transform-style:preserve-3d}
 .is-partially-folded .fold-planes{display:block}
 .fold-flap{position:absolute;top:0;right:0;width:50%;height:100%;
-  transform-origin:left center;transform:rotateY(-52deg);
+  transform-origin:left center;transform:rotateY(16deg);
   overflow:hidden;pointer-events:auto;backface-visibility:hidden;
   border-radius:0 max(0px,calc(var(--tr,40px) - 5px))
     max(0px,calc(var(--br,40px) - 5px)) 0;
   clip-path:inset(0 round 0
     max(0px,calc(var(--tr,40px) - 5px))
     max(0px,calc(var(--br,40px) - 5px)) 0);
-  background:#070e16;box-shadow:0 16px 40px #0009,
+  background:#070e16;box-shadow:0 12px 25px #0007,
     inset -4px 0 5px #000a}
+.fold-flap::after{
+  content:"";position:absolute;inset:0;z-index:6;pointer-events:none;
+  border:5px solid #05070b;border-left:2px solid #101820;
+  border-radius:inherit;box-shadow:inset -2px 0 3px #b2bdc327;
+}
 .fold-flap iframe{position:absolute;display:block;top:0;left:-100%;
   width:200%;height:100%;border:0;background:#0a1119}
 .fold-flap-light{position:absolute;inset:0;pointer-events:none;
@@ -183,12 +197,23 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   background:linear-gradient(90deg,#0005,#c6d6de45);opacity:.65}
 [data-pose="partially-folded-portrait"] .fold-flap{
   top:50%;right:0;width:100%;height:50%;
-  transform-origin:center top;transform:rotateX(55deg);
+  transform-origin:center top;transform:rotateX(-16deg);
   border-radius:0 0 max(0px,calc(var(--br,40px) - 5px))
     max(0px,calc(var(--bl,40px) - 5px));
   clip-path:inset(0 round 0 0
     max(0px,calc(var(--br,40px) - 5px))
     max(0px,calc(var(--bl,40px) - 5px)))}
+[data-pose="partially-folded-portrait"] .device-screen{
+  transform:rotateX(16deg);transform-origin:center center}
+[data-pose="partially-folded-portrait"].device-frame::before{
+  inset:0 0 50% 0;
+  transform-origin:center bottom;transform:rotateX(16deg);
+  border:5px solid #05070b;border-bottom:2px solid #101820;
+  border-radius:var(--tl,51px) var(--tr,51px) 0 0;
+}
+[data-pose="partially-folded-portrait"] .fold-flap::after{
+  border:5px solid #05070b;border-top:2px solid #101820;
+}
 [data-pose="partially-folded-portrait"] .fold-flap iframe{
   left:0;top:-100%;width:100%;height:200%}
 [data-pose="partially-folded-portrait"] .fold-flap-light{

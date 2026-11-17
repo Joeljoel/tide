@@ -92,8 +92,11 @@
     currentPose=pose;
     resizeFrame();
     sendPose();
-    // The iframe keeps its state. Reapply the pose after its viewport settles.
-    requestAnimationFrame(()=>{sendPose();requestAnimationFrame(sendPose);});
+    // Both visual halves follow the same logical screen offset.
+    requestAnimationFrame(()=>{
+      sendPose();
+      requestAnimationFrame(()=>{sendPose();alignScrolls();});
+    });
   }
 
   function play(element,keyframes,duration,easing='cubic-bezier(.2,.7,.25,1)'){
@@ -245,6 +248,65 @@
   // Proxy common UI events between the same-origin frames so either half
   // stays interactive and the demo's two views remain visually synchronized.
   let mirroring=false;
+  function peerScrollport(source,peerDoc){
+    if(source.nodeType===9 || source===source.ownerDocument.documentElement ||
+       source===source.ownerDocument.body)
+      return peerDoc.scrollingElement;
+    if(source.id){
+      const byId=peerDoc.getElementById(source.id);
+      if(byId)return byId;
+    }
+    const selectors=['.list-panel','.detail-panel','.settings-panel',
+      '.dialog','.files-list','.torrent-list','.sort-options'];
+    for(const selector of selectors){
+      if(source.matches?.(selector)){
+        const candidates=Array.from(source.ownerDocument.querySelectorAll(selector));
+        const index=candidates.indexOf(source);
+        return peerDoc.querySelectorAll(selector)[index]||null;
+      }
+    }
+    // Match any nested scrollport with its corresponding same-DOM-tree node.
+    const path=[];
+    let node=source;
+    while(node?.parentElement){
+      path.unshift(Array.from(node.parentElement.children).indexOf(node));
+      node=node.parentElement;
+      if(node===source.ownerDocument.body)break;
+    }
+    let peer=peerDoc.body;
+    for(const index of path)peer=peer?.children[index];
+    return peer||null;
+  }
+  function syncScroll(source,peerDoc){
+    if(!frame.classList.contains('is-partially-folded'))return;
+    const peer=peerScrollport(source,peerDoc);
+    if(!peer)return;
+    const fromMax=Math.max(0,source.scrollHeight-source.clientHeight);
+    const toMax=Math.max(0,peer.scrollHeight-peer.clientHeight);
+    const destY=fromMax>0?source.scrollTop/fromMax*toMax:source.scrollTop;
+    const fromX=Math.max(0,source.scrollWidth-source.clientWidth);
+    const toX=Math.max(0,peer.scrollWidth-peer.clientWidth);
+    const destX=fromX>0?source.scrollLeft/fromX*toX:source.scrollLeft;
+    if(Math.abs(peer.scrollTop-destY)>.75)peer.scrollTop=destY;
+    if(Math.abs(peer.scrollLeft-destX)>.75)peer.scrollLeft=destX;
+  }
+  function alignScrolls(){
+    if(!loaded||!foldLoaded)return;
+    const a=iframe.contentDocument,b=foldIframe.contentDocument;
+    if(!a||!b)return;
+    for(const selector of ['.list-panel','.detail-panel','.settings-panel']){
+      const items=a.querySelectorAll(selector),peers=b.querySelectorAll(selector);
+      items.forEach((item,i)=>{
+        const peer=peers[i];
+        if(peer){
+          const from=Math.max(0,item.scrollHeight-item.clientHeight);
+          const to=Math.max(0,peer.scrollHeight-peer.clientHeight);
+          peer.scrollTop=from?item.scrollTop/from*to:item.scrollTop;
+          peer.scrollLeft=item.scrollLeft;
+        }
+      });
+    }
+  }
   function peerFor(source,doc){
     const node=source.closest('[data-action],[data-filter],[data-sort],'+
       '[data-folder-toggle],[data-settings-tab],[data-appearance],'+
@@ -266,6 +328,13 @@
     const doc=from.contentDocument;
     if(!doc || doc.documentElement.dataset.mirrorReady)return;
     doc.documentElement.dataset.mirrorReady='1';
+    // Scroll never bubbles: capture scrolling from either visual half and
+    // apply it immediately to the same viewport's matching scroll container.
+    doc.addEventListener('scroll',event=>{
+      if(mirroring)return;
+      const peerDoc=to.contentDocument;
+      if(peerDoc)syncScroll(event.target,peerDoc);
+    },true);
     doc.addEventListener('click',event=>{
       if(mirroring || !frame.classList.contains('is-partially-folded'))return;
       const peer=to.contentDocument && peerFor(event.target,to.contentDocument);
