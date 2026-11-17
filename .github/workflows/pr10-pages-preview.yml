@@ -61,7 +61,7 @@ jobs:
           set -euo pipefail
           preview="_site/previews/pr-10"
           node --check "$preview/showcase.js"
-          node --check "$preview/app/js/tide-posture-v1.4.0-beta.1.js"
+          node --check "$(find "$preview/app/js" -maxdepth 1 -name 'tide-posture-v*.js' -print -quit)"
           node --check "$preview/app/js/tide-v1.3.0.js"
           grep -Fq 'const demo = true;' "$preview/app/js/tide-v1.3.0.js"
           grep -Fq "connect-src 'none'" "$preview/app/index.html"
