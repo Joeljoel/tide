@@ -225,10 +225,65 @@
   }));
   splitBtn.addEventListener('click',()=>transition('split',()=>{split=!split;}));
   shiftBtn.addEventListener('click',()=>transition('shift',()=>{side=side==='left'?'right':'left';}));
-  iframe.addEventListener('load',()=>{loaded=true;sendPose();});
+  // Each 3D surface has a full-resolution copy of the fake-data app.
+  // Proxy common UI events between the same-origin frames so either half
+  // stays interactive and the demo's two views remain visually synchronized.
+  let mirroring=false;
+  function peerFor(source,doc){
+    const node=source.closest('[data-action],[data-filter],[data-sort],'+
+      '[data-folder-toggle],[data-settings-tab],[data-appearance],'+
+      '[data-hash],.torrent-card');
+    if(!node)return null;
+    for(const attribute of ['data-action','data-filter','data-sort',
+      'data-folder-toggle','data-settings-tab','data-appearance','data-hash']){
+      if(!node.hasAttribute(attribute))continue;
+      const value=node.getAttribute(attribute);
+      const matches=Array.from(doc.querySelectorAll('['+attribute+']'))
+        .filter(item=>item.getAttribute(attribute)===value);
+      if(attribute==='data-action' && node.dataset.hash)
+        return matches.find(item=>item.dataset.hash===node.dataset.hash)||null;
+      return matches[0]||null;
+    }
+    return null;
+  }
+  function wireMirror(from,to){
+    const doc=from.contentDocument;
+    if(!doc || doc.documentElement.dataset.mirrorReady)return;
+    doc.documentElement.dataset.mirrorReady='1';
+    doc.addEventListener('click',event=>{
+      if(mirroring || !frame.classList.contains('is-partially-folded'))return;
+      const peer=to.contentDocument && peerFor(event.target,to.contentDocument);
+      if(!peer)return;
+      mirroring=true;
+      try{peer.click();}finally{mirroring=false;}
+    },true);
+    doc.addEventListener('input',event=>{
+      if(mirroring || !frame.classList.contains('is-partially-folded'))return;
+      if(!event.target.id)return;
+      const peer=to.contentDocument?.getElementById(event.target.id);
+      if(!peer)return;
+      mirroring=true;
+      try{
+        peer.value=event.target.value;
+        peer.dispatchEvent(new Event('input',{bubbles:true}));
+      }finally{mirroring=false;}
+    },true);
+  }
+  iframe.addEventListener('load',()=>{
+    loaded=true;
+    wireMirror(iframe,foldIframe);
+    sendPose();
+  });
+  foldIframe.addEventListener('load',()=>{
+    foldLoaded=true;
+    wireMirror(foldIframe,iframe);
+    sendPose();
+  });
   get('resetDemo').addEventListener('click',()=>{
-    loaded=false;
-    iframe.src='app/index.html?demo=1&pose='+encodeURIComponent(currentPose)+'&reset='+Date.now();
+    loaded=false;foldLoaded=false;
+    const url='app/index.html?demo=1&pose='+encodeURIComponent(currentPose)+'&reset='+Date.now();
+    iframe.src=url;
+    foldIframe.src=url;
   });
   window.addEventListener('resize',resizeFrame,{passive:true});
   if(typeof ResizeObserver!=='undefined')new ResizeObserver(resizeFrame).observe(stage.parentElement);
