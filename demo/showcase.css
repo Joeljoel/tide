@@ -82,6 +82,12 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
 .status-connectivity{display:block;width:42px;height:42px}
 .device-frame[data-pose=folded-portrait] .status-indicators{top:84px;gap:9px}
 .device-frame[data-pose=folded-portrait] .status-location{display:none}
+.device-frame[data-pose^="partially-folded-"] .status-indicators{
+  position:absolute;display:grid;justify-items:center;align-items:start;gap:8px;right:27px;top:22px;
+}
+.device-frame[data-pose=partially-folded-portrait] .status-indicators{
+  grid-auto-flow:column;align-items:center;gap:13px;
+}
 .device-frame[data-pose=unfolded-portrait] .status-indicators{
   top:27px;right:27px;grid-auto-flow:column;align-items:center;gap:13px}
 .device-frame[data-pose=unfolded-portrait] .status-clock{width:34px;gap:5px}
@@ -100,3 +106,58 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   border-left:1px solid #9cadbd55}
 .stage:has(.device-frame[aria-busy]){overflow:visible}
 .device-frame[aria-busy] .device-screen{pointer-events:none}
+
+
+/* iPhone Duo 1.4 beta: one live iframe, with 3D lighting/chassis overlays. */
+.preview-note{font-size:11px;color:#81b5b4;white-space:nowrap;margin-left:auto}
+#resetDemo{margin-left:0}
+.stage{perspective:1600px;perspective-origin:50% 42%;background:
+  radial-gradient(ellipse 43% 35% at 50% 78%,rgba(91,128,140,.16),transparent 95%),
+  radial-gradient(ellipse 75% 70% at 50% 35%,#23313c99,transparent 80%),#101720}
+.frame-holder{perspective:1450px;perspective-origin:50% 40%}
+.device-frame.is-partially-folded{
+  overflow:visible;
+  transform:translate(-50%,-50%) scale(var(--device-scale)) rotateY(-7deg) rotateX(4deg);
+  transform-style:preserve-3d;
+  box-shadow:22px 28px 44px rgba(0,0,0,.62),2px 9px 9px rgba(0,0,0,.42),
+    inset -3px 1px 5px rgba(255,255,255,.09),0 0 0 1px rgba(163,184,197,.5)
+}
+.device-frame.is-partially-folded:before{
+  content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+  background:#020509;transform:translate3d(9px,12px,-18px);
+  box-shadow:0 15px 20px rgba(0,0,0,.45)
+}
+.device-frame.is-partially-folded .device-screen{box-shadow:inset 0 0 0 1px rgba(244,252,255,.12)}
+.fold-planes{display:none;position:absolute;inset:0;z-index:7;pointer-events:none;border-radius:inherit;
+  overflow:hidden;transform-style:preserve-3d}
+.is-partially-folded .fold-planes{display:block}
+.fold-plane{position:absolute;transform-style:preserve-3d;backface-visibility:hidden}
+[data-pose="partially-folded-landscape"] .fold-plane{top:0;bottom:0;width:50%}
+[data-pose="partially-folded-landscape"] .fold-plane.first{
+  left:0;background:linear-gradient(90deg,rgba(180,217,231,.06),transparent 54%,rgba(0,0,0,.35) 98%);
+  box-shadow:inset -8px 0 14px rgba(0,0,0,.2)}
+[data-pose="partially-folded-landscape"] .fold-plane.second{
+  left:50%;transform-origin:left center;transform:perspective(1250px) rotateY(-15deg);
+  background:linear-gradient(90deg,rgba(0,0,0,.32),rgba(14,28,38,.12) 27%,
+    rgba(220,244,255,.08) 83%,rgba(0,0,0,.11));
+  box-shadow:inset 2px 0 8px rgba(255,255,255,.10),inset -18px 0 24px rgba(0,0,0,.16)}
+[data-pose="partially-folded-portrait"] .fold-plane{left:0;right:0;height:50%}
+[data-pose="partially-folded-portrait"] .fold-plane.first{
+  top:0;background:linear-gradient(180deg,rgba(190,224,238,.08),transparent 65%,rgba(0,0,0,.38));
+  box-shadow:inset 0 -11px 16px rgba(0,0,0,.23)}
+[data-pose="partially-folded-portrait"] .fold-plane.second{
+  top:50%;transform-origin:center top;transform:perspective(1150px) rotateX(17deg);
+  background:linear-gradient(180deg,rgba(0,0,0,.40),rgba(10,20,27,.10) 23%,
+    rgba(207,236,243,.08) 78%,rgba(0,0,0,.20));
+  box-shadow:inset 0 4px 10px rgba(250,255,255,.12),inset 0 -19px 24px rgba(0,0,0,.12)}
+.fold-spine{position:absolute;z-index:4;pointer-events:none;filter:drop-shadow(0 0 5px rgba(0,0,0,.55))}
+[data-pose="partially-folded-landscape"] .fold-spine{
+  top:0;bottom:0;left:calc(50% - 5px);width:10px;
+  background:linear-gradient(90deg,rgba(0,0,0,.52),rgba(238,252,255,.22) 48%,
+    rgba(2,10,16,.5) 70%,transparent);box-shadow:2px 0 20px rgba(0,0,0,.30)}
+[data-pose="partially-folded-portrait"] .fold-spine{
+  left:0;right:0;top:calc(50% - 5px);height:10px;
+  background:linear-gradient(180deg,rgba(0,0,0,.64),rgba(237,249,255,.20) 45%,
+    rgba(0,0,0,.34) 75%,transparent);box-shadow:0 4px 23px rgba(0,0,0,.35)}
+@media(max-width:670px){.preview-note{flex-basis:100%;margin-left:0}}
+@media(prefers-reduced-motion:reduce){.device-frame.is-partially-folded,.fold-plane{transition:none!important}}

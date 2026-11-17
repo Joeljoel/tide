@@ -64,3 +64,12 @@ body[data-tide-demo-pose="unfolded-portrait"] .action-rail:not([data-mode="searc
 
 /* Reserve room for the horizontal status row in the portrait header. */
 body[data-tide-demo-pose="unfolded-portrait"] .topbar {padding-right:100px !important}
+
+/* Generated preview simulates each posture without sampling the visitor's device. */
+body[data-tide-demo-pose="partially-folded-landscape"] .action-rail{
+  right:var(--rail-edge)!important;left:auto!important;transform:none!important;
+}
+body[data-tide-demo-pose="partially-folded-portrait"] .action-rail:not([data-mode="search"]){
+  left:50%!important;right:auto!important;transform:translateX(-50%)!important;
+}
+body[data-tide-demo-pose="partially-folded-portrait"] .topbar{padding-right:100px!important}

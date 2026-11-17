@@ -22,6 +22,7 @@
     </nav>
     <div class="duo-choices" id="duoChoices" hidden>
       <button id="foldBtn" type="button">Fold</button>
+      <button id="partialBtn" type="button" aria-pressed="false" title="Simulate a partial fold">Partially folded</button>
       <button id="rotateBtn" type="button">Rotate <span aria-hidden="true">↻</span></button>
       <button id="splitBtn" type="button" hidden>Split</button>
       <button id="shiftBtn" type="button" hidden>Move Tide right</button>
@@ -33,6 +34,7 @@
     <div class="preview-meta">
       <span id="poseName">Desktop</span>
       <span id="poseDimensions">1280 × 800</span>
+      <span class="preview-note" id="previewNote">Interactive preview · v1.4.0-beta.1</span>
       <button id="resetDemo" type="button" title="Reset sample torrents">↺ Reset</button>
     </div>
     <div class="stage" id="stage">
@@ -49,6 +51,7 @@
             </div>
             <div class="split-handle" aria-hidden="true"></div>
             <div class="fold-shade" id="foldShade" aria-hidden="true" hidden></div>
+            <div class="fold-planes" aria-hidden="true"><div class="fold-plane first"></div><div class="fold-plane second"></div><div class="fold-spine"></div></div>
             <div class="system-ui" id="systemUi" aria-hidden="true">
               <div class="status-camera"></div>
               <div class="status-indicators">

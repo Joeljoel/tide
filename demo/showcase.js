@@ -6,6 +6,8 @@
     'folded-portrait':{label:'Outer · portrait',width:466,height:678},
     'folded-landscape':{label:'Outer · landscape',width:678,height:466},
     'unfolded-portrait':{label:'Inner · portrait',width:669,height:951},
+    'partially-folded-portrait':{label:'Inner · partially folded · portrait',width:669,height:951},
+    'partially-folded-landscape':{label:'Inner · partially folded · landscape',width:951,height:669},
     'unfolded-landscape':{label:'Inner · landscape',width:951,height:669},
     'split-left':{label:'Split View · Tide left',width:951,height:669,split:true},
     'split-right':{label:'Split View · Tide right',width:951,height:669,split:true}
@@ -15,14 +17,15 @@
   const screen=get('deviceScreen'),tide=get('tidePanel'),home=get('homePanel');
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
   const desktopBtn=get('desktopBtn'),duoBtn=get('duoBtn'),duoChoices=get('duoChoices');
-  const foldBtn=get('foldBtn'),rotateBtn=get('rotateBtn'),splitBtn=get('splitBtn'),shiftBtn=get('shiftBtn');
-  let device='desktop',folded=true,orientation='portrait',split=false,side='left',loaded=false;
+  const foldBtn=get('foldBtn'),partialBtn=get('partialBtn'),rotateBtn=get('rotateBtn'),splitBtn=get('splitBtn'),shiftBtn=get('shiftBtn');
+  let device='desktop',folded=true,partiallyFolded=false,orientation='portrait',split=false,side='left',loaded=false;
   let transitioning=false;
   let currentPose='desktop';
 
   function selectedPose(){
     if(device==='desktop')return 'desktop';
     if(folded)return 'folded-'+orientation;
+    if(partiallyFolded)return 'partially-folded-'+orientation;
     if(orientation==='portrait')return 'unfolded-portrait';
     return split?'split-'+side:'unfolded-landscape';
   }
@@ -38,7 +41,7 @@
     // Equal physical length along the hinge, including the bezel. Keep the
     // measured app viewport sizes and absorb the 9px difference in the frame.
     const bezel=desktop?6:5;
-    const extraX=currentPose==='unfolded-portrait'?9:0;
+    const extraX=currentPose.endsWith('portrait') && !currentPose.startsWith('folded-')?9:0;
     const extraY=config.width===951?9:0;
     const w=config.width+bezel*2+extraX,h=config.height+bezel*2+extraY;
     const maximumW=Math.max(110,stage.clientWidth-20);
@@ -54,6 +57,7 @@
     frame.style.setProperty('--device-scale',scale);
     frame.dataset.pose=currentPose;
     frame.classList.toggle('is-split',!!config.split);
+    frame.classList.toggle('is-partially-folded',currentPose.startsWith('partially-folded-'));
     // The outer panel is a D, not a rounded rectangle. Rotating it clockwise
     // moves its two large-radius corners from right to bottom.
     const radii=currentPose==='folded-portrait'?[9,73,73,9]:
@@ -66,6 +70,7 @@
     stage.style.minHeight=Math.ceil(h*scale)+38+'px';
     get('poseName').textContent=config.label;
     get('poseDimensions').textContent=config.width+' × '+config.height;
+    get('previewNote').textContent=currentPose.startsWith('partially-folded-')?'3D hinge preview · simulated posture · v1.4.0-beta.1':'Interactive preview · v1.4.0-beta.1';
   }
 
   function showPose(pose){
@@ -121,6 +126,18 @@
     shade.hidden=true;
   }
 
+  async function postureMorph(nextPose){
+    showPose(nextPose);
+    const shine=frame.querySelector('.fold-planes');
+    const motion=play(frame,[
+      {opacity:.88,filter:'brightness(.86)'},
+      {opacity:1,filter:'brightness(1)'}
+    ],340);
+    const light=play(shine,[{opacity:.2},{opacity:1}],340);
+    await Promise.all([motion.finished,light.finished]);
+    motion.cancel();light.cancel();
+  }
+
   async function slide(nextPose,kind){
     const closing=!poses[nextPose].split;
     const before={left:tide.offsetLeft,width:tide.offsetWidth};
@@ -160,6 +177,7 @@
     frame.setAttribute('aria-busy','true');
     try{
       if(kind==='rotate')await turn(nextPose);
+      else if(kind==='partial')await postureMorph(nextPose);
       else if(kind==='fold'){
         // Align the hinge first when folding or opening from a rotated pose.
         const aligned=folded?'unfolded-landscape':'folded-portrait';
@@ -181,8 +199,9 @@
     duoChoices.hidden=device!=='duo';
     foldBtn.textContent=folded?'Unfold':'Fold';
     foldBtn.setAttribute('aria-pressed',String(folded));
+    partialBtn.setAttribute('aria-pressed',String(partiallyFolded));
     rotateBtn.setAttribute('aria-label','Rotate '+(orientation==='portrait'?'to landscape':'to portrait'));
-    splitBtn.hidden=folded||orientation!=='landscape';
+    splitBtn.hidden=folded||partiallyFolded||orientation!=='landscape';
     splitBtn.textContent=split?'Unsplit':'Split';
     splitBtn.setAttribute('aria-pressed',String(split));
     shiftBtn.hidden=!split;
@@ -194,13 +213,20 @@
     if(device==='duo')return;
     device='duo';
     folded=true;
+    partiallyFolded=false;
     orientation='portrait';
     split=false;
     side='left';
   }));
   foldBtn.addEventListener('click',()=>transition('fold',()=>{
     folded=!folded;
+    partiallyFolded=false;
     orientation=folded?'portrait':'landscape';
+    split=false;
+  }));
+  partialBtn.addEventListener('click',()=>transition('partial',()=>{
+    partiallyFolded=!partiallyFolded;
+    folded=false;
     split=false;
   }));
   rotateBtn.addEventListener('click',()=>transition('rotate',()=>{
