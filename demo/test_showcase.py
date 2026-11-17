@@ -278,6 +278,21 @@ def run(site: Path, snapshots: Path) -> None:
             assert page.locator("#foldFlap").evaluate(
               "el => getComputedStyle(el,'::after').borderRightWidth"
             ) == "8px"
+            # The 8px strokes occupy transparent FRAME-border space,
+            # not any pixels of the app viewport (the former inner strokes).
+            outer=page.locator("#deviceFrame").evaluate(
+                "el => getComputedStyle(el).borderLeftColor"
+            )
+            assert outer=="rgba(0, 0, 0, 0)", outer
+            near_outer=page.locator("#foldNearPlane").evaluate(
+                "el => getComputedStyle(el,'::after').left"
+            )
+            far_outer=page.locator("#foldFlap").evaluate(
+                "el => getComputedStyle(el,'::after').right"
+            )
+            assert near_outer=="-8px" and far_outer=="-8px", (
+                near_outer,far_outer
+            )
             for selector in ("#foldNearPlane", "#foldFlap"):
                 m=page.locator(selector).evaluate(
                   "el => getComputedStyle(el).transform"
@@ -471,6 +486,12 @@ def run(site: Path, snapshots: Path) -> None:
             assert page.locator("#foldNearPlane").evaluate(
               "el => getComputedStyle(el,'::after').borderTopWidth"
             ) == "8px"
+            assert page.locator("#foldNearPlane").evaluate(
+              "el => getComputedStyle(el,'::after').top"
+            ) == "-8px"
+            assert page.locator("#foldFlap").evaluate(
+              "el => getComputedStyle(el,'::after').bottom"
+            ) == "-8px"
             expect(demo.locator("body")).to_have_class(
                 re.compile("tide-posture-folded-portrait"), timeout=10000
             )
