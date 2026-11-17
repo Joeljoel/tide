@@ -147,6 +147,20 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
  .device-frame{isolation:isolate}
 .fold-near-plane{position:relative;width:100%;height:100%}
 .fold-near-viewport{position:relative;width:100%;height:100%}
+/* iOS-style first-pane defocus, strictly transient during fold transitions.
+   The overlay is contained by the same curved/segmented viewport mask as the
+   interactive app, so it cannot bleed over the hinge, bevel, or second pane. */
+.fold-transition-blur{
+  position:absolute;inset:0;z-index:20;pointer-events:none;
+  opacity:0;
+  background:rgba(6,10,16,.13);
+  -webkit-backdrop-filter:blur(17px) brightness(.62) saturate(.73);
+  backdrop-filter:blur(17px) brightness(.62) saturate(.73);
+  will-change:opacity;
+}
+@media(prefers-reduced-motion:reduce){
+  .fold-transition-blur{opacity:0!important;will-change:auto}
+}
 .device-screen{clip-path:inset(0 round
     max(0px,calc(var(--tl,40px) - 8px))
     max(0px,calc(var(--tr,40px) - 8px))

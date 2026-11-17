@@ -24,7 +24,7 @@
   const rotateBtn=get('rotateBtn'),splitBtn=get('splitBtn'),shiftBtn=get('shiftBtn');
   const foldIframe=get('tideFoldPreview'),foldFlap=get('foldFlap');
   const nearSheen=get('foldNearSheen'),farSheen=foldFlap.querySelector('.fold-flap-light'),
-    hingeSheen=get('hingeSheen');
+    hingeSheen=get('hingeSheen'),foldBlur=get('foldTransitionBlur');
   const foldInteraction=get('foldInteraction');
   const statusTemplate=get('systemUi').querySelector('.status-indicators');
   const foldStatus=get('foldFlapViewport').querySelector('.fold-flap-status');
@@ -146,9 +146,19 @@
     const secondBend=portrait?'rotateX(10deg)':'rotateY(-10deg)';
     const sheens=[nearSheen,farSheen,hingeSheen];
     const hingeAlpha=0.20;
+    // Mimic iOS's blurred first screen only while the hinge is moving.
+    // The far/right or lower screen remains sharp, and the active Tide
+    // iframe is never blurred or modified between transitions.
+    const firstPaneBlur=duration=>play(foldBlur,[
+      {opacity:0,offset:0},
+      {opacity:1,offset:.22},
+      {opacity:1,offset:.53},
+      {opacity:0,offset:1}
+    ],duration,'ease-in-out');
     if(entering){
       showPose(nextPose);
       const motions=[
+        firstPaneBlur(330),
         play(nearPlane,[{transform:open},{transform:firstBend}],330),
         play(foldFlap,[{transform:open},{transform:secondBend}],330),
         ...sheens.map((element,i)=>play(element,[
@@ -159,6 +169,7 @@
       motions.forEach(motion=>motion.cancel());
     }else if(leaving){
       const motions=[
+        firstPaneBlur(290),
         play(nearPlane,[{transform:firstBend},{transform:open}],290),
         play(foldFlap,[{transform:secondBend},{transform:open}],290),
         ...sheens.map((element,i)=>play(element,[
@@ -170,9 +181,12 @@
       motions.forEach(motion=>motion.cancel());
     }else{
       showPose(nextPose);
-      const motion=play(frame,[{opacity:.8},{opacity:1}],220);
-      await motion.finished;
-      motion.cancel();
+      const motions=[
+        play(frame,[{opacity:.8},{opacity:1}],220),
+        firstPaneBlur(220)
+      ];
+      await Promise.all(motions.map(motion=>motion.finished));
+      motions.forEach(motion=>motion.cancel());
     }
   }
 

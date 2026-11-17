@@ -615,6 +615,19 @@ def run(site: Path, snapshots: Path) -> None:
             animated_pose("shiftBtn", "split-right")
             animated_pose("splitBtn", "unfolded-landscape")
 
+            # A masked, non-interactive near-pane blur starts fully hidden.
+            overlay=page.locator("#foldTransitionBlur")
+            assert overlay.evaluate(
+                "el => getComputedStyle(el).opacity"
+            ) == "0"
+            assert overlay.evaluate(
+                "el => getComputedStyle(el).pointerEvents"
+            ) == "none"
+            filter_style=overlay.evaluate(
+                "el => getComputedStyle(el).backdropFilter"
+            )
+            assert "blur(17px)" in filter_style, filter_style
+
             # Record the browser's real keyframes as the hinge opens and
             # closes. Fold-only lighting must fade, while the shared shadow
             # remains on the stable holder throughout both transitions.
@@ -625,9 +638,11 @@ def run(site: Path, snapshots: Path) -> None:
                 const name=this.id ||
                   (this.classList.contains('fold-flap-light')
                     ? 'foldFlapLight' : '');
-                if(['foldNearSheen','hingeSheen','foldFlapLight'].includes(name))
+                if(['foldNearSheen','hingeSheen','foldFlapLight',
+                    'foldTransitionBlur'].includes(name))
                   window.__hingeAnimations.push({
-                    name,opacity:frames.map(frame=>frame.opacity)
+                    name,opacity:frames.map(frame=>frame.opacity),
+                    offsets:frames.map(frame=>frame.offset)
                   });
                 return animate.apply(this,arguments);
               };
@@ -640,7 +655,16 @@ def run(site: Path, snapshots: Path) -> None:
             assert page.locator("#frameHolder").evaluate(
               "el => getComputedStyle(el,'::before').boxShadow"
             )==outer_shadow
+            assert overlay.evaluate(
+                "el => getComputedStyle(el).opacity"
+            ) == "0", "The near pane remained blurred after unfolding"
             hinge_fades=page.evaluate("window.__hingeAnimations")
+            blurs=[item for item in hinge_fades
+                   if item["name"]=="foldTransitionBlur"]
+            assert len(blurs)>=2, blurs
+            for blur in blurs[:2]:
+                assert blur["opacity"] == [0,1,1,0], blur
+                assert blur["offsets"] == [0,.22,.53,1], blur
             for name in ("foldNearSheen","hingeSheen","foldFlapLight"):
                 transitions=[item["opacity"] for item in hinge_fades
                              if item["name"]==name]
@@ -652,8 +676,14 @@ def run(site: Path, snapshots: Path) -> None:
                     name, transitions
                 )
             animated_pose("partialBtn", "partially-folded-landscape")
+            assert overlay.evaluate(
+                "el => getComputedStyle(el).opacity"
+            ) == "0", "Blur remained visible in settled partial-fold state"
             animated_pose("rotateBtn", "partially-folded-portrait")
             animated_pose("unfoldedBtn", "unfolded-portrait")
+            assert overlay.evaluate(
+                "el => getComputedStyle(el).opacity"
+            ) == "0", "Portrait remained blurred after opening"
             expect(demo.locator(".torrent-card").filter(has_text="Tide Demo Collection")).to_have_count(1)
 
             # The public showcase should never expose the removed footer.
