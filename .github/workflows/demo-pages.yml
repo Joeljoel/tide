@@ -106,6 +106,12 @@ jobs:
           node --check "$preview/showcase.js"
           grep -Fq "connect-src 'none'" "$preview/app/index.html"
           grep -Fq 'tide-folded-camera-bottom-right' "$preview"/app/js/tide-v*.js
+      - name: Preserve merged PR 10 preview link
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          mkdir -p _site/previews/pr-10
+          printf '%s\\n' '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=../../"><title>Tide demo</title></head><body><a href="../../">Open Tide demo</a></body></html>' > _site/previews/pr-10/index.html
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
