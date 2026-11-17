@@ -147,16 +147,44 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
  .device-frame{isolation:isolate}
 .fold-near-plane{position:relative;width:100%;height:100%}
 .fold-near-viewport{position:relative;width:100%;height:100%}
-/* iOS-style first-pane defocus, strictly transient during fold transitions.
-   The overlay is contained by the same curved/segmented viewport mask as the
-   interactive app, so it cannot bleed over the hinge, bevel, or second pane. */
+/* iOS-style near-pane defocus, visible ONLY while the hinge moves.
+   The effect begins transparently at the exterior edge and builds smoothly
+   toward the centre crease. Apply the spatial ramp to the backdrop-filter
+   as well as the dark tint: otherwise an entire half suddenly darkens.
+   This remains inside the curved viewport clip and never blocks interaction. */
 .fold-transition-blur{
   position:absolute;inset:0;z-index:20;pointer-events:none;
   opacity:0;
-  background:rgba(6,10,16,.13);
-  -webkit-backdrop-filter:blur(17px) brightness(.62) saturate(.73);
-  backdrop-filter:blur(17px) brightness(.62) saturate(.73);
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(6,10,16,.006) 28%,
+    rgba(6,10,16,.026) 49%,
+    rgba(6,10,16,.072) 72%,
+    rgba(6,10,16,.11) 100%);
+  -webkit-backdrop-filter:blur(17px) brightness(.77) saturate(.83);
+  backdrop-filter:blur(17px) brightness(.77) saturate(.83);
+  -webkit-mask-image:linear-gradient(90deg,
+    transparent 0%,rgba(0,0,0,.02) 16%,rgba(0,0,0,.10) 34%,
+    rgba(0,0,0,.32) 54%,rgba(0,0,0,.68) 76%,#000 100%);
+  mask-image:linear-gradient(90deg,
+    transparent 0%,rgba(0,0,0,.02) 16%,rgba(0,0,0,.10) 34%,
+    rgba(0,0,0,.32) 54%,rgba(0,0,0,.68) 76%,#000 100%);
   will-change:opacity;
+}
+/* Portrait partial fold uses the lower edge of the TOP pane as its hinge. */
+.device-frame[data-pose="partially-folded-portrait"] .fold-transition-blur{
+  background:linear-gradient(180deg,
+    transparent 0%,
+    rgba(6,10,16,.006) 28%,
+    rgba(6,10,16,.026) 49%,
+    rgba(6,10,16,.072) 72%,
+    rgba(6,10,16,.11) 100%);
+  -webkit-mask-image:linear-gradient(180deg,
+    transparent 0%,rgba(0,0,0,.02) 16%,rgba(0,0,0,.10) 34%,
+    rgba(0,0,0,.32) 54%,rgba(0,0,0,.68) 76%,#000 100%);
+  mask-image:linear-gradient(180deg,
+    transparent 0%,rgba(0,0,0,.02) 16%,rgba(0,0,0,.10) 34%,
+    rgba(0,0,0,.32) 54%,rgba(0,0,0,.68) 76%,#000 100%);
 }
 @media(prefers-reduced-motion:reduce){
   .fold-transition-blur{opacity:0!important;will-change:auto}

@@ -662,6 +662,21 @@ def run(site: Path, snapshots: Path) -> None:
                 "el => getComputedStyle(el).backdropFilter"
             )
             assert "blur(17px)" in filter_style, filter_style
+            # A darkened full-half overlay created a hard discontinuity at
+            # the hinge. Both the blur mask and tint must now ramp gradually
+            # from the outer edge to the centre crease in book orientation.
+            book_mask=overlay.evaluate(
+                "el => getComputedStyle(el).maskImage"
+            )
+            book_tint=overlay.evaluate(
+                "el => getComputedStyle(el).backgroundImage"
+            )
+            assert "90deg" in book_mask and "90deg" in book_tint, (
+                book_mask,book_tint
+            )
+            assert "transparent 0%" in book_mask, book_mask
+            assert "transparent 0%" in book_tint, book_tint
+            assert "76%" in book_mask and "100%" in book_mask, book_mask
 
             # Record the browser's real keyframes as the hinge opens and
             # closes. Fold-only lighting must fade, while the shared shadow
@@ -715,6 +730,16 @@ def run(site: Path, snapshots: Path) -> None:
                 "el => getComputedStyle(el).opacity"
             ) == "0", "Blur remained visible in settled partial-fold state"
             animated_pose("rotateBtn", "partially-folded-portrait")
+            portrait_mask=overlay.evaluate(
+                "el => getComputedStyle(el).maskImage"
+            )
+            portrait_tint=overlay.evaluate(
+                "el => getComputedStyle(el).backgroundImage"
+            )
+            assert "180deg" in portrait_mask and "180deg" in portrait_tint, (
+                portrait_mask,portrait_tint
+            )
+            assert "transparent 0%" in portrait_mask, portrait_mask
             animated_pose("unfoldedBtn", "unfolded-portrait")
             assert overlay.evaluate(
                 "el => getComputedStyle(el).opacity"
