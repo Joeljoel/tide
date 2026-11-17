@@ -17,22 +17,28 @@
   const screen=get('deviceScreen'),tide=get('tidePanel'),home=get('homePanel');
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
   const desktopBtn=get('desktopBtn'),duoBtn=get('duoBtn'),duoChoices=get('duoChoices');
-  const foldBtn=get('foldBtn'),partialBtn=get('partialBtn'),rotateBtn=get('rotateBtn'),splitBtn=get('splitBtn'),shiftBtn=get('shiftBtn');
-  let device='desktop',folded=true,partiallyFolded=false,orientation='portrait',split=false,side='left',loaded=false;
+  const foldedBtn=get('foldedBtn'),partialBtn=get('partialBtn'),unfoldedBtn=get('unfoldedBtn');
+  const foldButtons=[foldedBtn,partialBtn,unfoldedBtn];
+  const rotateBtn=get('rotateBtn'),splitBtn=get('splitBtn'),shiftBtn=get('shiftBtn');
+  const foldIframe=get('tideFoldPreview'),foldFlap=get('foldFlap');
+  let device='desktop',foldState='folded',orientation='portrait',split=false,side='left',loaded=false,foldLoaded=false;
   let transitioning=false;
   let currentPose='desktop';
 
   function selectedPose(){
     if(device==='desktop')return 'desktop';
-    if(folded)return 'folded-'+orientation;
-    if(partiallyFolded)return 'partially-folded-'+orientation;
+    if(foldState==='folded')return 'folded-'+orientation;
+    if(foldState==='partial')return 'partially-folded-'+orientation;
     if(orientation==='portrait')return 'unfolded-portrait';
     return split?'split-'+side:'unfolded-landscape';
   }
 
   function sendPose(){
-    if(!loaded||!iframe.contentWindow)return;
-    iframe.contentWindow.postMessage({type:'tide-demo-set-pose',pose:currentPose},location.origin);
+    for(const [element,ready] of [[iframe,loaded],[foldIframe,foldLoaded]]){
+      if(ready && element.contentWindow){
+        element.contentWindow.postMessage({type:'tide-demo-set-pose',pose:currentPose},location.origin);
+      }
+    }
   }
 
   function resizeFrame(){
@@ -63,7 +69,7 @@
     const radii=currentPose==='folded-portrait'?[9,73,73,9]:
       currentPose==='folded-landscape'?[9,9,73,73]:
       currentPose==='desktop'?[18,18,18,18]:
-      currentPose==='unfolded-portrait'?[53,51,51,53]:[51,51,51,51];
+      currentPose.endsWith('portrait')?[53,51,51,53]:[51,51,51,51];
     ['tl','tr','br','bl'].forEach((name,i)=>frame.style.setProperty('--'+name,radii[i]+'px'));
     holder.style.width=Math.ceil(w*scale)+'px';
     holder.style.height=Math.ceil(h*scale)+'px';
@@ -197,11 +203,13 @@
     desktopBtn.setAttribute('aria-pressed',String(device==='desktop'));
     duoBtn.setAttribute('aria-pressed',String(device==='duo'));
     duoChoices.hidden=device!=='duo';
-    foldBtn.textContent=folded?'Unfold':'Fold';
-    foldBtn.setAttribute('aria-pressed',String(folded));
-    partialBtn.setAttribute('aria-pressed',String(partiallyFolded));
+    const selectedIndex=['folded','partial','unfolded'].indexOf(foldState);
+    foldButtons.forEach((button,index)=>{
+      button.setAttribute('aria-checked',String(index===selectedIndex));
+      button.tabIndex=index===selectedIndex?0:-1;
+    });
     rotateBtn.setAttribute('aria-label','Rotate '+(orientation==='portrait'?'to landscape':'to portrait'));
-    splitBtn.hidden=folded||partiallyFolded||orientation!=='landscape';
+    splitBtn.hidden=foldState!=='unfolded'||orientation!=='landscape';
     splitBtn.textContent=split?'Unsplit':'Split';
     splitBtn.setAttribute('aria-pressed',String(split));
     shiftBtn.hidden=!split;
@@ -212,23 +220,27 @@
   duoBtn.addEventListener('click',()=>transition('switch',()=>{
     if(device==='duo')return;
     device='duo';
-    folded=true;
-    partiallyFolded=false;
+    foldState='folded';
     orientation='portrait';
     split=false;
     side='left';
   }));
-  foldBtn.addEventListener('click',()=>transition('fold',()=>{
-    folded=!folded;
-    partiallyFolded=false;
-    orientation=folded?'portrait':'landscape';
-    split=false;
-  }));
-  partialBtn.addEventListener('click',()=>transition('partial',()=>{
-    partiallyFolded=!partiallyFolded;
-    folded=false;
-    split=false;
-  }));
+  foldButtons.forEach(button=>{
+    button.addEventListener('click',()=>transition('fold',()=>{
+      foldState=button.dataset.foldState;
+      split=false;
+    }));
+    button.addEventListener('keydown',event=>{
+      const i=foldButtons.indexOf(button);
+      const next=event.key==='ArrowRight'?Math.min(2,i+1):
+        event.key==='ArrowLeft'?Math.max(0,i-1):
+        event.key==='Home'?0:event.key==='End'?2:null;
+      if(next===null)return;
+      event.preventDefault();
+      foldButtons[next].click();
+      foldButtons[next].focus();
+    });
+  });
   rotateBtn.addEventListener('click',()=>transition('rotate',()=>{
     orientation=orientation==='portrait'?'landscape':'portrait';
     split=false;
