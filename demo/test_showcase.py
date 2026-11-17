@@ -297,6 +297,41 @@ def run(site: Path, snapshots: Path) -> None:
             assert demo.locator(".torrent-card").count()==card_count
             assert other.locator(".torrent-card").count()==card_count
 
+            # A click on the physically folded far half must select the same
+            # logical torrent in the primary instance and the passive mirror.
+            # We route the click through the overlay at that card's projected
+            # position rather than interacting with the hidden second iframe.
+            target_hash=page.evaluate("""() => {
+              const app=document.getElementById('tidePreview').contentDocument;
+              const mirror=document.getElementById('tideFoldPreview').contentDocument;
+              app.querySelector('.list-panel').scrollTop=0;
+              mirror.querySelector('.list-panel').scrollTop=0;
+              return app.querySelectorAll('.torrent-card')[1]?.dataset.hash;
+            }""")
+            assert target_hash, "Expected a torrent in the right column"
+            page.wait_for_timeout(120)
+            page.evaluate("""hash => {
+              const original=document.getElementById('tidePreview');
+              const card=original.contentDocument.querySelector(
+                '.torrent-card[data-hash="'+hash+'"]');
+              const cardBox=card.getBoundingClientRect();
+              const overlay=document.getElementById('foldInteraction');
+              const outer=overlay.getBoundingClientRect();
+              const relativeX=(cardBox.left+cardBox.width/2)/original.contentWindow.innerWidth;
+              const relativeY=(cardBox.top+cardBox.height/2)/original.contentWindow.innerHeight;
+              if(relativeX<=.5)throw Error('Expected second column on far side');
+              overlay.dispatchEvent(new MouseEvent('click',{
+                bubbles:true,clientX:outer.left+(relativeX-.5)*2*outer.width,
+                clientY:outer.top+relativeY*outer.height
+              }));
+            }""", target_hash)
+            expect(demo.locator('.torrent-card[data-hash="'+target_hash+'"]')).to_have_class(
+                re.compile("selected"), timeout=10000
+            )
+            expect(other.locator('.torrent-card[data-hash="'+target_hash+'"]')).to_have_class(
+                re.compile("selected"), timeout=10000
+            )
+
             # The partial book can run the *same* Split View as full-open.
             expect(page.locator("#splitBtn")).to_be_visible()
             page.locator("#splitBtn").click()
