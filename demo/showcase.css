@@ -251,7 +251,8 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
    normal partial-fold mode, the far iframe has a half-width *layout
    viewport*; cropping half of a full-width app caused missing headers. */
 [data-pose="partially-folded-split-right"] .fold-flap iframe{
-  left:0;top:0;width:100%;height:100%;
+  /* Match the 13px central Split View gutter of the unfolded mockup. */
+  left:7px;top:0;width:calc(100% - 7px);height:100%;
 }
 .fold-flap::after{
   content:"";position:absolute;z-index:9;inset:0;

@@ -355,7 +355,7 @@ def run(site: Path, snapshots: Path) -> None:
               document.getElementById('tidePreview').contentWindow.innerWidth""")
             right_width=page.evaluate("""() =>
               document.getElementById('tideFoldPreview').contentWindow.innerWidth""")
-            assert abs(left_width-right_width)<7,(left_width,right_width)
+            assert abs(left_width-right_width)<2,(left_width,right_width)
             assert right_width<600,right_width
             expect(other.locator(".brand")).to_be_visible()
             expect(demo.locator("body")).to_have_class(
