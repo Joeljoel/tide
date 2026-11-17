@@ -55,7 +55,7 @@ def run(site: Path, snapshots: Path) -> None:
 
             def capture(pose: str) -> None:
                 expect(page.locator("#deviceFrame")).to_have_attribute("data-pose", pose)
-                expect(page.locator("#previewNote")).to_have_text("v1.4.0-beta.2")
+                expect(page.locator("#previewNote")).to_have_text("v1.4.0-beta.3")
                 assert page.locator("#poseName").inner_text() not in (
                     "3D hinge preview", "Interactive preview"
                 )
@@ -679,6 +679,64 @@ def run(site: Path, snapshots: Path) -> None:
             }""")
             assert scroll_result["list"]>0, scroll_result
             assert scroll_result["detail"]==scroll_result["detailBefore"], scroll_result
+            # Also verify the reverse 35/65 -> 50/50 tween. The same
+            # Details panel and list should stay mounted and retain scroll.
+            demo.locator("#detailPanel").evaluate("""panel => {
+              const win=panel.ownerDocument.defaultView;
+              win.__reversePortraitAnimation={events:[],positions:[]};
+              const data=win.__reversePortraitAnimation;
+              let active=false;
+              const sample=()=>{
+                data.positions.push(panel.getBoundingClientRect().top/win.innerHeight);
+                if(active)win.requestAnimationFrame(sample);
+              };
+              panel.addEventListener('transitionrun',event=>{
+                if(event.propertyName!=='top')return;
+                data.events.push('run:top');
+                active=true;sample();
+              });
+              panel.addEventListener('transitionend',event=>{
+                if(event.propertyName!=='top')return;
+                data.events.push('end:top');
+                active=false;
+              });
+            }""")
+            page.locator("#partialBtn").click()
+            expect(page.locator("#deviceFrame")).to_have_attribute(
+                "data-pose","partially-folded-portrait")
+            expect(demo.locator("body")).to_have_class(
+                re.compile("tide-posture-folded-portrait"), timeout=10000
+            )
+            page.wait_for_function("""() => {
+              const win=document.getElementById('tidePreview').contentWindow;
+              return win.__reversePortraitAnimation?.events.includes('end:top');
+            }""", timeout=10000)
+            reverse_data=demo.locator("#detailPanel").evaluate(
+                "panel => panel.ownerDocument.defaultView.__reversePortraitAnimation"
+            )
+            assert 'run:top' in reverse_data['events'], reverse_data
+            assert any(.37<value<.50 for value in reverse_data['positions']), (
+                'Reverse Details divider snapped instead of animating',
+                reverse_data
+            )
+            expect(page.locator("#deviceFrame[aria-busy]")).to_have_count(0)
+            page.locator("#unfoldedBtn").click()
+            expect(page.locator("#deviceFrame")).to_have_attribute(
+                "data-pose","unfolded-portrait")
+            page.wait_for_function("""() => {
+              const win=document.getElementById('tidePreview').contentWindow;
+              const panel=win.document.querySelector('#detailPanel');
+              return win.document.body.classList.contains('tide-posture-unfolded-portrait') &&
+                Math.abs(panel.getBoundingClientRect().top/win.innerHeight-.35)<.015;
+            }""", timeout=10000)
+            expect(page.locator("#deviceFrame[aria-busy]")).to_have_count(0)
+            retained_scroll=demo.locator(".list-panel").evaluate(
+                "el => el.scrollTop"
+            )
+            assert abs(retained_scroll-scroll_result["list"])<4, (
+                "Torrent list lost its scroll position through posture changes",
+                retained_scroll,scroll_result
+            )
             # All remaining pose/safe-area pixel checks use the test suite's
             # original reduced-motion setting. Re-enable it after validating
             # actual intermediate frames and transition completion above.
