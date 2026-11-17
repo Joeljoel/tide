@@ -147,44 +147,54 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
  .device-frame{isolation:isolate}
 .fold-near-plane{position:relative;width:100%;height:100%}
 .fold-near-viewport{position:relative;width:100%;height:100%}
-/* iOS-style near-pane defocus, visible ONLY while the hinge moves.
-   The effect begins transparently at the exterior edge and builds smoothly
-   toward the centre crease. Apply the spatial ramp to the backdrop-filter
-   as well as the dark tint: otherwise an entire half suddenly darkens.
-   This remains inside the curved viewport clip and never blocks interaction. */
+/* iOS-inspired transient first-pane effect. A single parent controls time
+   while two independent children control spatial falloff:
+   - BLUR rapidly approaches full strength moving away from the hinge,
+     so most of the outer half is defocused.
+   - SHADE increases gently toward the outer edge.
+   The final strip adjacent to the crease is clear and undimmed. */
 .fold-transition-blur{
   position:absolute;inset:0;z-index:20;pointer-events:none;
-  opacity:0;
-  background:linear-gradient(90deg,
-    transparent 0%,
-    rgba(6,10,16,.006) 28%,
-    rgba(6,10,16,.026) 49%,
-    rgba(6,10,16,.072) 72%,
-    rgba(6,10,16,.11) 100%);
-  -webkit-backdrop-filter:blur(17px) brightness(.77) saturate(.83);
-  backdrop-filter:blur(17px) brightness(.77) saturate(.83);
-  -webkit-mask-image:linear-gradient(90deg,
-    transparent 0%,rgba(0,0,0,.02) 16%,rgba(0,0,0,.10) 34%,
-    rgba(0,0,0,.32) 54%,rgba(0,0,0,.68) 76%,#000 100%);
-  mask-image:linear-gradient(90deg,
-    transparent 0%,rgba(0,0,0,.02) 16%,rgba(0,0,0,.10) 34%,
-    rgba(0,0,0,.32) 54%,rgba(0,0,0,.68) 76%,#000 100%);
-  will-change:opacity;
+  opacity:0;will-change:opacity;
 }
-/* Portrait partial fold uses the lower edge of the TOP pane as its hinge. */
-.device-frame[data-pose="partially-folded-portrait"] .fold-transition-blur{
-  background:linear-gradient(180deg,
-    transparent 0%,
-    rgba(6,10,16,.006) 28%,
-    rgba(6,10,16,.026) 49%,
-    rgba(6,10,16,.072) 72%,
-    rgba(6,10,16,.11) 100%);
+.fold-transition-blur-layer,
+.fold-transition-shade{
+  position:absolute;inset:0;pointer-events:none;
+}
+.fold-transition-blur-layer{
+  -webkit-backdrop-filter:blur(17px);
+  backdrop-filter:blur(17px);
+  /* On the FIRST (left) half, the centre crease is its RIGHT edge.
+     Blur is ~full across the outer 70%, then tapers toward clear glass. */
+  -webkit-mask-image:linear-gradient(90deg,
+    #000 0%,#000 60%,rgba(0,0,0,.94) 72%,
+    rgba(0,0,0,.64) 82%,rgba(0,0,0,.17) 94%,transparent 100%);
+  mask-image:linear-gradient(90deg,
+    #000 0%,#000 60%,rgba(0,0,0,.94) 72%,
+    rgba(0,0,0,.64) 82%,rgba(0,0,0,.17) 94%,transparent 100%);
+}
+.fold-transition-shade{
+  /* Darkness increases independently and much more gradually toward the
+     exterior. At the crease its opacity is exactly zero. */
+  background:linear-gradient(90deg,
+    rgba(6,10,16,.12) 0%,rgba(6,10,16,.105) 26%,
+    rgba(6,10,16,.073) 52%,rgba(6,10,16,.035) 76%,
+    rgba(6,10,16,.008) 93%,transparent 100%);
+}
+/* Portrait: the upper pane is first; its BOTTOM edge meets the crease. */
+.device-frame[data-pose="partially-folded-portrait"] .fold-transition-blur-layer{
   -webkit-mask-image:linear-gradient(180deg,
-    transparent 0%,rgba(0,0,0,.02) 16%,rgba(0,0,0,.10) 34%,
-    rgba(0,0,0,.32) 54%,rgba(0,0,0,.68) 76%,#000 100%);
+    #000 0%,#000 60%,rgba(0,0,0,.94) 72%,
+    rgba(0,0,0,.64) 82%,rgba(0,0,0,.17) 94%,transparent 100%);
   mask-image:linear-gradient(180deg,
-    transparent 0%,rgba(0,0,0,.02) 16%,rgba(0,0,0,.10) 34%,
-    rgba(0,0,0,.32) 54%,rgba(0,0,0,.68) 76%,#000 100%);
+    #000 0%,#000 60%,rgba(0,0,0,.94) 72%,
+    rgba(0,0,0,.64) 82%,rgba(0,0,0,.17) 94%,transparent 100%);
+}
+.device-frame[data-pose="partially-folded-portrait"] .fold-transition-shade{
+  background:linear-gradient(180deg,
+    rgba(6,10,16,.12) 0%,rgba(6,10,16,.105) 26%,
+    rgba(6,10,16,.073) 52%,rgba(6,10,16,.035) 76%,
+    rgba(6,10,16,.008) 93%,transparent 100%);
 }
 @media(prefers-reduced-motion:reduce){
   .fold-transition-blur{opacity:0!important;will-change:auto}

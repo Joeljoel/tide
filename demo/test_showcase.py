@@ -658,26 +658,33 @@ def run(site: Path, snapshots: Path) -> None:
             assert overlay.evaluate(
                 "el => getComputedStyle(el).pointerEvents"
             ) == "none"
-            filter_style=overlay.evaluate(
+            blur_layer=page.locator("#foldTransitionBlur .fold-transition-blur-layer")
+            shade_layer=page.locator("#foldTransitionBlur .fold-transition-shade")
+            filter_style=blur_layer.evaluate(
                 "el => getComputedStyle(el).backdropFilter"
             )
             assert "blur(17px)" in filter_style, filter_style
-            # A darkened full-half overlay created a hard discontinuity at
-            # the hinge. Both the blur mask and tint must now ramp gradually
-            # from the outer edge to the centre crease in book orientation.
-            book_mask=overlay.evaluate(
+            assert "brightness(" not in filter_style, filter_style
+            # Separate independent falloffs: full blur away from the crease
+            # with a rapid drop to clear at the hinge, plus gradual darkness.
+            book_mask=blur_layer.evaluate(
                 "el => getComputedStyle(el).maskImage"
             )
-            book_tint=overlay.evaluate(
+            book_tint=shade_layer.evaluate(
                 "el => getComputedStyle(el).backgroundImage"
             )
             assert "90deg" in book_mask and "90deg" in book_tint, (
                 book_mask,book_tint
             )
-            # Chromium serializes CSS 'transparent' as rgba(..., 0).
-            assert "rgba(0, 0, 0, 0) 0%" in book_mask, book_mask
-            assert "rgba(0, 0, 0, 0) 0%" in book_tint, book_tint
-            assert "76%" in book_mask and "100%" in book_mask, book_mask
+            assert "0%," in book_mask and "60%" in book_mask, book_mask
+            assert "rgba(0, 0, 0, 0) 100%" in book_mask, book_mask
+            assert "rgba(6, 10, 16, 0.12) 0%" in book_tint, book_tint
+            assert "rgba(0, 0, 0, 0) 100%" in book_tint, book_tint
+            assert "52%" in book_tint and "76%" in book_tint, book_tint
+            # The blur and shade are siblings with distinct spatial curves,
+            # driven by the same animation-only parent opacity.
+            assert blur_layer.evaluate("el => getComputedStyle(el).opacity") == "1"
+            assert shade_layer.evaluate("el => getComputedStyle(el).opacity") == "1"
 
             # Record the browser's real keyframes as the hinge opens and
             # closes. Fold-only lighting must fade, while the shared shadow
@@ -731,10 +738,10 @@ def run(site: Path, snapshots: Path) -> None:
                 "el => getComputedStyle(el).opacity"
             ) == "0", "Blur remained visible in settled partial-fold state"
             animated_pose("rotateBtn", "partially-folded-portrait")
-            portrait_mask=overlay.evaluate(
+            portrait_mask=blur_layer.evaluate(
                 "el => getComputedStyle(el).maskImage"
             )
-            portrait_tint=overlay.evaluate(
+            portrait_tint=shade_layer.evaluate(
                 "el => getComputedStyle(el).backgroundImage"
             )
             # 180deg is the default gradient direction ('to bottom');
@@ -744,7 +751,8 @@ def run(site: Path, snapshots: Path) -> None:
             assert "90deg" not in portrait_mask and "90deg" not in portrait_tint, (
                 portrait_mask,portrait_tint
             )
-            assert "rgba(0, 0, 0, 0) 0%" in portrait_mask, portrait_mask
+            assert "rgba(0, 0, 0, 0) 100%" in portrait_mask, portrait_mask
+            assert "rgba(0, 0, 0, 0) 100%" in portrait_tint, portrait_tint
             animated_pose("unfoldedBtn", "unfolded-portrait")
             assert overlay.evaluate(
                 "el => getComputedStyle(el).opacity"
