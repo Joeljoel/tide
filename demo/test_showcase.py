@@ -679,6 +679,10 @@ def run(site: Path, snapshots: Path) -> None:
             }""")
             assert scroll_result["list"]>0, scroll_result
             assert scroll_result["detail"]==scroll_result["detailBefore"], scroll_result
+            # All remaining pose/safe-area pixel checks use the test suite's
+            # original reduced-motion setting. Re-enable it after validating
+            # actual intermediate frames and transition completion above.
+            page.emulate_media(reduced_motion="reduce")
             demo.locator('[data-action="close-detail"]').first.evaluate("el => el.click()")
             expect(demo.locator("#detailPanel.mobile-open")).to_have_count(0)
             page.locator("#foldedBtn").click()
