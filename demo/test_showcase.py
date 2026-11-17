@@ -159,31 +159,90 @@ def run(site: Path, snapshots: Path) -> None:
                 )
                 poses.append(pose)
 
+            def assert_shared_scroll(source_is_far=False) -> None:
+                # The physical fold is one viewport. Its two visual frames
+                # must render the same logical list offset, including when
+                # the user scrolls on the far half of the 3D fold.
+                page.evaluate("""sourceIsFar => {
+                    const frames=[
+                      document.getElementById('tidePreview'),
+                      document.getElementById('tideFoldPreview')
+                    ];
+                    const source=frames[sourceIsFar ? 1 : 0]
+                      .contentDocument.querySelector('.list-panel');
+                    source.scrollTop=190;
+                }""", source_is_far)
+                page.wait_for_function("""() => {
+                  const a=document.getElementById('tidePreview')
+                    .contentDocument.querySelector('.list-panel');
+                  const b=document.getElementById('tideFoldPreview')
+                    .contentDocument.querySelector('.list-panel');
+                  return a.scrollTop>30 && b.scrollTop>30 &&
+                    Math.abs(a.scrollTop-b.scrollTop)<3;
+                }""", timeout=10000)
+
             capture("desktop")
             page.locator("#duoBtn").click()
-            capture("folded-portrait")  # Duo always begins folded portrait
+            capture("folded-portrait")
+
+            # Three physical stops with accessible arrow-key selection.
             expect(page.locator("#foldedBtn")).to_have_attribute("aria-checked", "true")
             page.locator("#unfoldedBtn").focus()
             page.keyboard.press("ArrowLeft")
             expect(page.locator("#partialBtn")).to_have_attribute("aria-checked", "true")
+            capture("partially-folded-landscape")  # Outer portrait becomes inner landscape
+            assert_shared_scroll()
+            # Both planes must be gently bent, with visible physical bezels.
+            folded_frame=page.locator("#deviceFrame")
+            assert folded_frame.evaluate(
+              "el => getComputedStyle(el,'::before').borderLeftWidth"
+            ) == "5px"
+            assert page.locator("#foldFlap").evaluate(
+              "el => getComputedStyle(el,'::after').borderRightWidth"
+            ) == "5px"
+            for selector in ("#deviceScreen", "#foldFlap"):
+                m=page.locator(selector).evaluate(
+                  "el => getComputedStyle(el).transform"
+                )
+                assert m.startswith("matrix3d("), m
+                assert float(m.split(",")[0].replace("matrix3d(", "")) > 0.94, m
+
             page.locator("#foldedBtn").click()
-            expect(page.locator("#foldedBtn")).to_have_attribute("aria-checked", "true")
+            capture("folded-portrait")
             page.locator("#rotateBtn").click()
             capture("folded-landscape")
             page.locator("#unfoldedBtn").click()
-            capture("unfolded-landscape")  # Orientation stays landscape
+            capture("unfolded-portrait")  # Outer landscape becomes inner portrait
             page.locator("#rotateBtn").click()
-            capture("unfolded-portrait")
+            capture("unfolded-landscape")
 
-            # One posture toggle uses Rotate to choose book vs laptop pose.
             page.locator("#partialBtn").click()
+            capture("partially-folded-landscape")
+            expect(demo.locator("body")).to_have_class(
+                re.compile("tide-posture-folded-landscape"), timeout=10000
+            )
+            grid=demo.locator("#torrentList").evaluate(
+                "el => getComputedStyle(el).gridTemplateColumns"
+            )
+            assert len(grid.split()) == 2, grid
+            assert_shared_scroll(True)
+
+            # Book posture Settings stays within the right-hand half.
+            demo.locator(".header-settings-button").evaluate("el => el.click()")
+            expect(demo.locator(".tide-settings-dialog")).to_be_visible()
+            modal_left=demo.locator(".tide-settings-dialog").evaluate(
+                "el => el.getBoundingClientRect().left"
+            )
+            assert modal_left > 951 / 2, modal_left
+            demo.locator('[data-action="dismiss"]').first.evaluate("el => el.click()")
+
+            page.locator("#rotateBtn").click()
             capture("partially-folded-portrait")
             expect(demo.locator("body")).to_have_class(
                 re.compile("tide-posture-folded-portrait"), timeout=10000
             )
+            assert_shared_scroll()
             expect(demo.locator(".torrent-card").first).to_be_visible()
-            # Compact Details normally hides the list. In the laptop pose both
-            # list and lower Details must remain interactive and visible.
             demo.locator(".torrent-card").first.evaluate("el => el.click()")
             demo.locator('[data-action="detail"]').first.evaluate("el => el.click()")
             expect(demo.locator("#detailPanel.mobile-open")).to_be_visible()
@@ -193,30 +252,10 @@ def run(site: Path, snapshots: Path) -> None:
             ) == "visible"
             demo.locator('[data-action="close-detail"]').first.evaluate("el => el.click()")
 
-            page.locator("#rotateBtn").click()
-            capture("partially-folded-landscape")
-            expect(demo.locator("body")).to_have_class(
-                re.compile("tide-posture-folded-landscape"), timeout=10000
-            )
-            grid = demo.locator("#torrentList").evaluate(
-                "el => getComputedStyle(el).gridTemplateColumns"
-            )
-            assert len(grid.split()) == 2, grid
-            # The settings dialog should sit entirely on the right pane.
-            demo.locator('.header-settings-button').evaluate("el => el.click()")
-            expect(demo.locator(".tide-settings-dialog")).to_be_visible()
-            modal_left = demo.locator(".tide-settings-dialog").evaluate(
-                "el => el.getBoundingClientRect().left"
-            )
-            assert modal_left > 951 / 2, modal_left
-            demo.locator('[data-action="dismiss"]').first.evaluate("el => el.click()")
-
             page.locator("#unfoldedBtn").click()
-            capture("unfolded-landscape")
-            page.locator("#rotateBtn").click()
             capture("unfolded-portrait")
             page.locator("#foldedBtn").click()
-            capture("folded-portrait")
+            capture("folded-landscape")
             page.locator("#unfoldedBtn").click()
             capture("unfolded-portrait")
             page.locator("#rotateBtn").click()
@@ -246,20 +285,16 @@ def run(site: Path, snapshots: Path) -> None:
                 expect(page.locator("#deviceFrame[aria-busy]")).to_have_count(0)
                 return frame.bounding_box()
 
-            folded_portrait = frame.bounding_box()
-            folded_landscape = animated_pose("rotateBtn", "folded-landscape")
-            unfolded_landscape = animated_pose("unfoldedBtn", "unfolded-landscape")
-            unfolded_portrait = animated_pose("rotateBtn", "unfolded-portrait")
-            for portrait, landscape in (
-                (folded_portrait, folded_landscape),
-                (unfolded_portrait, unfolded_landscape),
-            ):
-                assert abs(portrait["width"] - landscape["height"]) < 1
-                assert abs(portrait["height"] - landscape["width"]) < 1
-            assert abs(folded_portrait["height"] - unfolded_landscape["height"]) < 1
-            assert abs(2 * folded_portrait["width"] / unfolded_landscape["width"] - 1) < .02
-            animated_pose("foldedBtn", "folded-portrait")
-            animated_pose("unfoldedBtn", "unfolded-portrait")
+            folded_portrait=frame.bounding_box()
+            unfolded_landscape=animated_pose("unfoldedBtn", "unfolded-landscape")
+            folded_again=animated_pose("foldedBtn", "folded-portrait")
+            assert abs(folded_again["width"]-folded_portrait["width"]) < 1
+            assert abs(folded_portrait["height"]-unfolded_landscape["height"]) < 1
+            assert abs(2*folded_portrait["width"]/unfolded_landscape["width"]-1) < .02
+            folded_landscape=animated_pose("rotateBtn", "folded-landscape")
+            unfolded_portrait=animated_pose("unfoldedBtn", "unfolded-portrait")
+            assert abs(folded_landscape["width"]-folded_portrait["height"]) < 1
+            assert abs(unfolded_portrait["width"]-unfolded_landscape["height"]) < 1
             animated_pose("rotateBtn", "unfolded-landscape")
             animated_pose("splitBtn", "split-left")
             animated_pose("shiftBtn", "split-right")
@@ -278,7 +313,7 @@ def run(site: Path, snapshots: Path) -> None:
         server.shutdown()
         server.server_close()
 
-    assert len(poses) == 15, poses
+    assert len(poses) == 16, poses
     print("Passed browser checks for:", ", ".join(poses))
 
 
