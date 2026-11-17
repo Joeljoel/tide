@@ -18,6 +18,8 @@ POSES = (
     "desktop",
     "folded-portrait",
     "folded-landscape",
+    "partially-folded-portrait",
+    "partially-folded-landscape",
     "unfolded-portrait",
     "unfolded-landscape",
     "split-left",
@@ -40,6 +42,29 @@ def make_preview_script(source: str) -> str:
   // Explicitly disable all application fetch() calls in this public copy.
   // Static CSS, script and icon downloads do not go through window.fetch.
   window.fetch = () => Promise.reject(new Error('This is an offline-data-only demo.'));
+  // Simulated Device Posture and Viewport Segments signals. Only available
+  // to the generated demo copy, never to production Tide.
+  function __syncDemoPosture() {
+    const partially=__previewPose.startsWith('partially-folded-');
+    const portrait=__previewPose.endsWith('portrait');
+    const width=window.innerWidth, height=window.innerHeight, gutter=20;
+    const halfWidth=(width-gutter)/2, halfHeight=(height-gutter)/2;
+    const segments=partially
+      ? portrait
+        ? [{left:0,top:0,width,height:halfHeight,right:width,bottom:halfHeight},
+           {left:0,top:halfHeight+gutter,width,height:halfHeight,right:width,bottom:height}]
+        : [{left:0,top:0,width:halfWidth,height,right:halfWidth,bottom:height},
+           {left:halfWidth+gutter,top:0,width:halfWidth,height,right:width,bottom:height}]
+      : [];
+    window.__TIDE_DEMO_POSTURE__={
+      folded:partially,
+      isTouchDuo:__previewPose!=='desktop',
+      segments
+    };
+    window.dispatchEvent(new Event('tide-demo-posechange'));
+  }
+  __syncDemoPosture();
+  window.addEventListener('resize',__syncDemoPosture,{passive:true});
 """ % repr(list(POSES)).replace("'", '"')
     source = replace_one(source, "  'use strict';\n", "  'use strict';\n" + init, "demo bootstrap")
 
@@ -74,10 +99,10 @@ def make_preview_script(source: str) -> str:
     // Simulated display capabilities are only used in the generated demo.
     const standalone=__previewPose!=='desktop';
     const fine=__previewPose==='desktop';
-    const portrait=['folded-portrait','unfolded-portrait','split-left','split-right'].includes(__previewPose);
+    const portrait=['folded-portrait','unfolded-portrait','partially-folded-portrait','split-left','split-right'].includes(__previewPose);
     const desktop=__previewPose==='desktop';
-    const duoPortrait=__previewPose==='unfolded-portrait';
-    const duoLandscape=__previewPose==='unfolded-landscape';
+    const duoPortrait=['unfolded-portrait','partially-folded-portrait'].includes(__previewPose);
+    const duoLandscape=['unfolded-landscape','partially-folded-landscape'].includes(__previewPose);
     document.body.dataset.tideDemoPose=__previewPose;
     document.documentElement.dataset.tideDemoPose=__previewPose;""",
         "device pose override",
@@ -103,9 +128,10 @@ def make_preview_script(source: str) -> str:
     if(event.source!==window.parent || event.origin!==window.location.origin) return;
     if(event.data?.type!=='tide-demo-set-pose' || !__allowedPreviewPoses.has(event.data.pose)) return;
     __previewPose=event.data.pose;
+    __syncDemoPosture();
     syncDeviceGeometry();
-    requestAnimationFrame(()=>requestAnimationFrame(syncDeviceGeometry));
-    setTimeout(syncDeviceGeometry,150);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{__syncDemoPosture();syncDeviceGeometry();}));
+    setTimeout(()=>{__syncDemoPosture();syncDeviceGeometry();},150);
   });
   // Split View can move between halves with unchanged viewport dimensions.""",
         "live pose switching",
@@ -170,6 +196,42 @@ def make_preview_script(source: str) -> str:
     return source
 
 
+def make_preview_posture_script(source: str) -> str:
+    # Only replace the browser API in the public demonstration. Production
+    # continues to read navigator.devicePosture and actual viewport segments.
+    source = replace_one(
+        source,
+        "    try { return Array.from(window.viewport?.segments || []); }",
+        "    if (window.__TIDE_DEMO_POSTURE__) return window.__TIDE_DEMO_POSTURE__.segments;\\n    try { return Array.from(window.viewport?.segments || []); }".replace("\\\\n", "\\n"),
+        "simulated viewport segments",
+    )
+    source = replace_one(
+        source,
+        "  function isFolded() {",
+        "  function isFolded() {\\n    if (window.__TIDE_DEMO_POSTURE__) return window.__TIDE_DEMO_POSTURE__.folded;".replace("\\\\n", "\\n"),
+        "simulated device posture",
+    )
+    source = replace_one(
+        source,
+        "    const touchDuo = /iPhone/i.test(navigator.userAgent) &&",
+        "    const touchDuo = window.__TIDE_DEMO_POSTURE__?.isTouchDuo ?? (/iPhone/i.test(navigator.userAgent) &&",
+        "simulated touch device",
+    )
+    source = replace_one(
+        source,
+        "      !window.matchMedia('(hover: hover) and (pointer: fine)').matches;",
+        "      !window.matchMedia('(hover: hover) and (pointer: fine)').matches);",
+        "end simulated touch-device fallback",
+    )
+    source = replace_one(
+        source,
+        "  posture?.addEventListener?.('change', schedule);",
+        "  window.addEventListener('tide-demo-posechange', schedule);\\n  posture?.addEventListener?.('change', schedule);".replace("\\\\n", "\\n"),
+        "simulated posture change event",
+    )
+    return source
+
+
 def build(output: Path) -> None:
     output = output.resolve()
     if output in (ROOT, DEMO, ROOT / "private", ROOT / "public"):
@@ -185,6 +247,14 @@ def build(output: Path) -> None:
         raise RuntimeError(f"Expected exactly one versioned Tide script, found {len(scripts)}")
     script = scripts[0]
     script.write_text(make_preview_script(script.read_text(encoding="utf-8")), encoding="utf-8")
+    posture_scripts = sorted((app / "js").glob("tide-posture-v*.js"))
+    if len(posture_scripts) != 1:
+        raise RuntimeError(f"Expected one posture module, found {len(posture_scripts)}")
+    posture_script = posture_scripts[0]
+    posture_script.write_text(
+        make_preview_posture_script(posture_script.read_text(encoding="utf-8")),
+        encoding="utf-8",
+    )
 
     app_index = app / "index.html"
     index = app_index.read_text(encoding="utf-8")
@@ -218,6 +288,8 @@ def build(output: Path) -> None:
     assert (output / "app" / "css").is_dir()
     assert (output / "index.html").exists()
     assert (app / "demo-pose.css").exists()
+    assert "partially-folded-portrait" in (output / "showcase.js").read_text(encoding="utf-8")
+    assert posture_script.is_file()
     assert (output / "assets" / "status-connectivity.svg").exists()
     print(f"Built Tide demo at {output}")
 
