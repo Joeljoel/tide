@@ -68,12 +68,12 @@
   function resizeFrame(){
     const config=poses[currentPose];
     const desktop=currentPose==='desktop';
-    // Equal physical length along the hinge, including the bezel. Keep the
-    // measured app viewport sizes and absorb the 9px difference in the frame.
+    // Use one continuous physical bezel thickness across Duo's folded,
+    // partially folded and fully unfolded states. Previously 9px of unequal
+    // frame padding was disguised as thicker side/top bezels on the inner
+    // display, producing inconsistent curved edges between states.
     const bezel=desktop?6:8;
-    const extraX=currentPose.endsWith('portrait') && !currentPose.startsWith('folded-')?9:0;
-    const extraY=config.width===951?9:0;
-    const w=config.width+bezel*2+extraX,h=config.height+bezel*2+extraY;
+    const w=config.width+bezel*2,h=config.height+bezel*2;
     const maximumW=Math.max(110,stage.clientWidth-20);
     const maximumH=Math.max(350,Math.min(970,window.innerHeight*1.5));
     // Use a common scale for every Duo pose, including the swept rotation.
@@ -82,8 +82,7 @@
       Math.min(1,maximumW/duoDiagonal,maximumH/961);
     frame.style.width=w+'px';
     frame.style.height=h+'px';
-    frame.style.borderWidth=[bezel+Math.floor(extraY/2),bezel+Math.ceil(extraX/2),
-      bezel+Math.ceil(extraY/2),bezel+Math.floor(extraX/2)].map(value=>value+'px').join(' ');
+    frame.style.borderWidth=bezel+'px';
     frame.style.setProperty('--device-scale',scale);
     frame.dataset.pose=currentPose;
     frame.classList.toggle('is-split',!!config.split);
@@ -418,7 +417,7 @@
       sort:'[data-action="sort"]',
       add:'[data-action="add"]'
     };
-    let opener=secondary.querySelector(triggers[kind]||'');
+    let opener=triggers[kind]?secondary.querySelector(triggers[kind]):null;
     if(kind==='menu'){
       const active=primary.querySelector('#modalMount [data-hash]');
       const hash=active?.dataset.hash;
