@@ -151,6 +151,47 @@ def run(site: Path, snapshots: Path) -> None:
             capture("unfolded-landscape")  # Unfold resets orientation
             page.locator("#rotateBtn").click()
             capture("unfolded-portrait")
+
+            # One posture toggle uses Rotate to choose book vs laptop pose.
+            page.locator("#partialBtn").click()
+            capture("partially-folded-portrait")
+            expect(demo.locator("body")).to_have_class(
+                re.compile(r"\\btide-posture-folded-portrait\\b"), timeout=10000
+            )
+            expect(demo.locator(".torrent-card").first).to_be_visible()
+            # Compact Details normally hides the list. In the laptop pose both
+            # list and lower Details must remain interactive and visible.
+            demo.locator(".torrent-card").first.evaluate("el => el.click()")
+            demo.locator('[data-action="detail"]').first.evaluate("el => el.click()")
+            expect(demo.locator("#detailPanel.mobile-open")).to_be_visible()
+            expect(demo.locator(".torrent-card").first).to_be_visible()
+            assert demo.locator(".list-panel").evaluate(
+                "el => getComputedStyle(el).visibility"
+            ) == "visible"
+            demo.locator('[data-action="close-detail"]').first.evaluate("el => el.click()")
+
+            page.locator("#rotateBtn").click()
+            capture("partially-folded-landscape")
+            expect(demo.locator("body")).to_have_class(
+                re.compile(r"\\btide-posture-folded-landscape\\b"), timeout=10000
+            )
+            grid = demo.locator("#torrentList").evaluate(
+                "el => getComputedStyle(el).gridTemplateColumns"
+            )
+            assert len(grid.split()) == 2, grid
+            # The settings dialog should sit entirely on the right pane.
+            demo.locator('.header-settings-button').evaluate("el => el.click()")
+            expect(demo.locator(".tide-settings-dialog")).to_be_visible()
+            modal_left = demo.locator(".tide-settings-dialog").evaluate(
+                "el => el.getBoundingClientRect().left"
+            )
+            assert modal_left > 951 / 2, modal_left
+            demo.locator('[data-action="dismiss"]').first.evaluate("el => el.click()")
+
+            page.locator("#partialBtn").click()
+            capture("unfolded-landscape")
+            page.locator("#rotateBtn").click()
+            capture("unfolded-portrait")
             page.locator("#foldBtn").click()
             capture("folded-portrait")  # Fold resets orientation
             page.locator("#foldBtn").click()
@@ -197,6 +238,9 @@ def run(site: Path, snapshots: Path) -> None:
             animated_pose("splitBtn", "split-left")
             animated_pose("shiftBtn", "split-right")
             animated_pose("splitBtn", "unfolded-landscape")
+            animated_pose("partialBtn", "partially-folded-landscape")
+            animated_pose("rotateBtn", "partially-folded-portrait")
+            animated_pose("partialBtn", "unfolded-portrait")
             expect(demo.locator(".torrent-card").filter(has_text="Tide Demo Collection")).to_have_count(1)
 
             # The public showcase should never expose the removed footer.
@@ -208,7 +252,7 @@ def run(site: Path, snapshots: Path) -> None:
         server.shutdown()
         server.server_close()
 
-    assert len(poses) == 10, poses
+    assert len(poses) == 14, poses
     print("Passed browser checks for:", ", ".join(poses))
 
 
