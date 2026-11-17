@@ -984,6 +984,135 @@ def run(site: Path, snapshots: Path) -> None:
             ) == "0", "Portrait remained blurred after opening"
             expect(demo.locator(".torrent-card").filter(has_text="Tide Demo Collection")).to_have_count(1)
 
+            # Posture motion regression: the native landscape grid switches
+            # discretely between 3/2 tracks, so Tide must FLIP both card
+            # position and size while the 3D hinge moves. Check the actual
+            # Web Animations calls rather than just the final CSS grid.
+            animated_pose("rotateBtn", "unfolded-landscape")
+            expect(demo.locator("#detailPanel.mobile-open")).to_have_count(0)
+            demo.locator("#torrentList").evaluate("""list => {
+              const win=list.ownerDocument.defaultView;
+              win.__landscapeMotionCalls=[];
+              const original=win.Element.prototype.animate;
+              win.Element.prototype.animate=function(keyframes,options){
+                if(this.matches?.('.torrent-card')){
+                  const frame=win.frameElement?.ownerDocument.getElementById('deviceFrame');
+                  win.__landscapeMotionCalls.push({
+                    hash:this.dataset.hash,
+                    first:keyframes[0].transform,
+                    last:keyframes[keyframes.length-1].transform,
+                    duration:options.duration,
+                    busy:frame?.hasAttribute('aria-busy'),
+                    devicePose:frame?.dataset.pose
+                  });
+                }
+                return original.apply(this,arguments);
+              };
+            }""")
+            def grid_columns():
+                return demo.locator("#torrentList").evaluate(
+                    "el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length"
+                )
+            def card_motion_calls():
+                return demo.locator("#torrentList").evaluate(
+                    "el => el.ownerDocument.defaultView.__landscapeMotionCalls"
+                )
+            assert grid_columns()==3, "Unfolded landscape should have three torrent columns"
+            page.locator("#partialBtn").click()
+            page.wait_for_function("""() => {
+              const win=document.getElementById('tidePreview').contentWindow;
+              return win.__landscapeMotionCalls?.length>=3;
+            }""", timeout=10000)
+            folded_motion=card_motion_calls()
+            assert any('scale(' in call['first'] and
+                       'scale(1, 1)' in call['last'] for call in folded_motion), folded_motion
+            assert all(call['duration']>=280 and call['busy'] for call in folded_motion), folded_motion
+            expect(page.locator("#deviceFrame[aria-busy]")).to_have_count(0)
+            assert grid_columns()==2, "Partially folded landscape should have two torrent columns"
+            # Folding and unfolding should animate card widths as well as
+            # their position, with no leftover transforms at rest.
+            assert demo.locator(".torrent-card").first.evaluate(
+                "el => getComputedStyle(el).transform"
+            )=="none"
+            prior_count=len(folded_motion)
+            page.locator("#unfoldedBtn").click()
+            page.wait_for_function("""count => {
+              const win=document.getElementById('tidePreview').contentWindow;
+              return win.__landscapeMotionCalls?.length>count;
+            }""", arg=prior_count, timeout=10000)
+            opened_motion=card_motion_calls()[prior_count:]
+            assert all(call['busy'] for call in opened_motion), opened_motion
+            # The app reflows while the real hinge is still animating.
+            assert any(call['devicePose']=='partially-folded-landscape'
+                       for call in opened_motion), opened_motion
+            assert any('scale(' in call['first'] for call in opened_motion), opened_motion
+            expect(page.locator("#deviceFrame[aria-busy]")).to_have_count(0)
+            assert grid_columns()==3, "Unfolding should restore the three-column grid"
+
+            # Also exercise 2 -> 1 while Details is open. The Details/list
+            # proportions are numeric grid tracks, so they should interpolate
+            # with multiple intermediate widths in BOTH directions.
+            for _ in range(5):
+                selected=demo.locator(".torrent-card.selected")
+                if selected.count()==0:break
+                selected.first.evaluate("el => el.click()")
+            demo.locator(".torrent-card").first.evaluate("el => el.click()")
+            demo.locator('[data-action="detail"]').first.evaluate("el => el.click()")
+            expect(demo.locator("#detailPanel.mobile-open")).to_be_visible()
+            assert grid_columns()==2
+            demo.locator(".layout").evaluate("""layout => {
+              const win=layout.ownerDocument.defaultView;
+              win.__landscapeLayoutTween={events:[],widths:[]};
+              const data=win.__landscapeLayoutTween;
+              let active=false;
+              const sample=()=>{
+                data.widths.push(layout.querySelector('.list-panel').getBoundingClientRect().width);
+                if(active)win.requestAnimationFrame(sample);
+              };
+              layout.addEventListener('transitionrun',event=>{
+                if(event.propertyName!=='grid-template-columns')return;
+                data.events.push('run'); active=true; sample();
+              });
+              layout.addEventListener('transitionend',event=>{
+                if(event.propertyName!=='grid-template-columns')return;
+                data.events.push('end'); active=false;
+              });
+            }""")
+            page.locator("#partialBtn").click()
+            page.wait_for_function("""() => {
+              const win=document.getElementById('tidePreview').contentWindow;
+              return win.__landscapeLayoutTween?.events.includes('end');
+            }""", timeout=10000)
+            geometry=demo.locator(".layout").evaluate(
+                "el => el.ownerDocument.defaultView.__landscapeLayoutTween"
+            )
+            assert 'run' in geometry['events'], geometry
+            assert len(set(round(w,1) for w in geometry['widths']))>3, geometry
+            expect(demo.locator("#detailPanel.mobile-open")).to_be_visible()
+            assert grid_columns()==1
+            expect(page.locator("#deviceFrame[aria-busy]")).to_have_count(0)
+            before_reverse=len(card_motion_calls())
+            page.locator("#unfoldedBtn").click()
+            page.wait_for_function("""count => {
+              const win=document.getElementById('tidePreview').contentWindow;
+              return win.__landscapeMotionCalls?.length>count;
+            }""",arg=before_reverse,timeout=10000)
+            expect(page.locator("#deviceFrame[aria-busy]")).to_have_count(0)
+            expect(demo.locator("#detailPanel.mobile-open")).to_be_visible()
+            assert grid_columns()==2
+            demo.locator('[data-action="close-detail"]').first.evaluate("el => el.click()")
+
+            # Respect reduced motion: the same grid transitions should run
+            # instantly without scheduling any card FLIP animations.
+            page.emulate_media(reduced_motion="reduce")
+            before_reduced=len(card_motion_calls())
+            page.locator("#partialBtn").click()
+            assert grid_columns()==2
+            assert len(card_motion_calls())==before_reduced
+            page.locator("#unfoldedBtn").click()
+            assert grid_columns()==3
+            assert len(card_motion_calls())==before_reduced
+
             # The public showcase should never expose the removed footer.
             assert page.locator("#demoVersion").count() == 0
             assert page.get_by_text("Fake torrents and settings").count() == 0
