@@ -224,9 +224,9 @@ def run(site: Path, snapshots: Path) -> None:
             capture("partially-folded-landscape")  # Outer portrait becomes inner landscape
             assert_shared_scroll()
             # Both planes must be gently bent, with visible physical bezels.
-            folded_frame=page.locator("#deviceFrame")
-            assert folded_frame.evaluate(
-              "el => getComputedStyle(el,'::before').borderLeftWidth"
+            near=page.locator("#foldNearPlane")
+            assert near.evaluate(
+              "el => getComputedStyle(el,'::after').borderLeftWidth"
             ) == "5px"
             assert page.locator("#foldFlap").evaluate(
               "el => getComputedStyle(el,'::after').borderRightWidth"
@@ -269,6 +269,10 @@ def run(site: Path, snapshots: Path) -> None:
 
             page.locator("#rotateBtn").click()
             capture("partially-folded-portrait")
+            # The upper half retains the real top bezel, including corners.
+            assert page.locator("#foldNearPlane").evaluate(
+              "el => getComputedStyle(el,'::after').borderTopWidth"
+            ) == "5px"
             expect(demo.locator("body")).to_have_class(
                 re.compile("tide-posture-folded-portrait"), timeout=10000
             )
