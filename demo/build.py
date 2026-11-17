@@ -174,7 +174,7 @@ def make_preview_script(source: str) -> str:
         """if(demo){
       const number=mock.filter(t=>t.hash.startsWith('demo-added-')).length+1;
       mock.unshift({
-        hash:'demo-added-'+Date.now()+'-'+number,
+        hash:'demo-added-'+number,
         name:'Tide Demo Collection '+number+' (sample)',
         size:2.4*1024**3,
         progress:.12,
