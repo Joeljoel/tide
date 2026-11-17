@@ -55,7 +55,7 @@ def run(site: Path, snapshots: Path) -> None:
 
             def capture(pose: str) -> None:
                 expect(page.locator("#deviceFrame")).to_have_attribute("data-pose", pose)
-                expect(page.locator("#previewNote")).to_have_text("v1.4.0")
+                expect(page.locator("#previewNote")).to_have_text("v1.4.1")
                 assert page.locator("#poseName").inner_text() not in (
                     "3D hinge preview", "Interactive preview"
                 )
@@ -566,6 +566,36 @@ def run(site: Path, snapshots: Path) -> None:
             assert demo.locator(".list-panel").evaluate(
                 "el => getComputedStyle(el).visibility"
             ) == "visible"
+
+            # Regression #11: with Details OPEN, tapping another card must
+            # navigate to its Details instead of bulk-selecting and closing.
+            def navigate_details_to_other_torrent():
+                cards=demo.locator(".torrent-card")
+                assert cards.count()>2
+                selected=demo.locator(".torrent-card.selected").first.get_attribute("data-hash")
+                target=next(
+                    cards.nth(i) for i in range(cards.count())
+                    if cards.nth(i).get_attribute("data-hash")!=selected
+                )
+                new_hash=target.get_attribute("data-hash")
+                new_name=target.locator(".torrent-title").inner_text()
+                target.evaluate("el => el.click()")
+                expect(demo.locator("#detailPanel.mobile-open")).to_be_visible()
+                expect(demo.locator(".torrent-card.selected")).to_have_count(1)
+                expect(demo.locator('.torrent-card[data-hash="'+new_hash+'"].selected')).to_have_count(1)
+                expect(demo.locator(".detail-name")).to_have_text(new_name)
+                # The far mirror is physically displayed only while
+                # partially folded; when flat it must stay synchronized
+                # but correctly remains hidden in the showcase.
+                if page.locator("#deviceFrame").get_attribute("data-pose").startswith("partially-folded-"):
+                    expect(other.locator("#detailPanel.mobile-open")).to_be_visible()
+                else:
+                    expect(other.locator("#detailPanel.mobile-open")).to_have_count(1)
+                expect(other.locator(".torrent-card.selected")).to_have_count(1)
+                expect(other.locator(".detail-name")).to_have_text(new_name)
+                return new_hash
+
+            navigate_details_to_other_torrent()
             # The hinged laptop keeps its current 50/50 division.
             page.wait_for_function("""() => {
               const win=document.getElementById('tidePreview').contentWindow;
@@ -665,6 +695,8 @@ def run(site: Path, snapshots: Path) -> None:
             assert measurements["listPointer"]=="auto", measurements
             assert measurements["listScroll"]=="auto", measurements
             assert measurements["panelScroll"]=="auto", measurements
+            # Exactly the same Details-open behaviour in fully unfolded 35/65.
+            navigate_details_to_other_torrent()
             # Archive a screenshot with Details actually OPEN for manual
             # review. The ordinary named pose snapshot gets overwritten
             # later by the test's closed-details navigation sequence.
@@ -743,6 +775,22 @@ def run(site: Path, snapshots: Path) -> None:
             page.emulate_media(reduced_motion="reduce")
             demo.locator('[data-action="close-detail"]').first.evaluate("el => el.click()")
             expect(demo.locator("#detailPanel.mobile-open")).to_have_count(0)
+            # Details CLOSED must retain the existing additive selection model.
+            existing_hash=demo.locator(".torrent-card.selected").first.get_attribute("data-hash")
+            other_card=next(
+                demo.locator(".torrent-card").nth(i)
+                for i in range(demo.locator(".torrent-card").count())
+                if demo.locator(".torrent-card").nth(i).get_attribute("data-hash")!=existing_hash
+            )
+            other_hash=other_card.get_attribute("data-hash")
+            other_card.evaluate("el => el.click()")
+            expect(demo.locator("#detailPanel.mobile-open")).to_have_count(0)
+            expect(demo.locator(".torrent-card.selected")).to_have_count(2)
+            expect(demo.locator('.torrent-card[data-hash="'+existing_hash+'"].selected')).to_have_count(1)
+            expect(demo.locator('.torrent-card[data-hash="'+other_hash+'"].selected')).to_have_count(1)
+            other_card=demo.locator('.torrent-card[data-hash="'+other_hash+'"]')
+            other_card.evaluate("el => el.click()")
+            expect(demo.locator(".torrent-card.selected")).to_have_count(1)
             page.locator("#foldedBtn").click()
             capture("folded-landscape")
             page.locator("#unfoldedBtn").click()

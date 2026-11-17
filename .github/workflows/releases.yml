@@ -126,6 +126,22 @@ jobs:
           Download the **Source code ZIP** below, extract it, and configure qBittorrent's alternative Web UI to the directory containing `private/` and `public/`. Existing installs can replace their Tide files and reopen the PWA. See the README for full instructions.
           EOF
             )
+          elif [[ "$version" == "1.4.1" ]]; then
+            notes=$(cat <<'EOF'
+          ## What's fixed in Tide 1.4.1
+
+          - Fixed torrent selection while viewing Details in portrait on the iPhone Duo.
+          - When Details is open in partially folded (50/50) or fully unfolded (35/65) portrait, tapping another torrent now switches Details to that torrent without closing the panel or starting a multi-selection.
+          - When Details is closed, tapping multiple torrents still adds them to the selection as before.
+          - The fix also preserves existing desktop and landscape Details navigation.
+
+          Fixes #11.
+
+          ## Installation
+
+          Download the Source code ZIP, replace your existing Tide files, and reopen the PWA. See the README for installation instructions.
+          EOF
+            )
           else
             notes=$(printf '%s\n\n%s\n' \
               "Tide $version is a touch-first alternative qBittorrent WebUI, designed for the iPhone Duo and desktop." \
