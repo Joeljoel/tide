@@ -21,8 +21,15 @@
       <button id="duoBtn" type="button" aria-pressed="false">Duo</button>
     </nav>
     <div class="duo-choices" id="duoChoices" hidden>
-      <button id="foldBtn" type="button">Fold</button>
-      <button id="partialBtn" type="button" aria-pressed="false" title="Simulate a partial fold">Partially folded</button>
+      <div class="fold-selector" role="radiogroup" aria-label="Duo fold position">
+        <span class="fold-end-label">Folded</span>
+        <div class="fold-stops">
+          <button id="foldedBtn" type="button" role="radio" aria-label="Folded" aria-checked="true" data-fold-state="folded"><span></span></button>
+          <button id="partialBtn" type="button" role="radio" aria-label="Partially folded" aria-checked="false" data-fold-state="partial"><span></span></button>
+          <button id="unfoldedBtn" type="button" role="radio" aria-label="Unfolded" aria-checked="false" data-fold-state="unfolded"><span></span></button>
+        </div>
+        <span class="fold-end-label">Unfolded</span>
+      </div>
       <button id="rotateBtn" type="button">Rotate <span aria-hidden="true">↻</span></button>
       <button id="splitBtn" type="button" hidden>Split</button>
       <button id="shiftBtn" type="button" hidden>Move Tide right</button>
@@ -51,7 +58,6 @@
             </div>
             <div class="split-handle" aria-hidden="true"></div>
             <div class="fold-shade" id="foldShade" aria-hidden="true" hidden></div>
-            <div class="fold-planes" aria-hidden="true"><div class="fold-plane first"></div><div class="fold-plane second"></div><div class="fold-spine"></div></div>
             <div class="system-ui" id="systemUi" aria-hidden="true">
               <div class="status-camera"></div>
               <div class="status-indicators">
@@ -65,6 +71,19 @@
               </div>
             </div>
           </div>
+            <!-- In a partial pose, the main iframe is clipped to the first physical plane.
+                 A same-origin mirrored iframe renders the other half on a real 3D flap. -->
+            <div class="fold-planes" id="foldPlanes">
+              <div class="fold-flap" id="foldFlap">
+                <iframe id="tideFoldPreview" title="Other side of Tide's foldable display"
+                  src="app/index.html?demo=1&amp;pose=desktop" tabindex="-1"
+                  loading="eager" referrerpolicy="no-referrer"></iframe>
+                <div class="fold-flap-light" aria-hidden="true"></div>
+                <div class="fold-flap-status" aria-hidden="true">
+                  <img src="assets/status-connectivity.svg" width="42" height="42" alt="">
+                </div>
+              </div>
+            </div>
         </div>
       </div>
     </div>
