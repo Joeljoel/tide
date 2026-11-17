@@ -53,16 +53,16 @@
     return split?'split-'+side:'unfolded-landscape';
   }
 
-  function sendPose(){
+  function sendPose(pose=currentPose){
     for(const [element,ready] of [[iframe,loaded],[foldIframe,foldLoaded]]){
       if(ready && element.contentWindow){
         // Split View has exactly the same app UI and viewport at either
         // physical hinge angle: only the outer device presentation changes.
-        const appPose=currentPose.startsWith('partially-folded-split-')
-          ?currentPose.replace('partially-folded-',''):currentPose;
+        const appPose=pose.startsWith('partially-folded-split-')
+          ?pose.replace('partially-folded-',''):pose;
         element.contentWindow.postMessage({type:'tide-demo-set-pose',pose:appPose},location.origin);
         element.contentDocument?.documentElement.classList.toggle(
-          'tide-demo-fold-visual',currentPose.startsWith('partially-folded-'));
+          'tide-demo-fold-visual',pose.startsWith('partially-folded-'));
       }
     }
   }
@@ -167,6 +167,12 @@
       await Promise.all(motions.map(motion=>motion.finished));
       motions.forEach(motion=>motion.cancel());
     }else if(leaving){
+      // Start the 50/50 -> 35/65 content resize DURING the physical unfold,
+      // rather than waiting for the hinge animation to finish. The device
+      // frame still changes pose only after the physical movement completes.
+      if(portrait && nextPose==='unfolded-portrait'){
+        sendPose(nextPose);
+      }
       const motions=[
         firstPaneBlur(290),
         play(nearPlane,[{transform:firstBend},{transform:open}],290),

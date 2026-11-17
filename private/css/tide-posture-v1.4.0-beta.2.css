@@ -157,8 +157,17 @@ body.tide-posture-folded-landscape:not(.tide-desktop) .shell.detail-open .layout
 body.tide-posture-folded-landscape:not(.tide-desktop) .torrent-list {
   transition: column-gap 260ms cubic-bezier(.22, 1, .36, 1);
 }
-body.tide-posture-folded-portrait:not(.tide-desktop) .shell.detail-open .layout {
-  transition: height 260ms cubic-bezier(.22, 1, .36, 1);
+/* Keep these transitions present in BOTH portrait postures: switching the
+   body class from folded to continuous must not discard a transition mid-way.
+   The DOM, Details selection, and list scroll position remain untouched. */
+@media (orientation: portrait) and (min-width: 600px) and (max-width: 849px) {
+  body:is(.tide-posture-folded-portrait, .tide-posture-unfolded-portrait):not(.tide-desktop) .shell.detail-open .layout {
+    transition: height 320ms cubic-bezier(.22, 1, .36, 1);
+  }
+  body:is(.tide-posture-folded-portrait, .tide-posture-unfolded-portrait):not(.tide-desktop) .detail-panel.mobile-open {
+    transition: top 320ms cubic-bezier(.22, 1, .36, 1),
+                height 320ms cubic-bezier(.22, 1, .36, 1);
+  }
 }
 body.tide-posture-folded-landscape:not(.tide-desktop) .shell.detail-open #detailPanel {
   animation: tide-posture-panel-in 240ms cubic-bezier(.22, 1, .36, 1) both !important;

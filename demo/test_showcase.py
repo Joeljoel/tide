@@ -579,10 +579,58 @@ def run(site: Path, snapshots: Path) -> None:
             # Preserve the selected torrent while fully unfolding into
             # portrait; Details becomes 65% tall and the top list stays
             # visible, independently scrollable and interactive.
+            # Track the real intermediate panel geometry frame by frame.
+            # A static fade/slide alone would leave the divider snapping.
+            # Record transitionrun/transitionend for the detail top/height
+            # and list-layout height, with samples taken on animation frames.
+            demo.locator("#detailPanel").evaluate("""panel => {
+              const win=panel.ownerDocument.defaultView;
+              const layout=win.document.querySelector('.layout');
+              win.__portraitPaneAnimation={events:[],ratios:[],listSizes:[]};
+              const data=win.__portraitPaneAnimation;
+              let sampling=false;
+              const sample=()=>{
+                const box=panel.getBoundingClientRect();
+                data.ratios.push(box.top/win.innerHeight);
+                data.listSizes.push(layout.getBoundingClientRect().height);
+                if(sampling)win.requestAnimationFrame(sample);
+              };
+              for(const [el,name] of [[panel,'detail'],[layout,'list']]){
+                el.addEventListener('transitionrun',event=>{
+                  if(!['top','height'].includes(event.propertyName))return;
+                  data.events.push(name+':run:'+event.propertyName);
+                  if(!sampling){sampling=true;sample();}
+                });
+                el.addEventListener('transitionend',event=>{
+                  if(!['top','height'].includes(event.propertyName))return;
+                  data.events.push(name+':end:'+event.propertyName);
+                  if(name==='detail' && event.propertyName==='top')
+                    sampling=false;
+                });
+              }
+            }""")
             page.locator("#unfoldedBtn").click()
             capture("unfolded-portrait")
             expect(demo.locator("body")).to_have_class(
                 re.compile("tide-posture-unfolded-portrait"), timeout=10000
+            )
+            page.wait_for_function("""() => {
+              const win=document.getElementById('tidePreview').contentWindow;
+              const d=win.__portraitPaneAnimation;
+              return d?.events.includes('detail:end:top') &&
+                d.events.includes('list:end:height');
+            }""", timeout=10000)
+            animation_data=demo.locator("#detailPanel").evaluate(
+                "panel => panel.ownerDocument.defaultView.__portraitPaneAnimation"
+            )
+            assert 'detail:run:top' in animation_data['events'], animation_data
+            assert 'detail:run:height' in animation_data['events'], animation_data
+            assert 'list:run:height' in animation_data['events'], animation_data
+            assert any(.36 < r < .49 for r in animation_data['ratios']), (
+                'Details divider jumped instead of animating', animation_data
+            )
+            assert len(set(round(n,1) for n in animation_data['listSizes']))>2, (
+                'Torrent list height did not animate',animation_data
             )
             expect(demo.locator("#detailPanel.mobile-open")).to_be_visible()
             expect(demo.locator(".torrent-card").first).to_be_visible()
