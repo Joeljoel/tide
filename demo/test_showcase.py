@@ -86,12 +86,17 @@ def run(site: Path, snapshots: Path) -> None:
                 connectivity_top = {
                     "folded-portrait": 109,
                     "unfolded-landscape": 66,
-                    "partially-folded-landscape": 66,
-                    "partially-folded-portrait": 27,
                     "unfolded-portrait": 27,
                     "split-right": 66,
                 }
-                if pose in connectivity_top:
+                if pose.startswith("partially-folded-"):
+                    # Perspective deforms the mock screen, so do not apply the
+                    # flat 2D pixel-position assertions to its status icons.
+                    expect(status).to_be_visible()
+                    gauge = status.locator(".status-connectivity")
+                    expect(gauge).to_be_visible()
+                    assert gauge.evaluate("el => el.complete && el.naturalWidth > 0")
+                elif pose in connectivity_top:
                     expect(status).to_be_visible()
                     location = status.locator(".status-location")
                     if pose == "folded-portrait":
