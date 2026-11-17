@@ -55,17 +55,22 @@ def run(site: Path, snapshots: Path) -> None:
 
             def capture(pose: str) -> None:
                 expect(page.locator("#deviceFrame")).to_have_attribute("data-pose", pose)
+                # The outer device can be partially folded while its Split
+                # View app uses the identical full-unfolded split layout.
+                app_pose = pose.removeprefix("partially-folded-") if (
+                    pose.startswith("partially-folded-split-")
+                ) else pose
                 page.wait_for_function(
                     """pose => document.querySelector('#tidePreview')
                       ?.contentDocument?.body?.dataset.tideDemoPose === pose""",
-                    arg=pose,
+                    arg=app_pose,
                     timeout=10000,
                 )
-                if pose == "split-left":
+                if app_pose == "split-left":
                     expect(demo.locator("body")).to_have_class(
                         re.compile(r"\btide-split-left\b"), timeout=10000
                     )
-                if pose == "split-right":
+                if app_pose == "split-right":
                     expect(demo.locator("body")).to_have_class(
                         re.compile(r"\btide-split-right\b"), timeout=10000
                     )
@@ -131,8 +136,19 @@ def run(site: Path, snapshots: Path) -> None:
                     )
                     assert "rgba(233, 249, 255" in light and "rgba(0, 0, 0, 0.5" not in light, light
                     expect(page.locator("#tideFoldPreview")).to_be_visible()
+                    for clip in ("#foldNearViewport", "#foldFlapViewport"):
+                        surface = page.locator(clip)
+                        assert surface.evaluate(
+                            "el => getComputedStyle(el).maskImage"
+                        ) != "none", clip
+                    assert demo.locator(".torrent-card").first.evaluate(
+                        "el => getComputedStyle(el).backdropFilter"
+                    ) == "none"
                     if pose.endswith("portrait"):
                         expect(status).to_be_visible()
+                    elif pose == "partially-folded-split-left":
+                        expect(page.locator(".fold-home-visual")).to_be_visible()
+                        expect(page.locator(".fold-flap-status")).to_be_hidden()
                     else:
                         expect(page.locator(".fold-flap-status")).to_be_visible()
                         expect(page.locator(".fold-flap-status img")).to_be_visible()
@@ -193,15 +209,22 @@ def run(site: Path, snapshots: Path) -> None:
                 # The physical fold is one viewport. Its two visual frames
                 # must render the same logical list offset, including when
                 # the user scrolls on the far half of the 3D fold.
-                page.evaluate("""sourceIsFar => {
-                    const frames=[
-                      document.getElementById('tidePreview'),
-                      document.getElementById('tideFoldPreview')
-                    ];
-                    const source=frames[sourceIsFar ? 1 : 0]
-                      .contentDocument.querySelector('.list-panel');
-                    source.scrollTop=190;
-                }""", source_is_far)
+                if source_is_far:
+                    page.evaluate("""() => {
+                      for(const id of ['tidePreview','tideFoldPreview'])
+                        document.getElementById(id).contentDocument
+                          .querySelector('.list-panel').scrollTop=0;
+                    }""")
+                    page.locator("#foldInteraction").dispatch_event(
+                        "wheel", {"deltaY":190, "deltaX":0,
+                                  "deltaMode":0, "bubbles":True,
+                                  "cancelable":True})
+                else:
+                    page.evaluate("""() => {
+                        document.getElementById('tidePreview')
+                          .contentDocument.querySelector('.list-panel')
+                          .scrollTop=190;
+                    }""")
                 page.wait_for_function("""() => {
                   const a=document.getElementById('tidePreview')
                     .contentDocument.querySelector('.list-panel');
@@ -256,6 +279,46 @@ def run(site: Path, snapshots: Path) -> None:
             )
             assert len(grid.split()) == 2, grid
             assert_shared_scroll(True)
+
+            # Stress the cards across hover/selection/scroll while their
+            # visual surfaces stay GPU-clipped. Both iframes retain all items.
+            card_count=demo.locator(".torrent-card").count()
+            for _ in range(5):
+                demo.locator(".torrent-card").first.hover(force=True)
+                assert demo.locator(".torrent-card").count()==card_count
+                assert other.locator(".torrent-card").count()==card_count
+                page.locator("#foldInteraction").dispatch_event(
+                    "wheel", {"deltaY":110, "deltaMode":0,
+                              "cancelable":True, "bubbles":True})
+            assert demo.locator(".torrent-card").count()==card_count
+            assert other.locator(".torrent-card").count()==card_count
+
+            # The partial book can run the *same* Split View as full-open.
+            expect(page.locator("#splitBtn")).to_be_visible()
+            page.locator("#splitBtn").click()
+            capture("partially-folded-split-left")
+            expect(page.locator("#deviceFrame")).to_have_class(
+                re.compile("is-partially-folded")
+            )
+            expect(page.locator("#deviceFrame")).to_have_class(
+                re.compile("is-split")
+            )
+            assert page.locator(".fold-home-visual").is_visible()
+            assert not demo.locator("body").evaluate(
+                "el => el.classList.contains('tide-posture-folded-landscape')"
+            )
+            page.locator("#shiftBtn").click()
+            capture("partially-folded-split-right")
+            assert not page.locator(".fold-home-visual").is_visible()
+            expect(demo.locator("body")).to_have_class(
+                re.compile("tide-split-right")
+            )
+            page.locator("#unfoldedBtn").click()
+            capture("split-right")
+            page.locator("#partialBtn").click()
+            capture("partially-folded-split-right")
+            page.locator("#splitBtn").click()
+            capture("partially-folded-landscape")
 
             # Book posture Settings stays within the right-hand half.
             demo.locator(".header-settings-button").evaluate("el => el.click()")
@@ -347,7 +410,7 @@ def run(site: Path, snapshots: Path) -> None:
         server.shutdown()
         server.server_close()
 
-    assert len(poses) == 16, poses
+    assert len(poses) == 21, poses
     print("Passed browser checks for:", ", ".join(poses))
 
 
