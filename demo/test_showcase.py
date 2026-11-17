@@ -105,10 +105,32 @@ def run(site: Path, snapshots: Path) -> None:
                     expect(flap).to_be_visible()
                     transform = flap.evaluate("el => getComputedStyle(el).transform")
                     assert transform.startswith("matrix3d("), transform
-                    clip = page.locator("#deviceScreen").evaluate(
-                        "el => getComputedStyle(el).clipPath"
+                    near = page.locator("#foldNearPlane")
+                    expect(near).to_be_visible()
+                    assert near.evaluate("el => getComputedStyle(el).overflow") == "hidden"
+                    assert page.locator("#deviceScreen").evaluate(
+                        "el => getComputedStyle(el).transform"
+                    ) == "none"
+                    first_matrix = near.evaluate(
+                        "el => getComputedStyle(el).transform"
                     )
-                    assert clip.startswith("inset(") and "50%" in clip, clip
+                    assert first_matrix.startswith("matrix3d("), first_matrix
+                    # A valley-shaped fold has both exterior edges closer
+                    # to the viewer than the central hinge.
+                    parse_matrix = lambda m: [
+                        float(v.strip()) for v in m[len("matrix3d("):-1].split(",")
+                    ]
+                    first, second = parse_matrix(first_matrix), parse_matrix(transform)
+                    signed_component = 6 if pose.endswith("portrait") else 2
+                    assert first[signed_component] < -0.05, first
+                    assert second[signed_component] > 0.05, second
+                    assert abs(first[signed_component]) < 0.20, first
+                    assert abs(second[signed_component]) < 0.20, second
+                    # No large blackout gradient at the crease.
+                    light = page.locator(".fold-flap-light").evaluate(
+                        "el => getComputedStyle(el).backgroundImage"
+                    )
+                    assert "rgba(233, 249, 255" in light and "rgba(0, 0, 0" not in light, light
                     expect(page.locator("#tideFoldPreview")).to_be_visible()
                     if pose.endswith("portrait"):
                         expect(status).to_be_visible()
@@ -209,7 +231,7 @@ def run(site: Path, snapshots: Path) -> None:
             assert page.locator("#foldFlap").evaluate(
               "el => getComputedStyle(el,'::after').borderRightWidth"
             ) == "5px"
-            for selector in ("#deviceScreen", "#foldFlap"):
+            for selector in ("#foldNearPlane", "#foldFlap"):
                 m=page.locator(selector).evaluate(
                   "el => getComputedStyle(el).transform"
                 )

@@ -131,101 +131,161 @@ iframe{width:100%;height:100%;display:block;border:0;background:#0a1119}
   radial-gradient(ellipse 42% 30% at 50% 79%,#6a8fa01b,transparent 90%),
   radial-gradient(ellipse 75% 70% at 50% 35%,#23313c99,transparent 80%),#101720}
 .frame-holder{perspective:1200px}
-.device-frame{isolation:isolate}
+ .device-frame{isolation:isolate}
+.fold-near-plane{position:relative;width:100%;height:100%}
 .device-screen{clip-path:inset(0 round
     max(0px,calc(var(--tl,40px) - 5px))
     max(0px,calc(var(--tr,40px) - 5px))
     max(0px,calc(var(--br,40px) - 5px))
     max(0px,calc(var(--bl,40px) - 5px)))}
-/* Actual hinge geometry. The device itself stays unrotated.
-   Each half is masked at the screen edge; only the SECOND screen plane
-   rotates in 3D, exposing an unmistakable angle at the fold. */
+/* A real inward fold. Both shallowly angled wrappers pivot at the physical
+   hinge. The Tide iframes themselves stay flat *inside* their clipped halves.
+   Depth: the exterior edges come forward, with the crease slightly recessed. */
 .device-frame.is-partially-folded{
-  overflow:visible;background:transparent;border-color:transparent;
+  overflow:visible;
+  background:transparent;
+  border-color:transparent;
   transform:translate(-50%,-50%) scale(var(--device-scale,1));
-  perspective:1350px;perspective-origin:50% 48%;
-  transform-style:preserve-3d;box-shadow:none}
-.device-frame.is-partially-folded::before{
-  content:"";position:absolute;z-index:10;pointer-events:none;
-  inset:0 50% 0 0;box-sizing:border-box;
-  transform-origin:right center;transform:rotateY(-16deg);
-  border:5px solid #05070b;border-right:2px solid #101820;
-  border-radius:var(--tl,51px) 0 0 var(--bl,51px);
-  box-shadow:-6px 13px 25px #0006,inset 2px 1px 2px #b2bdc325;
+  perspective:1550px;
+  perspective-origin:50% 50%;
+  transform-style:preserve-3d;
+  box-shadow:none;
 }
-.device-frame.is-partially-folded .device-screen{
-  transform:rotateY(-16deg);transform-origin:center center;
-  box-shadow:0 8px 26px #0006}
-.device-frame[data-pose="partially-folded-landscape"] .device-screen{
-  clip-path:inset(0 50% 0 0 round
-    max(0px,calc(var(--tl,40px) - 5px)) 0 0
-    max(0px,calc(var(--bl,40px) - 5px)))}
-.device-frame[data-pose="partially-folded-portrait"] .device-screen{
-  clip-path:inset(0 0 50% 0 round
-    max(0px,calc(var(--tl,40px) - 5px))
-    max(0px,calc(var(--tr,40px) - 5px)) 0 0)}
-.fold-planes{display:none;position:absolute;inset:0;z-index:9;pointer-events:none;
-  overflow:visible;transform-style:preserve-3d}
+.is-partially-folded .fold-near-plane{
+  position:absolute;inset:0 auto 0 0;
+  width:50%;height:100%;
+  overflow:hidden;
+  z-index:2;
+  transform:rotateY(10deg);
+  transform-origin:right center;
+  border-radius:max(0px,calc(var(--tl,40px) - 5px)) 0 0
+    max(0px,calc(var(--bl,40px) - 5px));
+  background:#0a1119;
+  box-shadow:-5px 11px 24px #0006;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+.is-partially-folded .fold-near-plane .device-screen{
+  width:200%;height:100%;border-radius:0;
+  clip-path:none;overflow:visible;
+}
+.is-partially-folded .fold-near-plane::after{
+  content:"";position:absolute;z-index:12;inset:0;
+  border:5px solid #05070b;border-right:0;
+  border-radius:inherit;
+  pointer-events:none;
+  box-shadow:inset 2px 1px 3px #b6c9cf18;
+}
+.is-partially-folded .fold-near-plane::before{
+  content:"";position:absolute;z-index:11;pointer-events:none;
+  right:0;top:4%;bottom:4%;width:11px;
+  background:linear-gradient(to left,rgba(232,249,255,.045),transparent 100%);
+}
+.fold-planes{
+  display:none;
+  position:absolute;inset:0;
+  z-index:3;
+  pointer-events:none;
+  overflow:visible;
+  transform-style:preserve-3d;
+}
 .is-partially-folded .fold-planes{display:block}
-.fold-flap{position:absolute;top:0;right:0;width:50%;height:100%;
-  transform-origin:left center;transform:rotateY(16deg);
-  overflow:hidden;pointer-events:auto;backface-visibility:hidden;
+.fold-flap{
+  position:absolute;top:0;right:0;width:50%;height:100%;
+  overflow:hidden;
+  pointer-events:auto;
+  transform-origin:left center;
+  transform:rotateY(-10deg);
+  background:#0a1119;
   border-radius:0 max(0px,calc(var(--tr,40px) - 5px))
     max(0px,calc(var(--br,40px) - 5px)) 0;
-  clip-path:inset(0 round 0
-    max(0px,calc(var(--tr,40px) - 5px))
-    max(0px,calc(var(--br,40px) - 5px)) 0);
-  background:#070e16;box-shadow:0 12px 25px #0007,
-    inset -4px 0 5px #000a}
-.fold-flap::after{
-  content:"";position:absolute;inset:0;z-index:6;pointer-events:none;
-  border:5px solid #05070b;border-left:2px solid #101820;
-  border-radius:inherit;box-shadow:inset -2px 0 3px #b2bdc327;
+  box-shadow:5px 11px 24px #0006;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
 }
-.fold-flap iframe{position:absolute;display:block;top:0;left:-100%;
-  width:200%;height:100%;border:0;background:#0a1119}
-.fold-flap-light{position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(90deg,#03070ba9 0%,#16202a33 15%,#ebffff09 70%,#0008 100%);
-  box-shadow:inset -4px 0 8px #0005}
-.fold-flap-status{position:absolute;top:22px;right:27px;
-  display:grid;justify-items:center;gap:7px;color:#fff;pointer-events:none;
-  text-shadow:0 1px 5px #000}
+.fold-flap iframe{
+  position:absolute;top:0;left:-100%;
+  width:200%;height:100%;
+  border:0;background:#0a1119;
+}
+.fold-flap::after{
+  content:"";position:absolute;z-index:9;inset:0;
+  border:5px solid #05070b;border-left:0;border-radius:inherit;
+  pointer-events:none;
+  box-shadow:inset -2px 1px 3px #b6c9cf16;
+}
+.fold-flap-light{
+  position:absolute;inset:0;z-index:6;
+  pointer-events:none;
+  background:linear-gradient(90deg,
+    rgba(233,249,255,.045),transparent 9%,transparent 94%,
+    rgba(225,244,255,.02));
+  box-shadow:none;
+}
+.fold-flap-status{
+  position:absolute;z-index:7;top:22px;right:27px;
+  display:grid;justify-items:center;gap:7px;
+  pointer-events:none;color:white;text-shadow:0 1px 5px #0008;
+}
 .fold-flap-status img{width:42px;height:42px;object-fit:contain}
 .fold-flap-status .fold-time{font-size:16px;font-weight:650;line-height:16px}
-.fold-planes::after{content:"";position:absolute;pointer-events:none;
-  top:0;bottom:0;left:calc(50% - 1px);width:2px;
-  background:linear-gradient(90deg,#0005,#c6d6de45);opacity:.65}
+.fold-planes::after{
+  content:"";position:absolute;z-index:11;pointer-events:none;
+  top:3%;bottom:3%;left:calc(50% - 7px);width:14px;
+  background:linear-gradient(90deg,transparent,rgba(215,242,249,.14),transparent);
+  opacity:.45;
+  filter:blur(5px);
+}
+
+/* Laptop posture: the upper screen is nearly flat for legibility.
+   The lower screen has a slightly stronger inward tilt, pivoting at the same
+   horizontal hinge. The content surfaces retain their original rectangles. */
+[data-pose="partially-folded-portrait"] .fold-near-plane{
+  width:100%;height:50%;inset:0 0 auto 0;
+  transform:rotateX(-6deg);
+  transform-origin:center bottom;
+  border-radius:max(0px,calc(var(--tl,40px) - 5px))
+    max(0px,calc(var(--tr,40px) - 5px)) 0 0;
+  box-shadow:0 -3px 22px #0004;
+}
+[data-pose="partially-folded-portrait"] .fold-near-plane .device-screen{
+  width:100%;height:200%;
+}
+[data-pose="partially-folded-portrait"] .fold-near-plane::after{
+  border:5px solid #05070b;border-bottom:0;
+}
+[data-pose="partially-folded-portrait"] .fold-near-plane::before{
+  left:3%;right:3%;top:auto;bottom:0;width:auto;height:10px;
+  background:linear-gradient(to top,rgba(233,249,255,.035),transparent);
+}
 [data-pose="partially-folded-portrait"] .fold-flap{
-  top:50%;right:0;width:100%;height:50%;
-  transform-origin:center top;transform:rotateX(-16deg);
+  width:100%;height:50%;top:50%;right:0;
+  transform:rotateX(10deg);
+  transform-origin:center top;
   border-radius:0 0 max(0px,calc(var(--br,40px) - 5px))
     max(0px,calc(var(--bl,40px) - 5px));
-  clip-path:inset(0 round 0 0
-    max(0px,calc(var(--br,40px) - 5px))
-    max(0px,calc(var(--bl,40px) - 5px)))}
-[data-pose="partially-folded-portrait"] .device-screen{
-  transform:rotateX(16deg);transform-origin:center center}
-[data-pose="partially-folded-portrait"].device-frame::before{
-  inset:0 0 50% 0;
-  transform-origin:center bottom;transform:rotateX(16deg);
-  border:5px solid #05070b;border-bottom:2px solid #101820;
-  border-radius:var(--tl,51px) var(--tr,51px) 0 0;
-}
-[data-pose="partially-folded-portrait"] .fold-flap::after{
-  border:5px solid #05070b;border-top:2px solid #101820;
+  box-shadow:0 8px 23px #0005;
 }
 [data-pose="partially-folded-portrait"] .fold-flap iframe{
-  left:0;top:-100%;width:100%;height:200%}
+  left:0;top:-100%;width:100%;height:200%;
+}
+[data-pose="partially-folded-portrait"] .fold-flap::after{
+  border:5px solid #05070b;border-top:0;
+}
 [data-pose="partially-folded-portrait"] .fold-flap-light{
-  background:linear-gradient(180deg,#04080eb3 0%,#13212d2c 25%,#dcefff0b 70%,#0005 100%);
-  box-shadow:inset 0 -4px 7px #0005}
+  background:linear-gradient(180deg,
+    rgba(233,249,255,.04),transparent 10%,transparent 95%,
+    rgba(225,244,255,.02));
+}
 [data-pose="partially-folded-portrait"] .fold-flap-status{display:none}
 [data-pose="partially-folded-portrait"] .fold-planes::after{
-  top:calc(50% - 1px);bottom:auto;left:0;right:0;width:100%;height:2px;
-  background:linear-gradient(180deg,#0005,#c6d6de45)}
+  top:calc(50% - 7px);bottom:auto;left:3%;right:3%;
+  width:auto;height:14px;
+  background:linear-gradient(180deg,transparent,rgba(215,242,249,.12),transparent);
+}
 /* Screen contents must never protrude around any physical corner. */
 .device-frame:not(.is-partially-folded){overflow:hidden}
-.device-frame .device-screen,.fold-flap{contain:paint}
+.device-frame .device-screen,.fold-near-plane,.fold-flap{contain:paint}
 @media(max-width:670px){.preview-note{flex-basis:100%;margin-left:0}
   .fold-selector{padding:2px 7px;gap:3px}
   .duo-choices .fold-stops button{min-width:32px;width:32px}}

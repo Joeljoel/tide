@@ -14,7 +14,7 @@
   };
   const get=id=>document.getElementById(id);
   const stage=get('stage'),holder=get('frameHolder'),frame=get('deviceFrame'),iframe=get('tidePreview');
-  const screen=get('deviceScreen'),tide=get('tidePanel'),home=get('homePanel');
+  const screen=get('deviceScreen'),nearPlane=get('foldNearPlane'),tide=get('tidePanel'),home=get('homePanel');
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
   const desktopBtn=get('desktopBtn'),duoBtn=get('duoBtn'),duoChoices=get('duoChoices');
   const foldedBtn=get('foldedBtn'),partialBtn=get('partialBtn'),unfoldedBtn=get('unfoldedBtn');
@@ -115,33 +115,34 @@
     });
   }
 
-  // The whole device stays still: animate the far screen plane at the hinge.
+  // Animate the two physical wrappers about the hinge. Both inner Tide
+  // iframes remain flat and clipped; portrait uses a gentler upper-plane bend.
   async function foldTransition(nextPose){
     const entering=nextPose.startsWith('partially-folded-');
     const leaving=currentPose.startsWith('partially-folded-');
     const portrait=(entering?nextPose:currentPose).endsWith('portrait');
     const open='rotate'+(portrait?'X':'Y')+'(0deg)';
-    const bent='rotate'+(portrait?'X(-16deg)':'Y(16deg)');
-    const firstPlaneBend='rotate'+(portrait?'X(16deg)':'Y(-16deg)');
+    const firstBend=portrait?'rotateX(-6deg)':'rotateY(10deg)';
+    const secondBend=portrait?'rotateX(10deg)':'rotateY(-10deg)';
     if(entering){
       showPose(nextPose);
       const motions=[
-        play(screen,[{transform:open},{transform:firstPlaneBend}],340),
-        play(foldFlap,[{transform:open},{transform:bent}],340)
+        play(nearPlane,[{transform:open},{transform:firstBend}],330),
+        play(foldFlap,[{transform:open},{transform:secondBend}],330)
       ];
       await Promise.all(motions.map(motion=>motion.finished));
       motions.forEach(motion=>motion.cancel());
     }else if(leaving){
       const motions=[
-        play(screen,[{transform:firstPlaneBend},{transform:open}],310),
-        play(foldFlap,[{transform:bent},{transform:open}],310)
+        play(nearPlane,[{transform:firstBend},{transform:open}],290),
+        play(foldFlap,[{transform:secondBend},{transform:open}],290)
       ];
       await Promise.all(motions.map(motion=>motion.finished));
       showPose(nextPose);
       motions.forEach(motion=>motion.cancel());
     }else{
       showPose(nextPose);
-      const motion=play(frame,[{opacity:.76},{opacity:1}],220);
+      const motion=play(frame,[{opacity:.8},{opacity:1}],220);
       await motion.finished;
       motion.cancel();
     }

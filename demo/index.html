@@ -47,7 +47,8 @@
     <div class="stage" id="stage">
       <div class="frame-holder" id="frameHolder">
         <div class="device-frame" id="deviceFrame" data-pose="desktop">
-          <div class="device-screen" id="deviceScreen">
+          <div class="fold-near-plane" id="foldNearPlane">
+            <div class="device-screen" id="deviceScreen">
             <div class="duo-panel tide-panel" id="tidePanel">
               <iframe id="tidePreview" title="Interactive Tide demo" src="app/index.html?demo=1&amp;pose=desktop"
                 loading="eager" referrerpolicy="no-referrer"></iframe>
@@ -71,8 +72,9 @@
               </div>
             </div>
           </div>
-            <!-- In a partial pose, the main iframe is clipped to the first physical plane.
-                 A same-origin mirrored iframe renders the other half on a real 3D flap. -->
+          </div>
+            <!-- Two independently clipped physical planes share one *logical* viewport.
+                 Only their wrappers rotate. Demo scrolling and actions are synchronized. -->
             <div class="fold-planes" id="foldPlanes">
               <div class="fold-flap" id="foldFlap">
                 <iframe id="tideFoldPreview" title="Other side of Tide's foldable display"
